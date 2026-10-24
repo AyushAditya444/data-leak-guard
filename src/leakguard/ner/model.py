@@ -20,7 +20,6 @@ from tokenizers import Tokenizer
 from leakguard.detect.spans import Span
 from leakguard.ner.decode import decode_names, person_label_ids
 
-REQUIRED_FILES = ("model.onnx", "tokenizer.json", "ner_config.json")
 REQUIRED_KEYS = ("id2label", "cls_id", "sep_id", "pad_id", "max_length", "threshold",
                  "candidate")
 _OVERLAP = 64  # tokens shared by neighbouring windows, so no name is cut at an edge
@@ -63,9 +62,12 @@ class NameModel:
         self.name = str(config["candidate"])
 
     @classmethod
-    def load(cls, model_dir: str | os.PathLike, threads: int = 1) -> "NameModel":
+    def load(cls, model_dir: str | os.PathLike, threads: int = 1,
+             model_file: str = "model.onnx") -> "NameModel":
+        """`model_file` lets the comparison load the unquantised model.fp32.onnx."""
         model_dir = Path(model_dir)
-        missing = [f for f in REQUIRED_FILES if not (model_dir / f).is_file()]
+        required = (model_file, "tokenizer.json", "ner_config.json")
+        missing = [f for f in required if not (model_dir / f).is_file()]
         if missing:
             raise NameModelError(f"missing {', '.join(missing)} in {model_dir}")
         try:
@@ -82,7 +84,7 @@ class NameModel:
         options.intra_op_num_threads = threads
         options.inter_op_num_threads = 1
         try:
-            session = ort.InferenceSession(str(model_dir / "model.onnx"), options,
+            session = ort.InferenceSession(str(model_dir / model_file), options,
                                            providers=["CPUExecutionProvider"])
             tokenizer = Tokenizer.from_file(str(model_dir / "tokenizer.json"))
             model = cls(session, tokenizer, config)

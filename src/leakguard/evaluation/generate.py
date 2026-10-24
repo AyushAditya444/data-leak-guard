@@ -21,6 +21,16 @@ SPLIT_SIZES: dict[str, int] = {
 SPLIT_SEEDS = {"dev": 1, "test": 2}
 
 
+_NAME_SLOT = re.compile(r"\{NAME(?:\.([a-z]+))?\}")
+
+
+def name_form(template: str) -> str | None:
+    """Which name form a template uses ("lower", "initial"...; plain {NAME} is "mixed"),
+    or None if it has no name. Each template uses at most one form."""
+    m = _NAME_SLOT.search(template)
+    return None if m is None else (m.group(1) or "mixed")
+
+
 def template_split(category: str, index: int) -> str:
     return "dev" if index % 2 == 0 else "test"
 

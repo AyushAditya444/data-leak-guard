@@ -84,3 +84,11 @@ def test_name_negatives_in_both_splits():
     for split, seed in (("dev", 1), ("test", 2)):
         assert any(s.category == "negative" and ("{~FESTIVAL}" in s.template
                    or "{~BRAND}" in s.template) for s in build_split(split, seed))
+
+
+def test_name_form_of_template():
+    from leakguard.evaluation.generate import name_form
+    assert name_form("mera naam {NAME.lower} hai") == "lower"
+    assert name_form("I'm {NAME}. Call {PHONE}") == "mixed"
+    assert name_form("call {PHONE}") is None
+    assert name_form("handwritten") is None

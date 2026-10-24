@@ -100,3 +100,10 @@ def test_load_reports_missing_config_key(tmp_path):
     (tmp_path / "ner_config.json").write_text('{"cls_id": 1}')
     with pytest.raises(NameModelError, match="id2label"):
         NameModel.load(tmp_path)
+
+
+def test_load_can_use_another_model_file(tmp_path):
+    for name in ("model.onnx", "tokenizer.json", "ner_config.json"):
+        (tmp_path / name).write_bytes(b"")
+    with pytest.raises(NameModelError, match="model.fp32.onnx"):
+        NameModel.load(tmp_path, model_file="model.fp32.onnx")
