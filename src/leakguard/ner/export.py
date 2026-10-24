@@ -25,6 +25,8 @@ from leakguard.ner.candidates import CANDIDATES, DEFAULT_CANDIDATE, Candidate
 DEPLOY_DIR = Path("models/ner")
 CANDIDATES_DIR = Path("models/candidates")
 MAX_FP32_DIFF = 1e-3  # fp32 ONNX must reproduce PyTorch's logits to this precision
+# Candidate exports keep both int8 modes so the comparison can pick per model.
+QUANT_FILES = {"per-channel": "model.int8-channel.onnx", "per-tensor": "model.int8-tensor.onnx"}
 
 # Fixed sentences for the parity checks (synthetic; nobody real).
 PARITY_SENTENCES = (
@@ -122,10 +124,17 @@ def export(candidate: Candidate, out_dir: Path, keep_fp32: bool) -> dict:
 
     fp32, int8 = out_dir / "model.fp32.onnx", out_dir / "model.onnx"
     _export_onnx(model, fp32)
-    # Per-channel: each output channel of a weight matrix gets its own int8 scale. With a
-    # single scale per tensor, a few large weights squash the rest to zero: on dev, MuRIL's
-    # NAME F1 fell from 93% (fp32) to 0%; per-channel kept 85%, at the same size and speed.
-    quantize_dynamic(str(fp32), str(int8), weight_type=QuantType.QInt8, per_channel=True)
+    # Per-channel: each output channel of a weight matrix gets its own int8 scale; per-tensor:
+    # one scale for the whole matrix, so a few large weights can squash the rest to zero (on
+    # dev, MuRIL's NAME F1 fell from 93% to 0% that way). Neither is best for every model,
+    # so the mode is chosen per candidate on dev, like the threshold.
+    modes = {"per-channel": True, "per-tensor": False}
+    quantize_dynamic(str(fp32), str(int8), weight_type=QuantType.QInt8,
+                     per_channel=candidate.per_channel)
+    if keep_fp32:
+        for mode, filename in QUANT_FILES.items():
+            quantize_dynamic(str(fp32), str(out_dir / filename), weight_type=QuantType.QInt8,
+                             per_channel=modes[mode])
 
     tokenizer_json = out_dir / "tokenizer.json"
     hf_tokenizer.backend_tokenizer.save(str(tokenizer_json))
@@ -137,6 +146,7 @@ def export(candidate: Candidate, out_dir: Path, keep_fp32: bool) -> dict:
         "pad_id": hf_tokenizer.pad_token_id,
         "max_length": min(512, model.config.max_position_embeddings),
         "threshold": candidate.threshold,
+        "per_channel": candidate.per_channel,
     }
     (out_dir / "ner_config.json").write_text(json.dumps(config, indent=2), encoding="utf-8")
 

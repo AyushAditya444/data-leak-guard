@@ -17,6 +17,9 @@ class Candidate:
     revision: str
     note: str
     threshold: float = 0.5  # minimum mean person-score for a name; tuned on dev
+    # int8 quantisation with one scale per weight channel (True) or per tensor (False).
+    # Tuned on dev too: per-channel rescued one model (MuRIL) but made another worse.
+    per_channel: bool = True
 
 
 CANDIDATES: dict[str, Candidate] = {c.key: c for c in (
