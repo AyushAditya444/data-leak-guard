@@ -43,6 +43,14 @@ def test_card_luhn():
     assert detect_card("4111 1111 1111 1112") == []
 
 
+def test_unusual_card_lengths_need_card_context():
+    # Found in dev error analysis: 1 in 10 random 14-digit ticket numbers pass Luhn.
+    # Indian cards are almost always 15 (Amex) or 16 digits; other lengths need context.
+    assert detect_card("Escalation 34702481911668: customer called") == []  # 14 digits, Luhn ok
+    assert len(detect_card("my diners card 3470 2481 9116 68")) == 1
+    assert len(detect_card("pay with 4111111111111111")) == 1  # 16 digits, no context needed
+
+
 def test_ifsc():
     text = "IFSC HDFC0001234, sbin0005943"
     assert _vals(detect_ifsc(text), text) == ["HDFC0001234", "sbin0005943"]

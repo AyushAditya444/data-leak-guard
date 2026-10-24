@@ -26,6 +26,9 @@ _PAN = re.compile(r"(?<![A-Za-z0-9])[A-Za-z]{3}[ABCFGHJLPT][A-Za-z]\d{4}[A-Za-z]
 
 # Cards: 13-19 digits, optionally grouped with single spaces or hyphens.
 _CARD = re.compile(r"(?<!\d)\d(?:[ -]?\d){12,18}(?!\d)")
+_CARD_CONTEXT = re.compile(
+    r"\b(?:card|credit|debit|visa|master\s?card|rupay|amex|diners|maestro)\b", re.IGNORECASE)
+_CARD_CONTEXT_BEFORE = 30  # characters
 
 # IFSC: 4-letter bank code, a literal 0 (reserved), 6-character branch code.
 IFSC_PATTERN = re.compile(r"(?<![A-Za-z0-9])[A-Za-z]{4}0[A-Za-z0-9]{6}(?![A-Za-z0-9])")
@@ -56,7 +59,19 @@ def detect_pan(text: str) -> list[Span]:
 
 
 def detect_card(text: str) -> list[Span]:
-    return _find(_CARD, text, EntityType.CARD, "card", lambda value: luhn_valid(_digits(value)))
+    """Luhn-valid 13-19 digit numbers. Indian cards are almost always 15 (Amex) or 16
+    digits; other lengths only count with a card word just before them, because about
+    1 in 10 random 14-digit ticket or order numbers also pass Luhn."""
+    spans = []
+    for m in _CARD.finditer(text):
+        digits = _digits(m.group())
+        if not luhn_valid(digits):
+            continue
+        common_length = len(digits) in (15, 16)
+        has_context = _CARD_CONTEXT.search(text[max(0, m.start() - _CARD_CONTEXT_BEFORE):m.start()])
+        if common_length or has_context:
+            spans.append(Span(m.start(), m.end(), EntityType.CARD, detector="card"))
+    return spans
 
 
 def detect_ifsc(text: str) -> list[Span]:
