@@ -38,6 +38,18 @@ def test_latency_buckets():
     assert lat["all"]["n"] == 4 and lat["all"]["p95_ms"] >= lat["all"]["p50_ms"] >= 0
 
 
+def test_errors_cli_works_on_a_legacy_windows_console():
+    # Windows consoles often use cp1252, which can't encode "⏎" or Hindi text.
+    import os
+    import subprocess
+    import sys
+    env = {**os.environ, "PYTHONIOENCODING": "cp1252"}
+    run = subprocess.run([sys.executable, "-m", "leakguard.evaluation", "errors",
+                          "--split", "handwritten"], check=False, capture_output=True,
+                         env=env)
+    assert run.returncode == 0, run.stderr.decode(errors="replace")[-500:]
+
+
 def test_render_errors_lists_misses():
     ev = score(_samples(), detect_all)
     assert "FN NAME" in render_errors(ev)

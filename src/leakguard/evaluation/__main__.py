@@ -1,6 +1,7 @@
 """Command line: python -m leakguard.evaluation {generate,report,errors}. Run from repo root."""
 
 import argparse
+import sys
 from pathlib import Path
 
 from leakguard.detect import detect_all
@@ -45,6 +46,9 @@ def cmd_errors(args: argparse.Namespace) -> None:
 
 
 def main() -> None:
+    # Hindi text and symbols like "⏎" must not crash a legacy (cp1252) Windows console:
+    # characters the console can't show are replaced instead of raising.
+    sys.stdout.reconfigure(errors="replace")
     parser = argparse.ArgumentParser(prog="python -m leakguard.evaluation")
     sub = parser.add_subparsers(dest="command", required=True)
     sub.add_parser("generate", help="rebuild data/eval/dev.jsonl and test.jsonl")
