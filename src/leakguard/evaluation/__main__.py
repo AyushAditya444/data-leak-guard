@@ -29,9 +29,13 @@ NOTES = [
     "handles per message; see *Known-hard formats*."),
     ("Phase 4 extended the dataset (name forms, separate dev/test name pools, capitalised "
     "words that are not names). The seeded generator therefore produced new samples, so "
-    "non-NAME rows moved slightly from the Phase 3 report. The name model and its "
-    "threshold were chosen on dev only; no test-set inspection informed any Phase 4 "
-    "decision."),
+    "non-NAME rows moved slightly from the Phase 3 report. The name model, its threshold "
+    "and int8 mode, and the cue-based fallback for lowercase/all-caps names were all "
+    "chosen on dev only; no test-set inspection informed any Phase 4 decision."),
+    ("The cue phrases of the name fallback (e.g. `mera naam ... hai`, `... bol raha hoon`) "
+    "were written by the same author as the message templates, so the fallback's test "
+    "numbers may be optimistic. The hand-written set and the lowercase test template "
+    "without any cue (`bhaiya ... ko parcel de dena`) are the more independent checks."),
 ]
 
 
