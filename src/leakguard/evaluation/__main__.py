@@ -1,14 +1,19 @@
 """Command line: python -m leakguard.evaluation {generate,report,errors}. Run from repo root."""
 
 import argparse
+import json
 import sys
 from pathlib import Path
 
-from leakguard.detect import detect_rules
-from leakguard.evaluation.generate import SPLIT_SEEDS, build_split
+from leakguard.config import Settings
+from leakguard.detect import build_detector, detect_rules
+from leakguard.detect.engine import Detector
+from leakguard.entities import EntityType
+from leakguard.evaluation.generate import SPLIT_SEEDS, build_split, name_form
 from leakguard.evaluation.metrics import score
 from leakguard.evaluation.report import measure_latency, render_errors, render_report
 from leakguard.evaluation.samples import Sample, read_jsonl, write_jsonl
+from leakguard.ner.model import NameModel, NameModelError
 
 DATA = Path("data/eval")
 REPORT = Path("docs/evaluation/report.md")
@@ -22,6 +27,11 @@ NOTES = [
     "before this fix was 72.9%; the test set was not used for any other decision."),
     ("UPI recall on the test split is pulled down by one hard template with two unknown UPI "
     "handles per message; see *Known-hard formats*."),
+    ("Phase 4 extended the dataset (name forms, separate dev/test name pools, capitalised "
+    "words that are not names). The seeded generator therefore produced new samples, so "
+    "non-NAME rows moved slightly from the Phase 3 report. The name model and its "
+    "threshold were chosen on dev only; no test-set inspection informed any Phase 4 "
+    "decision."),
 ]
 
 
@@ -33,6 +43,42 @@ def load_split(split: str) -> list[Sample]:
     return read_jsonl(DATA / f"{split}.jsonl")
 
 
+def load_detector(require_names: bool) -> tuple[Detector, NameModel | None, Settings]:
+    """The full detector, configured like the guard (LEAKGUARD_NER, ..._MODEL_DIR)."""
+    settings = Settings.from_env()
+    if not settings.ner_enabled:
+        if require_names:
+            sys.exit("The report needs the name model, but LEAKGUARD_NER=off is set.")
+        print("note: LEAKGUARD_NER=off, so names are not detected", file=sys.stderr)
+        return detect_rules, None, settings
+    try:
+        model = NameModel.load(settings.ner_model_dir, settings.ner_threads)
+    except NameModelError as exc:
+        sys.exit(f"The name model could not be loaded ({exc}). "
+                 "Run: python -m leakguard.ner.export")
+    return build_detector(model.detect), model, settings
+
+
+def _memo(detect: Detector) -> Detector:
+    """Score many slices of the same messages while running the model once per message."""
+    cache: dict[str, list] = {}
+
+    def cached(text: str) -> list:
+        if text not in cache:
+            cache[text] = detect(text)
+        return cache[text]
+
+    return cached
+
+
+def _model_info(model: NameModel, settings: Settings) -> dict:
+    model_dir = Path(settings.ner_model_dir)
+    manifest = json.loads((model_dir / "manifest.json").read_text(encoding="utf-8"))
+    return {"candidate": model.name, "repo": manifest["repo"],
+            "revision": manifest["revision"], "threads": settings.ner_threads,
+            "size_mb": (model_dir / "model.onnx").stat().st_size / 1e6}
+
+
 def cmd_generate(_: argparse.Namespace) -> None:
     for split, seed in SPLIT_SEEDS.items():
         samples = build_split(split, seed)
@@ -41,24 +87,32 @@ def cmd_generate(_: argparse.Namespace) -> None:
 
 
 def cmd_report(_: argparse.Namespace) -> None:
+    detect, model, settings = load_detector(require_names=True)
+    cached = _memo(detect)
     test, handwritten = load_split("test"), load_split("handwritten")
-    results = {"test": score(test, detect_rules), "handwritten": score(handwritten, detect_rules)}
+    results = {"test": score(test, cached), "handwritten": score(handwritten, cached)}
     hard_templates = sorted({s.template for s in test if s.category == "hard"})
     hard_cases = {}
     for template in hard_templates:
-        ev = score([s for s in test if s.template == template], detect_rules)
+        ev = score([s for s in test if s.template == template], cached)
         total = next(iter(ev.by_category.values()))
         hard_cases[template] = total
-    md = render_report(results, measure_latency(test, detect_rules),
+    forms = sorted({f for s in test if (f := name_form(s.template))})
+    name_forms = {form: score([s for s in test if name_form(s.template) == form],
+                              cached).by_type[EntityType.NAME] for form in forms}
+    latencies = {"rules only": measure_latency(test, detect_rules),
+                 "rules + names": measure_latency(test, detect)}
+    md = render_report(results, latencies,
                        {"test": len(test), "handwritten": len(handwritten)}, hard_cases,
-                       NOTES)
+                       NOTES, name_forms, _model_info(model, settings))
     REPORT.parent.mkdir(parents=True, exist_ok=True)
     REPORT.write_text(md + "\n", encoding="utf-8", newline="\n")
     print(f"wrote {REPORT}")
 
 
 def cmd_errors(args: argparse.Namespace) -> None:
-    print(render_errors(score(load_split(args.split), detect_rules), limit=args.limit))
+    detect, _, _ = load_detector(require_names=False)
+    print(render_errors(score(load_split(args.split), detect), limit=args.limit))
 
 
 def main() -> None:

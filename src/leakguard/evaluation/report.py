@@ -11,7 +11,7 @@ from leakguard.evaluation.metrics import Evaluation, TypeScores
 from leakguard.evaluation.samples import Sample
 
 # Types with labels in the data but no detector yet. Later phases remove their entry.
-UNBUILT = {EntityType.NAME: "Phase 4", EntityType.ADDRESS: "Phase 5"}
+UNBUILT = {EntityType.ADDRESS: "Phase 5"}
 
 _BUCKETS = (("short (<200 chars)", 0, 200), ("medium (200-1000)", 200, 1000),
             ("long (>1000)", 1000, math.inf))
@@ -112,13 +112,26 @@ def _examples(ev: Evaluation, per_group: int = 5) -> list[str]:
     return lines or ["- none"]
 
 
+def _latency_table(latency: dict[str, dict[str, float]]) -> list[str]:
+    lines = ["| Message length | n | p50 | p95 | max |", "|---|---:|---:|---:|---:|"]
+    for name, row in latency.items():
+        lines.append(f"| {name} | {int(row['n'])} | {row['p50_ms']:.3f} ms "
+                     f"| {row['p95_ms']:.3f} ms | {row['max_ms']:.3f} ms |")
+    return lines
+
+
 def render_report(
     results: dict[str, Evaluation],
-    latency: dict[str, dict[str, float]],
+    latencies: dict[str, dict[str, dict[str, float]]],
     dataset_sizes: dict[str, int],
     hard_cases: dict[str, TypeScores] | None = None,
     notes: list[str] | None = None,
+    name_forms: dict[str, TypeScores] | None = None,
+    model_info: dict | None = None,
 ) -> str:
+    """`latencies` maps a layer label ("rules only", "rules + names") to measure_latency()
+    output; `model_info` describes the name model (candidate, repo, revision, size_mb,
+    threads)."""
     out = [
         "# Evaluation report",
         "",
@@ -136,8 +149,13 @@ def render_report(
         "- **Exact:** share of correct detections whose boundaries match the gold span exactly.",
         ("- Thresholds were tuned on the **dev** split only; the numbers below are from data "
         "the tuning never saw."),
-        "",
     ]
+    if model_info:
+        out.append(f"- **Name model:** `{model_info['candidate']}` = "
+                   f"`{model_info['repo']}@{model_info['revision'][:7]}`, ONNX int8, "
+                   f"{model_info['size_mb']:.0f} MB, {model_info['threads']} CPU thread(s). "
+                   "Chosen on dev: see [ner-comparison.md](ner-comparison.md).")
+    out.append("")
     for name, ev in results.items():
         neg = (f"{ev.negatives_with_fp} of {ev.negatives_total} "
                f"({_pct(ev.negatives_with_fp / ev.negatives_total)})"
@@ -146,13 +164,18 @@ def render_report(
                 f"Negative messages (nothing sensitive) with at least one false alarm: {neg}.",
                 "", f"### By category ({name})", "", *_category_table(ev), ""]
 
+    if name_forms:
+        out += ["## Names by form (test)", "",
+                "How NAME recall depends on how the name is written.", "",
+                "| Form | Recall | Coverage |", "|---|---:|---:|"]
+        out += [f"| {form} | {_pct(st.recall)} | {_pct(st.coverage)} |"
+                for form, st in name_forms.items()]
+        out.append("")
+
     out += ["## Latency (detection only)", "",
-            "Best of 3 runs per message, on the test split, single CPU thread.", "",
-            "| Message length | n | p50 | p95 | max |", "|---|---:|---:|---:|---:|"]
-    for name, row in latency.items():
-        out.append(f"| {name} | {int(row['n'])} | {row['p50_ms']:.3f} ms "
-                   f"| {row['p95_ms']:.3f} ms | {row['max_ms']:.3f} ms |")
-    out.append("")
+            "Best of 3 runs per message, on the test split, single CPU thread.", ""]
+    for layer, latency in latencies.items():
+        out += [f"### {layer}", "", *_latency_table(latency), ""]
 
     if hard_cases:
         out += ["## Known-hard formats (test split)", "",
