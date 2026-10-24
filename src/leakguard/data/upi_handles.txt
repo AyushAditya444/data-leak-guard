@@ -1,0 +1,43 @@
+# Known UPI handles (the part after @ in a UPI ID), one per line.
+# A "name@handle" is only treated as a UPI ID if the handle is listed here;
+# otherwise "user@company" text would be flagged everywhere.
+# PhonePe
+ybl
+ibl
+axl
+# Google Pay
+okicici
+okaxis
+oksbi
+okhdfcbank
+# Paytm
+paytm
+ptyes
+ptaxis
+pthdfc
+ptsbi
+# Amazon Pay
+apl
+yapl
+rapl
+# WhatsApp
+waaxis
+wahdfcbank
+wasbi
+waicici
+# Banks and others
+upi
+sbi
+icici
+hdfcbank
+axisbank
+kotak
+idfcbank
+yesbank
+pnb
+barodampay
+unionbank
+cnrb
+freecharge
+jupiteraxis
+fbl

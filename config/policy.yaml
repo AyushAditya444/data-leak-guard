@@ -1,0 +1,26 @@
+# Data Leak Guard policy.
+# Point the guard at your own copy with LEAKGUARD_POLICY_PATH=/path/to/policy.yaml.
+#
+# Actions:
+#   mask      hide the value before it reaches the LLM, put it back in the reply
+#   block     reject the whole request (HTTP 400) - nothing is sent
+#   log_only  send it unchanged, but count it in the logs (useful to trial the guard)
+# Types left out keep these defaults.
+
+actions:
+  AADHAAR: mask
+  PAN: mask
+  PHONE: mask
+  UPI: mask
+  EMAIL: mask
+  CARD: mask
+  IFSC: mask
+  BANK_ACCOUNT: mask
+  NAME: mask
+  ADDRESS: mask
+  SECRET: block       # no LLM ever needs an API key or password
+
+# If detection itself fails:
+#   closed  reject the request (safe default)
+#   open    forward it unmasked and log a warning (keeps the app up, risks a leak)
+failure_mode: closed
