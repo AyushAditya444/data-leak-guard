@@ -99,3 +99,45 @@ Every maker takes a `random.Random`, so a fixed seed produces the same dataset e
 ### Q&A
 **Q: How did you get test data without using real people's data?**
 A: A seeded generator. It builds identifiers that are structurally valid (correct Verhoeff and Luhn check digits, real PAN and IFSC structure) but belong to nobody, and fills them into message templates. Look-alikes such as order numbers are left unfiltered, so the false-positive rate reflects reality. A fixed seed makes the whole dataset reproducible byte for byte.
+
+---
+
+## 3. Templates and the dev/test datasets
+
+### Files
+| File | Purpose |
+|---|---|
+| `src/leakguard/evaluation/templates.py` | ~95 message templates in 6 categories |
+| `src/leakguard/evaluation/generate.py` | `render_template()`, `build_split()`, `SPLIT_SIZES` |
+| `data/eval/dev.jsonl`, `data/eval/test.jsonl` | 1,500 generated samples each, committed |
+
+### The six categories, and why each exists
+| Category | Per split | What it represents |
+|---|---|---|
+| `support` | 450 | customers typing into a chatbot |
+| `agent_record` | 150 | support agents pasting **whole customer records** (case 2 from the design) |
+| `dev_snippet` | 200 | developers pasting code, `.env` files, curl commands **with keys** (case 3) |
+| `hinglish` | 250 | romanised Hindi-English, the way Indians actually type |
+| `negative` | 350 | **nothing sensitive**: order IDs, OTPs, tickets, git hashes, UUIDs, "my password is wrong"… Every flag here is a false positive |
+| `hard` | 100 | formats the rules are *known* not to handle (spelled-out numbers, dots, unknown UPI handles): measured, not hidden |
+
+### Slot grammar
+```
+"Please send the refund to a/c no {BANK_ACCOUNT}, IFSC {IFSC}."      gold slots
+"My order {~ORDER_ID} was delivered late."                          filler (~): must NOT be flagged
+"export AWS_ACCESS_KEY_ID={SECRET.aws}"                              .variant picks a format
+```
+`render_template()` turns gold slots into marked text (`[[IFSC:HDFC0123456]]`) and fillers into plain values; `parse_marked()` then produces exact spans.
+
+### Splitting by template, not just by sample
+A naive split takes 3,000 generated messages and puts half in each set. But then the *same sentences* (only with different numbers) appear in both, so any rule tuned on dev phrasing scores artificially well on test. Here, **each template belongs to one split only** (even index → dev, odd → test). The test set contains phrasings the tuning process never saw, which is closer to meeting real users. `test_splits_share_no_templates` enforces it.
+
+### A balance problem caught by a test
+The first version gave the test set only **38** Aadhaar numbers, because most Aadhaar templates happened to sit at even positions. Results built on 38 examples are noisy: one miss moves recall by almost 3 points. A new test (`test_each_type_well_represented_in_both_splits`) requires ≥ 50 examples of every type in each split. Swapping three templates' positions fixed it; now every type has ≥ 88 per split.
+
+### Determinism and committed data
+`build_split("dev", seed=1)` always produces byte-identical output. The JSONL files are committed so anyone can inspect exactly what was measured, and `test_committed_datasets_match_generator` fails if the files and the generator ever drift apart.
+
+### Q&A
+**Q: How do you make sure your test numbers aren't inflated?**
+A: Four ways. Thresholds are tuned only on the dev split. Dev and test share no templates, so test sentences are phrased in ways tuning never saw. Negatives and look-alikes are a fifth of the data, so false positives show up. And a separate hand-written set, not produced by the generator at all, checks the generator isn't making things too easy.
