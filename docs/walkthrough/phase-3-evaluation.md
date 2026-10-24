@@ -56,3 +56,46 @@ Every FP and FN is stored as an `ErrorCase` (sample id, kind, type, value, text)
 ### Q&A
 **Q: Why report coverage as well as recall?**
 A: They answer different questions. Recall asks whether the detector found the value with the right type. Coverage asks whether the characters were actually hidden from the LLM. A bank account mislabelled as a phone number hurts recall but is still fully masked; a phone number masked without its last digits counts for recall (it overlaps) but leaks a digit, which coverage shows. For a privacy tool, the leak question is the one users care about.
+
+---
+
+## 2. Synthetic values: realistic, valid, and fake
+
+### File
+`src/leakguard/evaluation/values.py`: `VALUE_MAKERS`, one function per kind of value.
+
+### Why synthetic?
+Testing a privacy tool with real people's Aadhaar numbers would itself be a privacy violation. Every value here is generated: no real person owns `6580 7302 1578`.
+
+### Why *valid* synthetic values?
+If test Aadhaar numbers had random check digits, the detector would correctly reject ~90% of them, and the evaluation would report terrible recall for the wrong reason. So:
+- Aadhaar: 11 random digits (first 2–9), then the **Verhoeff check digit computed** with `verhoeff_check_digit()`. Computing a check digit needs an extra *inverse* table, compared with only validating one.
+- Card: 15 digits, then the one final digit that makes **Luhn** pass.
+- PAN: real structure, with a valid holder-type letter (mostly `P` for person).
+- IFSC: real bank codes (`HDFC`, `SBIN`…) and the reserved `0`.
+
+Example output:
+```
+AADHAAR          6580 7302 1578
+PHONE            +91 98193 03642
+UPI              kavyap@kotak
+ADDRESS          near Big Bazaar, Gomti Nagar, Lucknow
+SECRET.password  Lotus#154
+CAMEL            renderInvoiceLedgerFactory      ← a filler, must NOT be flagged
+```
+
+### Variants: the formats people really use
+Slot names like `PHONE.words` (`nine eight seven…`), `PHONE.dots` (`98765.43210`), `AADHAAR.mixed` (`2345 6789-0124`), `PAN.spaced` and `UPI.unknown_handle` produce **known-hard** formats. Some are expected misses. They exist so the report can say *exactly* what the guard doesn't handle, instead of hiding it.
+
+### Filler values are deliberately *not* filtered
+`ORDER_ID` is a random 12-digit number. About 10% of random 12-digit numbers (starting 2–9) happen to pass the Verhoeff check, so they *look* exactly like Aadhaar numbers, and the detector will flag them. That's not a bug in the data: real order numbers do the same thing. Leaving it in means the report shows the **real-world false-positive rate**, not an artificially perfect one.
+
+### Avoiding circular tests
+The generator's tests check values with **checksums and regex structure only**, never with the detectors. If the tests used the detectors ("the Aadhaar detector finds every generated Aadhaar"), a detector bug and a matching generator bug could hide each other.
+
+### Determinism, and a subtle trap
+Every maker takes a `random.Random`, so a fixed seed produces the same dataset every time. A trap found while writing it: the UPI handle list is a `frozenset`, and **Python randomises string hashing per process**, so iterating a set of strings gives a different order on every run. `rng.choice(list(the_set))` would therefore break determinism. The generator uses `sorted(...)` first.
+
+### Q&A
+**Q: How did you get test data without using real people's data?**
+A: A seeded generator. It builds identifiers that are structurally valid (correct Verhoeff and Luhn check digits, real PAN and IFSC structure) but belong to nobody, and fills them into message templates. Look-alikes such as order numbers are left unfiltered, so the false-positive rate reflects reality. A fixed seed makes the whole dataset reproducible byte for byte.
