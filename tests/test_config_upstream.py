@@ -24,3 +24,15 @@ def test_settings_from_env_reads_values():
 
 def test_settings_from_env_defaults():
     assert Settings.from_env({}) == Settings()
+
+
+def test_ner_settings_from_env():
+    s = Settings.from_env({"LEAKGUARD_NER": "off", "LEAKGUARD_NER_MODEL_DIR": "/m",
+                           "LEAKGUARD_NER_THREADS": "4"})
+    assert (s.ner_enabled, s.ner_model_dir, s.ner_threads) == (False, "/m", 4)
+    assert Settings.from_env({"LEAKGUARD_NER": "ON"}).ner_enabled is True
+
+
+def test_ner_env_rejects_unclear_values():
+    with pytest.raises(ValueError, match="LEAKGUARD_NER"):
+        Settings.from_env({"LEAKGUARD_NER": "maybe"})

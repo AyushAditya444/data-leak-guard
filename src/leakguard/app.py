@@ -16,11 +16,14 @@ from dataclasses import dataclass, field
 import httpx
 from fastapi import FastAPI, Request, Response
 from fastapi.responses import StreamingResponse
+from starlette.concurrency import run_in_threadpool
 
 from leakguard.config import Settings
+from leakguard.detect.engine import Detector, build_detector
 from leakguard.errors import openai_error
-from leakguard.logs import log_detection_failed, log_request
+from leakguard.logs import log_detection_failed, log_ner_disabled, log_request
 from leakguard.masking import PlaceholderMap, mask_messages, restore_response
+from leakguard.ner.model import NameModel, NameModelError
 from leakguard.policy import FailureMode, Policy, load_policy
 from leakguard.upstream import UpstreamClient
 
@@ -87,12 +90,12 @@ def _too_large(settings: Settings) -> Response:
 
 
 def _apply_policy(
-    body: dict, policy: Policy, ctx: RequestContext
+    body: dict, policy: Policy, ctx: RequestContext, detect: Detector
 ) -> tuple[dict, PlaceholderMap | None] | Response:
     """Mask the request per policy. Returns (body to send, mapping) or an error response."""
     started = time.perf_counter()
     try:
-        result = mask_messages(body["messages"], policy)
+        result = mask_messages(body["messages"], policy, detect)
     # Deliberately broad: whatever a detector bug raises, the request must not slip
     # through unchecked by accident (fail-closed), so every exception is handled here.
     except Exception:  # noqa: BLE001
@@ -186,15 +189,17 @@ async def _stream_and_log(resp: httpx.Response, ctx: RequestContext) -> AsyncIte
 
 
 async def _proxy_chat(
-    request: Request, settings: Settings, policy: Policy, upstream: UpstreamClient,
-    ctx: RequestContext,
+    request: Request, settings: Settings, policy: Policy, detect: Detector,
+    upstream: UpstreamClient, ctx: RequestContext,
 ) -> Response:
     body = await _read_chat_request(request, settings)
     if isinstance(body, Response):
         ctx.finish(body.status_code)
         return body
 
-    applied = _apply_policy(body, policy, ctx)
+    # Detection is CPU-bound (the name model takes milliseconds). Run in a worker thread,
+    # it can't stall the event loop, so other requests keep being served meanwhile.
+    applied = await run_in_threadpool(_apply_policy, body, policy, ctx, detect)
     if isinstance(applied, Response):
         ctx.finish(applied.status_code)
         return applied
@@ -222,14 +227,29 @@ async def _proxy_chat(
     return response
 
 
+def _load_name_model(settings: Settings) -> Detector | None:
+    if not settings.ner_enabled:
+        log_ner_disabled()
+        return None
+    try:
+        return NameModel.load(settings.ner_model_dir, settings.ner_threads).detect
+    except NameModelError as exc:
+        raise NameModelError(
+            f"NER model not found or invalid at {settings.ner_model_dir}: {exc}. "
+            'Run "python -m leakguard.ner.export" or set LEAKGUARD_NER=off.') from None
+
+
 def create_app(
     settings: Settings,
     transport: httpx.AsyncBaseTransport | None = None,
     policy: Policy | None = None,
+    name_model: Detector | None = None,
 ) -> FastAPI:
-    """Build the guard. Tests pass `transport` to route upstream calls in-process.
-    The policy is loaded here, so an invalid policy file stops the guard at startup."""
+    """Build the guard. Tests pass `transport` to route upstream calls in-process, and
+    `name_model` to stand in for the real NER model. The policy and the model are loaded
+    here, so an invalid policy file or a missing model stops the guard at startup."""
     policy = policy or load_policy(settings.policy_path)
+    detect = build_detector(name_model or _load_name_model(settings))
 
     @asynccontextmanager
     async def lifespan(app: FastAPI):
@@ -246,7 +266,8 @@ def create_app(
     @app.post("/v1/chat/completions")
     async def chat_completions(request: Request) -> Response:
         ctx = RequestContext()
-        response = await _proxy_chat(request, settings, policy, request.app.state.upstream, ctx)
+        response = await _proxy_chat(request, settings, policy, detect,
+                                     request.app.state.upstream, ctx)
         response.headers["x-request-id"] = ctx.request_id
         return response
 
