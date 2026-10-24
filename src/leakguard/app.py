@@ -8,11 +8,13 @@ import json
 import logging
 import time
 import uuid
-from contextlib import asynccontextmanager
+from collections.abc import AsyncIterator
+from contextlib import aclosing, asynccontextmanager
 from dataclasses import dataclass, field
 
 import httpx
 from fastapi import FastAPI, Request, Response
+from fastapi.responses import StreamingResponse
 
 from leakguard.config import Settings
 from leakguard.errors import openai_error
@@ -94,6 +96,31 @@ def _relay(resp: httpx.Response) -> Response:
                     media_type=resp.headers.get("content-type"))
 
 
+async def relay_stream(resp: httpx.Response) -> AsyncIterator[bytes]:
+    """Pass streamed bytes through unchanged, and always close the upstream response —
+    on normal end, on error, and when the client disconnects mid-stream.
+
+    Uses aiter_bytes (decoded), not aiter_raw: the guard doesn't forward the
+    Content-Encoding header, so compressed raw bytes would reach the client unreadable.
+    Phase 6 replaces this pass-through with an SSE-aware placeholder restorer.
+    """
+    try:
+        async for chunk in resp.aiter_bytes():
+            yield chunk
+    finally:
+        await resp.aclose()
+
+
+async def _stream_and_log(resp: httpx.Response, ctx: RequestContext) -> AsyncIterator[bytes]:
+    # aclosing() guarantees relay_stream's `finally` runs even if we are closed early.
+    try:
+        async with aclosing(relay_stream(resp)) as chunks:
+            async for chunk in chunks:
+                yield chunk
+    finally:
+        ctx.finish(resp.status_code)  # logged when the stream ends, so timings are complete
+
+
 async def _proxy_chat(
     request: Request, settings: Settings, upstream: UpstreamClient, ctx: RequestContext
 ) -> Response:
@@ -102,8 +129,22 @@ async def _proxy_chat(
         ctx.finish(body.status_code)
         return body
 
-    sent = await _send_upstream(upstream, body, _forwarded_headers(request), False, ctx)
-    response = sent if isinstance(sent, Response) else _relay(sent)
+    ctx.stream = body.get("stream") is True
+    sent = await _send_upstream(upstream, body, _forwarded_headers(request), ctx.stream, ctx)
+    if isinstance(sent, Response):
+        ctx.finish(sent.status_code)
+        return sent
+
+    if ctx.stream and sent.is_success:
+        return StreamingResponse(_stream_and_log(sent, ctx), status_code=sent.status_code,
+                                 media_type="text/event-stream")
+
+    if ctx.stream:
+        # An error reply to a stream request (e.g. 429) is plain JSON, not SSE:
+        # read it fully and relay it like any other error.
+        await sent.aread()
+        await sent.aclose()
+    response = _relay(sent)
     ctx.finish(response.status_code)
     return response
 

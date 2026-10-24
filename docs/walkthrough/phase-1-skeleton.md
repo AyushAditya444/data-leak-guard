@@ -135,3 +135,52 @@ The guard parses the body to check `messages`, but forwards the whole object, so
 ### Q&A
 **Q: What happens if Ollama isn't running?**
 A: The upstream connection is refused, httpx raises `ConnectError` (a `TransportError`), and the guard returns **502** with `{"error": {"type": "upstream_error", "code": "upstream_unreachable", ...}}`. The OpenAI SDK raises a clean error the developer can read, and the log line still records the request id, status 502, and timing — but never the message text.
+
+
+---
+
+## 3. Streaming pass-through and the "change one line" proof
+
+### Files
+| File | Purpose |
+|---|---|
+| `src/leakguard/app.py` | adds `relay_stream()`, `_stream_and_log()` and the streaming branch in `_proxy_chat()` |
+| `tests/test_streaming.py` | streaming behaviour tests |
+| `tests/test_sdk.py` | the **official OpenAI SDK** talking to the guard |
+
+### How the streaming branch works
+```
+"stream": true in the request?
+  ├─ send upstream with stream=True        (response body NOT read yet)
+  ├─ upstream status 2xx?
+  │    yes → return StreamingResponse(_stream_and_log(...))
+  │           bytes flow upstream → guard → client as they arrive
+  │    no  → read the (small) JSON error fully, relay it as a normal error
+  └─ the log line is written when the stream *ends*
+```
+
+### Key design decisions
+
+**1. Why a generator?** A normal response is built once and sent. A stream must send bytes *as they arrive* from the LLM, so the user sees words appear. A Python async generator (`async def ... yield`) produces values one at a time; `StreamingResponse` sends each one immediately.
+
+**2. Always close the upstream connection (`finally`).**
+If a user closes the chat window mid-reply, the client disconnects. FastAPI stops our generator — and the `finally` block in `relay_stream()` runs `resp.aclose()`. Without it, the guard would keep an open connection to the provider (and keep paying for tokens!) for an answer nobody reads. `aclosing(...)` in `_stream_and_log()` makes sure the inner generator is closed too, not left for the garbage collector. The test `test_relay_stream_closes_upstream_on_early_exit` reads one chunk, stops, and checks the upstream response is closed.
+
+**3. Errors during a stream request are JSON, not SSE.**
+If the free tier says "429 Too Many Requests", the body is a small JSON error — not an event stream. Relaying it as `text/event-stream` with status 200 would hide the error. So the guard checks `sent.is_success` first; errors are read fully and relayed with their real status (`test_stream_upstream_error_relayed`).
+
+**4. `aiter_bytes()` not `aiter_raw()`.**
+Providers may compress responses (gzip). `aiter_raw()` gives the compressed bytes; `aiter_bytes()` gives them decompressed. The guard doesn't forward the `Content-Encoding` header, so it must send decompressed bytes or the client receives garbage. (Phase 6 needs the decoded text anyway, to restore placeholders.)
+
+**5. How the test proves real streaming.**
+Fun fact found while building: the SDK streaming test passed even *before* streaming was implemented, because the old code collected the whole reply and sent it at once — functionally fine, but the user would wait for the entire answer. The fix was a test that checks real streaming behaviour: a streamed response has **no `Content-Length` header** (the total size isn't known in advance; it's sent in chunks). That's a good lesson: *a passing test only proves what it actually checks.*
+
+**6. `test_sdk.py` — the drop-in proof.**
+It uses the real `openai` Python library with only `base_url` changed. Both normal and streaming calls work. That backs the README claim "change one line" with a test, not a promise.
+
+### Where Phase 6 plugs in
+`relay_stream()` currently passes bytes through untouched. In Phase 6 it becomes an SSE-aware restorer: parse each `data:` event, find `delta.content`, hold back anything that might be the start of a split placeholder like `[PHO`, restore when complete, and re-emit the event.
+
+### Q&A
+**Q: What happens to the upstream connection if the user closes the chat mid-reply?**
+A: The client disconnect makes the server stop iterating our async generator; its `finally` block calls `resp.aclose()`, which closes the connection to the provider immediately — so we don't keep generating (and paying for) tokens no one will read. I have a unit test that stops a stream after one chunk and asserts the upstream response is closed.
