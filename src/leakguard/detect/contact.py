@@ -25,7 +25,9 @@ _PHONE = re.compile(r"(?<![\d+])(?:(?:\+91|91)[ -]?|0)?[6-9](?:[ -]?\d){9}(?!\d)
 # Every pattern below starts with a "not preceded by a token character" lookbehind, so
 # a failed match is not retried from every position inside a long token (that retrying
 # is what makes inputs like "aaaa...a@" take quadratic time — a ReDoS risk).
-_UPI = re.compile(r"(?<![A-Za-z0-9._@-])[A-Za-z0-9._-]{2,256}@([A-Za-z]{2,64})(?![A-Za-z0-9.@-])")
+# The handle may be followed by a sentence-ending "." but not by ".com"-style text.
+_UPI = re.compile(
+    r"(?<![A-Za-z0-9._@-])[A-Za-z0-9._-]{2,256}@([A-Za-z]{2,64})(?![A-Za-z0-9@-])(?!\.[A-Za-z0-9])")
 _EMAIL = re.compile(
     r"(?<![A-Za-z0-9._%+-])[A-Za-z0-9._%+-]{1,64}@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)*"
     r"\.[A-Za-z]{2,24}(?![A-Za-z0-9-])"

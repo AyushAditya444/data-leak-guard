@@ -28,6 +28,13 @@ def test_upi_vs_email():
     assert detect_upi("me@okicici.com") == []  # a domain, not a UPI handle
 
 
+def test_upi_at_end_of_sentence():
+    # Found in dev error analysis: the full stop made the handle look like a domain.
+    text = "wants refund to priya.bose@upi. Thanks"
+    assert _vals(detect_upi(text), text) == ["priya.bose@upi"]
+    assert detect_upi("mail me@okicici.com") == []  # still a domain, not a UPI ID
+
+
 def test_bank_account_with_context():
     text = "My a/c no 50100123456789 and account number 1234 5678 9012"
     assert _vals(detect_bank_account(text), text) == ["50100123456789", "1234 5678 9012"]
