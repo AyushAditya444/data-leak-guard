@@ -48,7 +48,7 @@ Measured on a **held-out test set** of 1,500 synthetic messages (English, Hingli
 | **All built types** | **1991** | **98.6%** | **93.5%** | **96.0%** | **95.4%** | **95.5%** |
 
 - Negative messages (nothing sensitive) with at least one false alarm: 9 of 350 (2.6%).
-- Detection latency per message, one CPU thread: rules **0.049 ms** (p50); rules + name model p50 **16.935 ms**, p95 **41.870 ms**.
+- Detection latency per message, one CPU thread: rules **0.046 ms** (p50); rules + name model p50 **16.785 ms**, p95 **40.799 ms**.
 - Hand-written set (59 messy real-style messages): **98.4%** precision, **90.9%** recall over built types.
 - *Matching rule:* same type and overlapping. *Coverage* = share of the sensitive characters actually hidden from the LLM.
 - Reproduce: `python -m leakguard.evaluation report`.

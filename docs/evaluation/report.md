@@ -93,17 +93,17 @@ Best of 3 runs per message, on the test split, single CPU thread.
 
 | Message length | n | p50 | p95 | max |
 |---|---:|---:|---:|---:|
-| all | 1500 | 0.049 ms | 0.103 ms | 0.144 ms |
-| short (<200 chars) | 1498 | 0.049 ms | 0.102 ms | 0.140 ms |
-| medium (200-1000) | 2 | 0.141 ms | 0.144 ms | 0.144 ms |
+| all | 1500 | 0.046 ms | 0.099 ms | 0.176 ms |
+| short (<200 chars) | 1498 | 0.046 ms | 0.099 ms | 0.176 ms |
+| medium (200-1000) | 2 | 0.133 ms | 0.134 ms | 0.134 ms |
 
 ### rules + names
 
 | Message length | n | p50 | p95 | max |
 |---|---:|---:|---:|---:|
-| all | 1500 | 16.935 ms | 41.870 ms | 75.544 ms |
-| short (<200 chars) | 1498 | 16.935 ms | 41.811 ms | 75.544 ms |
-| medium (200-1000) | 2 | 44.440 ms | 49.347 ms | 49.347 ms |
+| all | 1500 | 16.785 ms | 40.799 ms | 72.778 ms |
+| short (<200 chars) | 1498 | 16.784 ms | 40.597 ms | 72.778 ms |
+| medium (200-1000) | 2 | 44.117 ms | 49.021 ms | 49.021 ms |
 
 ## Known-hard formats (test split)
 
