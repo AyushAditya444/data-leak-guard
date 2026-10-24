@@ -4,7 +4,7 @@ import argparse
 import sys
 from pathlib import Path
 
-from leakguard.detect import detect_all
+from leakguard.detect import detect_rules
 from leakguard.evaluation.generate import SPLIT_SEEDS, build_split
 from leakguard.evaluation.metrics import score
 from leakguard.evaluation.report import measure_latency, render_errors, render_report
@@ -42,14 +42,14 @@ def cmd_generate(_: argparse.Namespace) -> None:
 
 def cmd_report(_: argparse.Namespace) -> None:
     test, handwritten = load_split("test"), load_split("handwritten")
-    results = {"test": score(test, detect_all), "handwritten": score(handwritten, detect_all)}
+    results = {"test": score(test, detect_rules), "handwritten": score(handwritten, detect_rules)}
     hard_templates = sorted({s.template for s in test if s.category == "hard"})
     hard_cases = {}
     for template in hard_templates:
-        ev = score([s for s in test if s.template == template], detect_all)
+        ev = score([s for s in test if s.template == template], detect_rules)
         total = next(iter(ev.by_category.values()))
         hard_cases[template] = total
-    md = render_report(results, measure_latency(test, detect_all),
+    md = render_report(results, measure_latency(test, detect_rules),
                        {"test": len(test), "handwritten": len(handwritten)}, hard_cases,
                        NOTES)
     REPORT.parent.mkdir(parents=True, exist_ok=True)
@@ -58,7 +58,7 @@ def cmd_report(_: argparse.Namespace) -> None:
 
 
 def cmd_errors(args: argparse.Namespace) -> None:
-    print(render_errors(score(load_split(args.split), detect_all), limit=args.limit))
+    print(render_errors(score(load_split(args.split), detect_rules), limit=args.limit))
 
 
 def main() -> None:

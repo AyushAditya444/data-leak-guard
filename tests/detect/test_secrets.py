@@ -1,6 +1,6 @@
 import time
 
-from leakguard.detect import detect_all
+from leakguard.detect import detect_rules
 from leakguard.detect.secrets import detect_secrets, shannon_entropy
 from leakguard.entities import EntityType as T
 
@@ -58,24 +58,24 @@ def test_code_identifiers_are_not_secrets():
         assert detect_secrets(f"see {ident}()") == [], ident
 
 
-def test_detect_all_merges_everything():
+def test_detect_rules_merges_everything():
     text = "Aadhaar 2345 6789 0124, a/c 9876543210, key sk-abcdefghijklmnopqrstuvwxyz12"
-    assert [s.type for s in detect_all(text)] == [T.AADHAAR, T.BANK_ACCOUNT, T.SECRET]
+    assert [s.type for s in detect_rules(text)] == [T.AADHAAR, T.BANK_ACCOUNT, T.SECRET]
 
 
-def test_detect_all_is_fast_with_many_findings():
+def test_detect_rules_is_fast_with_many_findings():
     # A request near the size limit can hold tens of thousands of numbers; merging the
     # detections must not be quadratic in their count.
     text = "call 9876543210 " * 20_000
     started = time.perf_counter()
-    spans = detect_all(text)
+    spans = detect_rules(text)
     assert len(spans) == 20_000
     assert time.perf_counter() - started < 2.0
 
 
-def test_detect_all_is_fast_on_adversarial_input():
+def test_detect_rules_is_fast_on_adversarial_input():
     for text in ["9 " * 50_000, "a" * 100_000 + "@", "-" * 100_000, "A1b2" * 25_000,
                  "a_" * 50_000 + "password"]:
         started = time.perf_counter()
-        detect_all(text)
+        detect_rules(text)
         assert time.perf_counter() - started < 2.0

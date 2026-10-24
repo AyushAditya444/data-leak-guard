@@ -14,7 +14,7 @@ from collections import Counter
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass, field
 
-from leakguard.detect import detect_all
+from leakguard.detect import detect_rules
 from leakguard.detect.spans import Span
 from leakguard.entities import EntityType
 from leakguard.policy import Action, Policy
@@ -121,7 +121,7 @@ def _reserved_numbers(messages: list[dict]) -> dict[EntityType, set[int]]:
 
 
 def mask_messages(
-    messages: list[dict], policy: Policy, detect: Callable[[str], list[Span]] = detect_all,
+    messages: list[dict], policy: Policy, detect: Callable[[str], list[Span]] = detect_rules,
 ) -> MaskResult:
     """Detect sensitive data in every message and apply the policy. The input is not
     modified; the returned messages are what gets sent to the LLM."""

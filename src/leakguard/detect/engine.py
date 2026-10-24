@@ -9,8 +9,9 @@ from leakguard.detect.spans import Span, merge_spans
 
 Detector = Callable[[str], list[Span]]
 
-# Phase 4 adds the name model and Phase 5 the address detector to this tuple.
-DETECTORS: tuple[Detector, ...] = (
+# Phase 5 adds the address detector to this tuple. Names come from a model that has
+# to be loaded first, so they are added by build_detector() instead.
+RULE_DETECTORS: tuple[Detector, ...] = (
     detect_aadhaar,
     detect_pan,
     detect_card,
@@ -23,6 +24,18 @@ DETECTORS: tuple[Detector, ...] = (
 )
 
 
-def detect_all(text: str) -> list[Span]:
-    """All sensitive spans in `text`, non-overlapping, in order of position."""
-    return merge_spans(span for detector in DETECTORS for span in detector(text))
+def detect_rules(text: str) -> list[Span]:
+    """Spans found by the rule detectors, non-overlapping, in order of position."""
+    return merge_spans(span for detector in RULE_DETECTORS for span in detector(text))
+
+
+def build_detector(name_model: Detector | None = None) -> Detector:
+    """The full detector: rules plus, if given, a name model (e.g. NameModel.detect).
+    NAME has the lowest priority, so an email or UPI ID containing a name stays whole."""
+    if name_model is None:
+        return detect_rules
+
+    def detect(text: str) -> list[Span]:
+        return merge_spans([*detect_rules(text), *name_model(text)])
+
+    return detect
