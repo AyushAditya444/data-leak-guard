@@ -34,6 +34,8 @@ Different detectors can claim the same characters:
 
 It's a greedy algorithm: sort the candidates best-first, then accept each one only if it doesn't overlap anything already accepted. Spans that merely *touch* (one ends where the next starts) don't overlap.
 
+**A performance bug found in review.** The first version checked each candidate against *every* span already kept. That's fine for a normal message, but it's **quadratic**: 20,000 phone numbers took 16 s, and a request at the 1 MB size limit (~65,000 numbers) would have taken about 2–3 minutes. That's an easy denial-of-service. The fix uses a property we already have: kept spans never overlap, so they can be kept **sorted by position**, and a new candidate can only collide with its two neighbours. `bisect_right()` finds those neighbours by binary search, giving O(n log n) overall. Now the 1 MB worst case takes about 1.7 s. A test (`test_detect_all_is_fast_with_many_findings`) pins it.
+
 Why is BANK_ACCOUNT above PHONE? Some Indian banks use the customer's mobile number as the account number, so "a/c 9876543210" really is an account. And SECRET is on top because secrets are *blocked*: if any detector thinks something is a key, that judgement must not be overridden.
 
 ### Checksums — the cheapest false-positive filter

@@ -45,6 +45,16 @@ def test_detect_all_merges_everything():
     assert [s.type for s in detect_all(text)] == [T.AADHAAR, T.BANK_ACCOUNT, T.SECRET]
 
 
+def test_detect_all_is_fast_with_many_findings():
+    # A request near the size limit can hold tens of thousands of numbers; merging the
+    # detections must not be quadratic in their count.
+    text = "call 9876543210 " * 20_000
+    started = time.perf_counter()
+    spans = detect_all(text)
+    assert len(spans) == 20_000
+    assert time.perf_counter() - started < 2.0
+
+
 def test_detect_all_is_fast_on_adversarial_input():
     for text in ["9 " * 50_000, "a" * 100_000 + "@", "-" * 100_000, "A1b2" * 25_000]:
         started = time.perf_counter()
