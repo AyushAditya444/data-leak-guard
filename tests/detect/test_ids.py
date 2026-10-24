@@ -19,6 +19,17 @@ def test_aadhaar_rejects_bad_checksum_and_lookalikes():
         assert detect_aadhaar(text) == [], text
 
 
+def test_aadhaar_not_found_inside_a_grouped_card_number():
+    # Found in dev error analysis: the first 12 digits of a grouped card number can pass
+    # Verhoeff; as AADHAAR outranks CARD, the card's last 4 digits then leaked.
+    for text in ["card 4023-5925-6341-6859 on file", "card 4639 0765 6828 0813 on file",
+                 "x 4111 2345 6789 0124 y"]:
+        assert detect_aadhaar(text) == [], text
+    # a real Aadhaar followed by an unrelated number is still found
+    text = "aadhaar 2345 6789 0124 9876543210"
+    assert _vals(detect_aadhaar(text), text) == ["2345 6789 0124"]
+
+
 def test_pan():
     text = "PAN: ABCPS1234K and abcps1234k"
     assert _vals(detect_pan(text), text) == ["ABCPS1234K", "abcps1234k"]

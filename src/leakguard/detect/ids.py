@@ -10,7 +10,13 @@ from leakguard.entities import EntityType
 # (?<!\d) / (?!\d) mean "not touching another digit", so we never match a slice of a
 # longer number. \1 makes the separator consistent: "2345 6789 0124" or
 # "2345-6789-0124" or "234567890124". First digit 2-9: Aadhaar never starts with 0 or 1.
-_AADHAAR = re.compile(r"(?<!\d)[2-9]\d{3}([ -]?)\d{4}\1\d{4}(?!\d)")
+#
+# The extra lookarounds stop a match inside a longer *grouped* number: not preceded by
+# "dddd " and not followed by " dddd" (a fourth group). Without them, the first 12 digits
+# of a card like "4023-5925-6341-6859" can pass Verhoeff (1 in 10), and since AADHAAR
+# outranks CARD, the card's last four digits would leak.
+_AADHAAR = re.compile(
+    r"(?<!\d)(?<!\d{4}[ -])[2-9]\d{3}([ -]?)\d{4}\1\d{4}(?!\d)(?!\1\d{4}(?!\d))")
 
 # PAN: 5 letters, 4 digits, 1 letter. The 4th letter is the holder type:
 # P person, C company, H HUF, F firm, A AOP, T trust, B BOI, L local authority,
