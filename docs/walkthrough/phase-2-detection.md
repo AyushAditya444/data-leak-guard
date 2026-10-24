@@ -48,3 +48,44 @@ A **check digit** is computed from the other digits. If someone mistypes a digit
 ### Q&A
 **Q: Why does a checksum help detection?**
 A: Detection has to balance catching real values against false alarms. Many numbers in support chats have the same *shape* as an Aadhaar number — order IDs, tracking numbers. Aadhaar's last digit is a Verhoeff checksum of the other 11, so only ~10% of random 12-digit numbers pass. Checking it removes most look-alikes at near-zero cost, before any expensive model runs.
+
+---
+
+## 2. ID detectors — Aadhaar, PAN, card, IFSC
+
+### File
+`src/leakguard/detect/ids.py` — four detector functions, each `text -> list[Span]`.
+
+### Reading the patterns
+Regular expressions look scary; here's the Aadhaar one piece by piece:
+```
+(?<!\d)   [2-9]\d{3}   ([ -]?)   \d{4}   \1   \d{4}   (?!\d)
+   │          │           │        │      │      │        │
+   │          │           │        │      │      │        └ not followed by a digit
+   │          │           │        │      │      └ last 4 digits
+   │          │           │        │      └ the SAME separator again (backreference)
+   │          │           │        └ middle 4 digits
+   │          │           └ optional space or hyphen, remembered as group 1
+   │          └ first 4 digits; first digit 2-9 (Aadhaar never starts with 0 or 1)
+   └ not preceded by a digit
+```
+- `(?<!\d)` and `(?!\d)` are **lookarounds**: they check the neighbouring character without consuming it. Together they mean "this number isn't part of a longer number", so `id 12345678901234` (14 digits) is never sliced into a fake Aadhaar.
+- `\1` forces a **consistent separator**: `2345 6789 0124` and `2345-6789-0124` match, a messy `2345 6789-0124` doesn't. Real people write it consistently; random digit soup usually isn't.
+- After the regex finds a candidate, `verhoeff_valid()` checks the check digit. Both must agree.
+
+| Detector | Shape | Extra check |
+|---|---|---|
+| **Aadhaar** | 12 digits, first 2-9, groups of 4 | Verhoeff |
+| **PAN** | `ABCPS1234K`: 5 letters, 4 digits, 1 letter, case-insensitive | 4th letter must be a real holder type (P, C, H, F, A, T, B, L, J, G) |
+| **Card** | 13–19 digits, optional spaces/hyphens | Luhn |
+| **IFSC** | `HDFC0001234`: 4 letters, a literal `0`, 6 letters/digits | the `0` |
+
+**Why PAN's 4th letter?** It encodes the holder type (P = person, C = company…). Only 10 letters are valid there, so a random 10-character code like `ABCXS1234K` is rejected — a cheap structural "checksum".
+
+**Why IFSC's `0`?** The 5th character is reserved by RBI and is always zero. It's what separates an IFSC from any other 11-character code.
+
+**The `_find()` helper** removes repetition: run a pattern, optionally validate each match, wrap matches in `Span`s. Each detector is then 1–2 lines, and adding a new one is easy.
+
+### Q&A
+**Q: How do you avoid flagging order numbers as Aadhaar numbers?**
+A: Three filters in a row. Shape: exactly 12 digits, first digit 2–9, not part of a longer number (lookarounds), consistent grouping. Then the Verhoeff checksum, which ~90% of random numbers fail. And if a number still slips through, the evaluation in Phase 3 measures how often, so the false-positive rate is a known number, not a guess.
