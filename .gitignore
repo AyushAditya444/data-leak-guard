@@ -10,3 +10,6 @@ __pycache__/
 # look real to GitHub secret scanning.
 data/eval/dev.jsonl
 data/eval/test.jsonl
+
+# Exported NER models: rebuilt from pinned revisions by `python -m leakguard.ner.export`.
+models/

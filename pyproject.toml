@@ -25,6 +25,16 @@ dev = [
     "openai>=1.30",
     "ruff>=0.5",
 ]
+# Only for `python -m leakguard.ner.export` (never needed to run the guard). Bounded to the
+# versions the export was verified with: exporter behaviour changes between majors.
+export = [
+    "torch>=2.14,<3",
+    "transformers>=5.20,<6",
+    "onnx>=1.23",
+    "onnxscript>=0.7",
+    "sentencepiece>=0.2",
+    "protobuf>=4",
+]
 
 [tool.setuptools.packages.find]
 where = ["src"]
