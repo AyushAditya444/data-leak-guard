@@ -21,6 +21,24 @@ def test_key_value_and_bearer():
     assert len(detect_secrets(text)) == 3
 
 
+def test_prefixed_key_names():
+    # Config files prefix key names: DB_PASSWORD, db_password, APP_SECRET, MY_API_KEY.
+    for text, value in [("DB_PASSWORD=Mango#7781", "Mango#7781"),
+                        ("  db_password: River_2734", "River_2734"),
+                        ("APP_SECRET=s3cr3t!x", "s3cr3t!x"),
+                        ("export MY_API_KEY=ab12-cd34", "ab12-cd34")]:
+        assert [s.text(text) for s in detect_secrets(text)] == [value], text
+    assert detect_secrets("passwordless login is enabled") == []
+
+
+def test_token_key_value():
+    # Found in dev error analysis: a word-heavy random token after "token:" was missed.
+    text = "token: WDnBzqgmlWvfblKeohSsxhf3ubmmUwGa"
+    assert [s.text(text) for s in detect_secrets(text)] == ["WDnBzqgmlWvfblKeohSsxhf3ubmmUwGa"]
+    assert detect_secrets("token: what is it?") == []
+    assert detect_secrets("the token expired") == []
+
+
 def test_natural_language_password_mentions_not_flagged():
     for text in ["my password is wrong", "reset password: how?", "I forgot my password",
                  "password: please help", "secret santa list", "the api key expired yesterday"]:
@@ -56,7 +74,8 @@ def test_detect_all_is_fast_with_many_findings():
 
 
 def test_detect_all_is_fast_on_adversarial_input():
-    for text in ["9 " * 50_000, "a" * 100_000 + "@", "-" * 100_000, "A1b2" * 25_000]:
+    for text in ["9 " * 50_000, "a" * 100_000 + "@", "-" * 100_000, "A1b2" * 25_000,
+                 "a_" * 50_000 + "password"]:
         started = time.perf_counter()
         detect_all(text)
         assert time.perf_counter() - started < 2.0

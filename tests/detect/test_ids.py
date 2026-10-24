@@ -19,6 +19,30 @@ def test_aadhaar_rejects_bad_checksum_and_lookalikes():
         assert detect_aadhaar(text) == [], text
 
 
+def test_aadhaar_not_found_inside_a_grouped_card_number():
+    # Found in dev error analysis: the first 12 digits of a grouped card number can pass
+    # Verhoeff; as AADHAAR outranks CARD, the card's last 4 digits then leaked.
+    for text in ["card 4023-5925-6341-6859 on file", "card 4639 0765 6828 0813 on file",
+                 "x 4111 2345 6789 0124 y"]:
+        assert detect_aadhaar(text) == [], text
+    # a real Aadhaar followed by an unrelated number is still found
+    text = "aadhaar 2345 6789 0124 9876543210"
+    assert _vals(detect_aadhaar(text), text) == ["2345 6789 0124"]
+
+
+def test_reference_number_context_overrides_aadhaar_shape():
+    # Found in dev error analysis: every remaining Aadhaar false positive was an order
+    # number that happened to pass Verhoeff (1 in 10 do).
+    for text in ["but order 234567890124 still shows unpaid", "invoice no. 2345 6789 0124",
+                 "txn ref 987654321012 failed"]:
+        assert detect_aadhaar(text) == [], text
+    # an Aadhaar keyword wins over a reference word
+    text = "order blocked, my aadhaar 234567890124 is verified"
+    assert _vals(detect_aadhaar(text), text) == ["234567890124"]
+    text = "my id is 2345 6789 0124"  # "id" alone is too vague to rule Aadhaar out
+    assert _vals(detect_aadhaar(text), text) == ["2345 6789 0124"]
+
+
 def test_pan():
     text = "PAN: ABCPS1234K and abcps1234k"
     assert _vals(detect_pan(text), text) == ["ABCPS1234K", "abcps1234k"]
@@ -30,6 +54,14 @@ def test_card_luhn():
     text = "card 4111 1111 1111 1111 or 4111-1111-1111-1111 or 378282246310005"
     assert len(detect_card(text)) == 3
     assert detect_card("4111 1111 1111 1112") == []
+
+
+def test_unusual_card_lengths_need_card_context():
+    # Found in dev error analysis: 1 in 10 random 14-digit ticket numbers pass Luhn.
+    # Indian cards are almost always 15 (Amex) or 16 digits; other lengths need context.
+    assert detect_card("Escalation 34702481911668: customer called") == []  # 14 digits, Luhn ok
+    assert len(detect_card("my diners card 3470 2481 9116 68")) == 1
+    assert len(detect_card("pay with 4111111111111111")) == 1  # 16 digits, no context needed
 
 
 def test_ifsc():

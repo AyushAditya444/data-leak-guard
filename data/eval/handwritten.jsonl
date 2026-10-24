@@ -1,0 +1,43 @@
+{"id": "hw-001", "category": "support", "template": "handwritten", "text": "hii my adhar no is 5214 7896 3019 pls update kyc fast 🙏", "spans": [{"start": 19, "end": 33, "type": "AADHAAR"}]}
+{"id": "hw-002", "category": "support", "template": "handwritten", "text": "Hello team,\nI am Deepa Raghavan, my mobile is 98200 31476.\nRefund for my order is still pending since 2 weeks!!", "spans": [{"start": 17, "end": 31, "type": "NAME"}, {"start": 46, "end": 57, "type": "PHONE"}]}
+{"id": "hw-003", "category": "support", "template": "handwritten", "text": "REFUND NOT RECEIVED. UPI ID neha.k@oksbi AMOUNT 2,499", "spans": [{"start": 28, "end": 40, "type": "UPI"}]}
+{"id": "hw-004", "category": "support", "template": "handwritten", "text": "pan BKRPS4821L showing invalid on your app, why??", "spans": [{"start": 4, "end": 14, "type": "PAN"}]}
+{"id": "hw-005", "category": "support", "template": "handwritten", "text": "Card 4111 1111 1111 1111 got charged twice for one order. Fix it.", "spans": [{"start": 5, "end": 24, "type": "CARD"}]}
+{"id": "hw-006", "category": "support", "template": "handwritten", "text": "please credit to a/c 50100234567812 ifsc SBIN0001234 thanks", "spans": [{"start": 21, "end": 35, "type": "BANK_ACCOUNT"}, {"start": 41, "end": 52, "type": "IFSC"}]}
+{"id": "hw-007", "category": "support", "template": "handwritten", "text": "u can mail me at deepa.r@gmail.com or call +91-7019283746", "spans": [{"start": 17, "end": 34, "type": "EMAIL"}, {"start": 43, "end": 57, "type": "PHONE"}]}
+{"id": "hw-008", "category": "support", "template": "handwritten", "text": "My Aadhaar 7392-0184-6574 and pan card aqwpm7731k are both uploaded, still kyc rejected 😡", "spans": [{"start": 11, "end": 25, "type": "AADHAAR"}, {"start": 39, "end": 49, "type": "PAN"}]}
+{"id": "hw-009", "category": "support", "template": "handwritten", "text": "Deliver it to B-204, Palm Grove Society, Baner, Pune 411045 and ring 8800112233", "spans": [{"start": 14, "end": 59, "type": "ADDRESS"}, {"start": 69, "end": 79, "type": "PHONE"}]}
+{"id": "hw-010", "category": "support", "template": "handwritten", "text": "Paid via 9876501234@paytm, txn failed but money gone", "spans": [{"start": 9, "end": 25, "type": "UPI"}]}
+{"id": "hw-011", "category": "support", "template": "handwritten", "text": "acct no 001234567890, bank is ICICI, branch code icic0006543", "spans": [{"start": 8, "end": 20, "type": "BANK_ACCOUNT"}, {"start": 49, "end": 60, "type": "IFSC"}]}
+{"id": "hw-012", "category": "support", "template": "handwritten", "text": "Hi I'm Arun Kumar (ARUN.KUMAR@yahoo.co.in), my card 5500-0055-5555-5559 was blocked", "spans": [{"start": 7, "end": 17, "type": "NAME"}, {"start": 19, "end": 41, "type": "EMAIL"}, {"start": 52, "end": 71, "type": "CARD"}]}
+{"id": "hw-013", "category": "agent_record", "template": "handwritten", "text": "Pls summarise:\nCust name: Sunita Devi\nMob: 09812345670\nAadhaar: 860123456786\nUPI: vikas@ybl\nComplaint: wrong item delivered", "spans": [{"start": 26, "end": 37, "type": "NAME"}, {"start": 43, "end": 54, "type": "PHONE"}, {"start": 64, "end": 76, "type": "AADHAAR"}, {"start": 82, "end": 91, "type": "UPI"}]}
+{"id": "hw-014", "category": "agent_record", "template": "handwritten", "text": "Beneficiary: Mohd Irfan | A/C 31234567890 | KKBK0000958 | Kotak, Andheri", "spans": [{"start": 13, "end": 23, "type": "NAME"}, {"start": 30, "end": 41, "type": "BANK_ACCOUNT"}, {"start": 44, "end": 55, "type": "IFSC"}]}
+{"id": "hw-015", "category": "agent_record", "template": "handwritten", "text": "Ticket summary — customer Kavitha S, PAN CHLFT2209Q, Aadhaar 3987 1264 5098, card 378282246310005 disputed", "spans": [{"start": 26, "end": 35, "type": "NAME"}, {"start": 41, "end": 51, "type": "PAN"}, {"start": 61, "end": 75, "type": "AADHAAR"}, {"start": 82, "end": 97, "type": "CARD"}]}
+{"id": "hw-016", "category": "dev_snippet", "template": "handwritten", "text": "my code:\nopenai.api_key = 'sk-proj-Xy7Gh2K9mQp4LrT8wZ1vB6nC3dF5sJ0aEe'\nwhy RateLimitError??", "spans": [{"start": 27, "end": 69, "type": "SECRET"}]}
+{"id": "hw-017", "category": "dev_snippet", "template": "handwritten", "text": "aws configure shows AKIAZ7XQ2PL9RT4MNB8C as the key id, is that right", "spans": [{"start": 20, "end": 40, "type": "SECRET"}]}
+{"id": "hw-018", "category": "dev_snippet", "template": "handwritten", "text": "login fails with password=Chai@2024 on staging", "spans": [{"start": 26, "end": 35, "type": "SECRET"}]}
+{"id": "hw-019", "category": "dev_snippet", "template": "handwritten", "text": "git remote set-url origin https://ghp_k8Lq2Wn5Rt7Yv3Bz9Xc1Mh6Dg4Pf0Js2Ua8E@github.com/me/app", "spans": [{"start": 34, "end": 74, "type": "SECRET"}]}
+{"id": "hw-020", "category": "dev_snippet", "template": "handwritten", "text": "curl https://api.razorpay.example/v1/payments -H 'Authorization: Bearer rzp9Kx2Lm7Qw4Ty8Bn3Vc6Hj1Df5Gs0Pa'", "spans": [{"start": 72, "end": 105, "type": "SECRET"}]}
+{"id": "hw-021", "category": "dev_snippet", "template": "handwritten", "text": "sentry dsn token Qm7Zt2Kx9Lp4Wv8Rn3Yb6Hc1Jd5Fg0Sa2Ue keeps getting rejected", "spans": [{"start": 17, "end": 52, "type": "SECRET"}]}
+{"id": "hw-022", "category": "hinglish", "template": "handwritten", "text": "bhaiya mera number 98111 22334 hai, delivery wale ko de do", "spans": [{"start": 19, "end": 30, "type": "PHONE"}]}
+{"id": "hw-023", "category": "hinglish", "template": "handwritten", "text": "paisa rohit.verma@okaxis pe bhejna, cash nahi hai", "spans": [{"start": 6, "end": 24, "type": "UPI"}]}
+{"id": "hw-024", "category": "hinglish", "template": "handwritten", "text": "mera aadhar 6123 4098 7657 h, verify krdo jaldi", "spans": [{"start": 12, "end": 26, "type": "AADHAAR"}]}
+{"id": "hw-025", "category": "hinglish", "template": "handwritten", "text": "khata no 20123456789012 SBI ka hai, ifsc SBIN0004321", "spans": [{"start": 9, "end": 23, "type": "BANK_ACCOUNT"}, {"start": 41, "end": 52, "type": "IFSC"}]}
+{"id": "hw-026", "category": "hinglish", "template": "handwritten", "text": "email pooja.mehta22@outlook.com pe bill bhejo na", "spans": [{"start": 6, "end": 31, "type": "EMAIL"}]}
+{"id": "hw-027", "category": "hinglish", "template": "handwritten", "text": "pan DXMPK5521H wala link nahi ho raha yaar", "spans": [{"start": 4, "end": 14, "type": "PAN"}]}
+{"id": "hw-028", "category": "hinglish", "template": "handwritten", "text": "card 4111-1111-1111-1111 se do baar kat gaya 😭", "spans": [{"start": 5, "end": 24, "type": "CARD"}]}
+{"id": "hw-029", "category": "negative", "template": "handwritten", "text": "pls check order #482910374615 asap 🙏", "spans": []}
+{"id": "hw-030", "category": "negative", "template": "handwritten", "text": "your otp is 739201, dont share it with anyone", "spans": []}
+{"id": "hw-031", "category": "negative", "template": "handwritten", "text": "ticket no. 20241024000123 is still open", "spans": []}
+{"id": "hw-032", "category": "negative", "template": "handwritten", "text": "deploy failed at commit 3f9a2c1b7e8d4f6a0b2c9e1d7f3a5b8c6d4e2f10", "spans": []}
+{"id": "hw-033", "category": "negative", "template": "handwritten", "text": "my password isn't working since yesterday, reset karo", "spans": []}
+{"id": "hw-034", "category": "negative", "template": "handwritten", "text": "account balance shows ₹1,24,500 but I had more", "spans": []}
+{"id": "hw-035", "category": "negative", "template": "handwritten", "text": "call 1800-209-4321 toll free for help", "spans": []}
+{"id": "hw-036", "category": "negative", "template": "handwritten", "text": "build failed in getCustomerOrderLedgerServiceV2, any idea?", "spans": []}
+{"id": "hw-037", "category": "negative", "template": "handwritten", "text": "Speed post ref: EM482019374IN not delivered", "spans": []}
+{"id": "hw-038", "category": "negative", "template": "handwritten", "text": "meeting id 845 2290 1173, join at 5", "spans": []}
+{"id": "hw-039", "category": "negative", "template": "handwritten", "text": "the api key expired, generating a new one now", "spans": []}
+{"id": "hw-040", "category": "hard", "template": "handwritten", "text": "number hai nine eight two zero zero three one four seven six", "spans": [{"start": 11, "end": 60, "type": "PHONE"}]}
+{"id": "hw-041", "category": "hard", "template": "handwritten", "text": "send to meera@okbizaxis pls", "spans": [{"start": 8, "end": 23, "type": "UPI"}]}
+{"id": "hw-042", "category": "hard", "template": "handwritten", "text": "transfer to 917020045678123 urgent", "spans": [{"start": 12, "end": 27, "type": "BANK_ACCOUNT"}]}
+{"id": "hw-043", "category": "hard", "template": "handwritten", "text": "DB_PASSWORD=Mango#7781", "spans": [{"start": 12, "end": 22, "type": "SECRET"}]}

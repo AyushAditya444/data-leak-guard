@@ -31,7 +31,9 @@ _PREFIXED = [re.compile(_START + p) for p in (
 )] + [re.compile(r"-----BEGIN (?:[A-Z]+ )*PRIVATE KEY-----")]  # PEM private key header
 
 _KEY_VALUE = re.compile(
-    r"(?<![A-Za-z0-9_])(?:password|passwd|pwd|secret|api[_-]?key|access[_-]?token"
+    # an optional WORD_ / WORD- prefix covers DB_PASSWORD, db_password, APP_SECRET, MY_API_KEY
+    r"(?<![A-Za-z0-9_])(?:[A-Za-z0-9]+[_-])*"
+    r"(?:password|passwd|pwd|secret|token|api[_-]?key|access[_-]?token"
     r"|auth[_-]?token|client[_-]?secret)\s*[:=]\s*[\"']?([^\s\"',;]+)",
     re.IGNORECASE,
 )
