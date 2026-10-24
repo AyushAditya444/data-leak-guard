@@ -31,7 +31,7 @@ _PREFIXED = [re.compile(_START + p) for p in (
 )] + [re.compile(r"-----BEGIN (?:[A-Z]+ )*PRIVATE KEY-----")]  # PEM private key header
 
 _KEY_VALUE = re.compile(
-    r"(?<![A-Za-z0-9_])(?:password|passwd|pwd|secret|api[_-]?key|access[_-]?token"
+    r"(?<![A-Za-z0-9_])(?:password|passwd|pwd|secret|token|api[_-]?key|access[_-]?token"
     r"|auth[_-]?token|client[_-]?secret)\s*[:=]\s*[\"']?([^\s\"',;]+)",
     re.IGNORECASE,
 )

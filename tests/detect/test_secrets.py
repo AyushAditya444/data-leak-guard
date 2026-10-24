@@ -21,6 +21,14 @@ def test_key_value_and_bearer():
     assert len(detect_secrets(text)) == 3
 
 
+def test_token_key_value():
+    # Found in dev error analysis: a word-heavy random token after "token:" was missed.
+    text = "token: WDnBzqgmlWvfblKeohSsxhf3ubmmUwGa"
+    assert [s.text(text) for s in detect_secrets(text)] == ["WDnBzqgmlWvfblKeohSsxhf3ubmmUwGa"]
+    assert detect_secrets("token: what is it?") == []
+    assert detect_secrets("the token expired") == []
+
+
 def test_natural_language_password_mentions_not_flagged():
     for text in ["my password is wrong", "reset password: how?", "I forgot my password",
                  "password: please help", "secret santa list", "the api key expired yesterday"]:

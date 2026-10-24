@@ -17,6 +17,14 @@ from leakguard.entities import EntityType
 # outranks CARD, the card's last four digits would leak.
 _AADHAAR = re.compile(
     r"(?<!\d)(?<!\d{4}[ -])[2-9]\d{3}([ -]?)\d{4}\1\d{4}(?!\d)(?!\1\d{4}(?!\d))")
+# Words that mark a number as a reference (order, invoice...) rather than an Aadhaar.
+# "id" is deliberately left out: "my id is ..." often *is* an Aadhaar.
+_REFERENCE_CONTEXT = re.compile(
+    r"\b(?:order|ord|invoice|inv|ticket|txn|transaction|ref|reference|tracking|awb)\b",
+    re.IGNORECASE)
+_AADHAAR_CONTEXT = re.compile(r"\b(?:aadhaa?r|adhaa?r|uid|uidai)\b", re.IGNORECASE)
+_REFERENCE_BEFORE = 20  # characters
+_AADHAAR_KEYWORD_BEFORE = 40  # characters
 
 # PAN: 5 letters, 4 digits, 1 letter. The 4th letter is the holder type:
 # P person, C company, H HUF, F firm, A AOP, T trust, B BOI, L local authority,
@@ -49,9 +57,18 @@ def _find(
     ]
 
 
+def _is_reference_number(text: str, start: int) -> bool:
+    """'order 234567890124' is an order number even if it passes Verhoeff (1 in 10 do),
+    unless an Aadhaar keyword says otherwise."""
+    if not _REFERENCE_CONTEXT.search(text[max(0, start - _REFERENCE_BEFORE):start]):
+        return False
+    return not _AADHAAR_CONTEXT.search(text[max(0, start - _AADHAAR_KEYWORD_BEFORE):start])
+
+
 def detect_aadhaar(text: str) -> list[Span]:
-    return _find(_AADHAAR, text, EntityType.AADHAAR, "aadhaar",
-                 lambda value: verhoeff_valid(_digits(value)))
+    return [Span(m.start(), m.end(), EntityType.AADHAAR, detector="aadhaar")
+            for m in _AADHAAR.finditer(text)
+            if verhoeff_valid(_digits(m.group())) and not _is_reference_number(text, m.start())]
 
 
 def detect_pan(text: str) -> list[Span]:
