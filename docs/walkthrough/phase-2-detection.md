@@ -230,3 +230,57 @@ Plain `yaml.load` can construct arbitrary Python objects from tags in the file, 
 ### Q&A
 **Q: What does fail-closed mean, and why is it the default?**
 A: If the protection mechanism fails, the system denies rather than allows. For the guard, a crash in detection rejects the request instead of forwarding unchecked data. Leaking an Aadhaar number can't be undone, while a rejected request can be retried. So for a data-protection tool the safe failure is denial. It's configurable because some teams value availability more, and then they make that choice explicitly.
+
+---
+
+## 6. Masking and restoring
+
+### File
+`src/leakguard/masking.py`: `PlaceholderMap`, `mask_messages()`, `restore_response()`.
+
+### The round trip
+```
+request:  "I'm Rahul, phone 9876543210, pan ABCPS1234K"
+masked:   "I'm Rahul, phone [PHONE_1], pan [PAN_1]"        ← this is all the LLM sees
+LLM:      "Updated [PAN_1]; we'll SMS [PHONE_1]."
+restored: "Updated ABCPS1234K; we'll SMS 9876543210."      ← what the app receives
+```
+(Names arrive in Phase 4, so "Rahul" isn't masked yet.)
+
+### Why typed, numbered placeholders, not `****`
+- **Typed** (`PHONE`, `PAN`): the LLM still knows *what kind* of thing is there and can answer sensibly ("we'll SMS [PHONE_1]").
+- **Numbered**: two different phone numbers become `[PHONE_1]` and `[PHONE_2]`, and the *same* number is always `[PHONE_1]`. The LLM can tell people apart and refer back.
+- **Reversible**: the guard can put real values back. With `****` the reply would be useless.
+
+### Deterministic numbering = no database
+Numbers are given in **order of first appearance** across all messages. Chat APIs resend the whole conversation on every request, so the same history always produces the same placeholders. That's why the mapping can live in memory for one request and then be thrown away. There's no Redis and nothing persisted, so there's nothing to steal.
+
+### Normalisation: same person, different formatting
+`98765 43210` and `+91 9876543210` are the same number. `_normalise()` reduces digit types to digits only (and phones to the last 10 digits, dropping `+91`/`0`), and other types to case-folded text. Both forms map to `[PHONE_1]`. Without this, the LLM would think the customer gave two different numbers.
+
+### Placeholder injection, and the defence
+**The attack:** a user types `what is [PHONE_1]?`. If the guard then numbered the real phone `[PHONE_1]` too, its reply would turn the user's literal text into someone's real number. Mixing up "data" and "control" text like this is the same class of bug as SQL injection.
+
+**The defence, in two parts:**
+1. Before numbering, `_reserved_numbers()` scans the request for placeholder-looking text and **reserves** those numbers. The real phone becomes `[PHONE_2]`.
+2. `restore()` only replaces placeholders **this map created**. `[PHONE_1]` (user-typed) and `[PHONE_9]` (made up by the LLM) are left untouched.
+
+The test `test_user_typed_placeholder_is_never_restored` pins both parts.
+
+### Where text hides in a request
+`_map_message()` applies a function to every text field:
+- `content` as a plain string;
+- `content` as a list of parts. Only `{"type": "text"}` parts are changed; images pass through;
+- **tool-call arguments** (`tool_calls[].function.arguments`). When an AI agent calls a function, the arguments can contain personal data too.
+
+The same helper is used three ways: to *collect* placeholders (reservation), to *mask*, and to *restore*. One traversal, three behaviours.
+
+### Inputs are never modified
+`mask_messages()` returns **new** dicts and leaves the caller's data untouched. If masking mutated the request in place, a later bug (or the fail-open path) could forward half-masked data, and tests would be harder to reason about.
+
+### Counting for the logs
+Every detection is counted as `(type, action)`, e.g. `(PHONE, mask): 3`. Only these counts are logged, never the values.
+
+### Q&A
+**Q: What if a user types `[PHONE_1]` themselves?**
+A: Before numbering, the guard scans the request for placeholder-shaped text and reserves those numbers, so the real phone becomes `[PHONE_2]`. And restore only replaces placeholders the guard itself created in this request. So user-typed or LLM-invented placeholders are never turned into real values. It's the same principle as SQL injection defences: keep data and control separate.
