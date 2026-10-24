@@ -165,3 +165,35 @@ It covers every type except NAME/ADDRESS at least twice, has 11 negatives and 4 
 - **Synthetic ≫ hand-written:** the generator is too easy. Trust the hand-written numbers and add templates for what was missed.
 
 It's small (43 samples), so treat its numbers as a sanity check, not a precise measurement: one miss moves a type's recall a lot.
+
+---
+
+## 5. The report and the CLI
+
+### Files
+| File | Purpose |
+|---|---|
+| `src/leakguard/evaluation/report.py` | `measure_latency()`, `render_report()`, `render_errors()` |
+| `src/leakguard/evaluation/__main__.py` | `python -m leakguard.evaluation generate / report / errors` |
+| `docs/evaluation/report.md` | the generated report (committed) |
+
+### Three commands
+```bash
+python -m leakguard.evaluation generate              # rebuild the datasets (byte-identical)
+python -m leakguard.evaluation report                # test + hand-written → docs/evaluation/report.md
+python -m leakguard.evaluation errors --split dev    # every FP/FN on dev, for tuning
+```
+`errors` defaults to **dev** on purpose: error analysis (looking at mistakes to decide fixes) is tuning, and tuning must never look at test.
+
+### Reading the report
+- **Per-type table:** support (how many gold values), precision, recall, F1, coverage, exact. NAME/ADDRESS show "detector not built yet" instead of a misleading 0%.
+- **All built types:** micro-averaged, i.e. every gold value counts equally across types.
+- **Negative false-alarm rate:** of messages with *nothing* sensitive, how many got something flagged. This is the "annoyance" number for users.
+- **By category:** recall per kind of message. Types without detectors are left out. The first version included them, which made pasted records look 73% instead of 99.4%: a bug in the *report*, caught before it misled anyone.
+- **Known-hard formats:** recall per hard template, so each gap is named ("dotted phone numbers: 0%") rather than averaged away.
+- **Error examples:** real misses from the hand-written set.
+
+### Latency: p50, p95, best-of-3
+- **p50** (median): the typical message. **p95**: 95% of messages are at least this fast. Users notice the slow tail, so p95 matters more than the average.
+- Each message is timed 3 times and the **fastest** run is kept. The slower runs measure OS noise (another program, the CPU waking up), not the code.
+- Result: **p50 0.04 ms, p95 0.09 ms**. A real LLM call takes 300–3000 ms, so detection adds well under 0.1% to response time.

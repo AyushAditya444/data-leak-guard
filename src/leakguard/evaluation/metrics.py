@@ -68,6 +68,8 @@ class ErrorCase:
 class Evaluation:
     by_type: dict[EntityType, TypeScores] = field(default_factory=dict)
     by_category: dict[str, TypeScores] = field(default_factory=dict)
+    # (category, type) -> scores, so a report can leave out types with no detector yet
+    by_category_type: dict[tuple[str, EntityType], TypeScores] = field(default_factory=dict)
     negatives_total: int = 0
     negatives_with_fp: int = 0
     errors: list[ErrorCase] = field(default_factory=list)
@@ -101,37 +103,38 @@ def _covered(gold: Span, preds: list[Span]) -> int:
 def score(samples: Iterable[Sample], detect: Callable[[str], list[Span]]) -> Evaluation:
     by_type: dict[EntityType, TypeScores] = defaultdict(TypeScores)
     by_category: dict[str, TypeScores] = defaultdict(TypeScores)
+    by_category_type: dict[tuple[str, EntityType], TypeScores] = defaultdict(TypeScores)
     ev = Evaluation()
 
     for sample in samples:
         preds = list(detect(sample.text))  # detector errors propagate on purpose
         gold = list(sample.spans)
         matched = _match(gold, preds)
-        category = by_category[sample.category]
 
         for gi, g in enumerate(gold):
-            scores = by_type[g.type]
+            # the same counts go into three views: per type, per category, per both
+            views = (by_type[g.type], by_category[sample.category],
+                     by_category_type[(sample.category, g.type)])
             covered = _covered(g, preds)
-            scores.gold_chars += g.end - g.start
-            scores.covered_chars += covered
-            category.gold_chars += g.end - g.start
-            category.covered_chars += covered
-            if gi in matched:
+            hit = gi in matched
+            for scores in views:
+                scores.gold_chars += g.end - g.start
+                scores.covered_chars += covered
+                scores.tp += hit
+                scores.fn += not hit
+            if hit:
                 p = preds[matched[gi]]
-                scores.tp += 1
-                category.tp += 1
-                scores.exact += (p.start, p.end) == (g.start, g.end)
+                by_type[g.type].exact += (p.start, p.end) == (g.start, g.end)
             else:
-                scores.fn += 1
-                category.fn += 1
                 ev.errors.append(ErrorCase(sample.id, "FN", g.type, g.text(sample.text),
                                            sample.text))
 
         used = set(matched.values())
         unmatched = [p for pi, p in enumerate(preds) if pi not in used]
         for p in unmatched:
-            by_type[p.type].fp += 1
-            category.fp += 1
+            for scores in (by_type[p.type], by_category[sample.category],
+                           by_category_type[(sample.category, p.type)]):
+                scores.fp += 1
             ev.errors.append(ErrorCase(sample.id, "FP", p.type, p.text(sample.text), sample.text))
 
         if sample.category == NEGATIVE:
@@ -140,4 +143,5 @@ def score(samples: Iterable[Sample], detect: Callable[[str], list[Span]]) -> Eva
 
     ev.by_type = dict(by_type)
     ev.by_category = dict(by_category)
+    ev.by_category_type = dict(by_category_type)
     return ev
