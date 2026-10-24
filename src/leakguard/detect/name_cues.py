@@ -1,6 +1,6 @@
 """Names the model can't see: lowercase ("mera naam rahul hai") and ALL CAPS ("NAME: RAHUL
 SHARMA"). NER models lean heavily on capital letters, so on dev the chosen model found only
-16% of lowercase and 28% of all-caps names.
+14% of lowercase and 44% of all-caps names (docs/evaluation/ner-comparison.md, model alone).
 
 This detector needs no name list. It only fires in a slot right after (or before) a phrase
 that announces a name, and the slot must be 1-3 plain words with none of them a common
@@ -36,9 +36,12 @@ _BEFORE_NAME = (
     (re.compile(r"\b(?:mera|meraa|mere|my)\s+(?:naam|name)\s+(?:is\s+)?", re.IGNORECASE), None),
     # main anjali hoon ("I am anjali"): only with the closing "hoon"
     (re.compile(r"\b(?:main|mai)\s+", re.IGNORECASE), _ENDS_HOON),
-    # record fields: "Name: ...", "Cust name - ...", "APPLICANT NAME - ..."
-    (re.compile(r"\b(?:(?:full|cust|customer|applicant|account\s+holder|holder)\s+)?"
-                r"(?:name|naam)[ \t]*[:\-–][ \t]*", re.IGNORECASE), None),
+    # record fields: "Name: ...", "Cust name - ...", "| APPLICANT NAME - ...". The field must
+    # start a line or follow a separator, so "Bank name: SBI" or "file name: x.pdf" don't count.
+    (re.compile(r"(?:^|(?<=[|,;(/]))[ \t]*"
+                r"(?:(?:full|cust|customer|applicant|account[ \t]+holder|holder|beneficiary"
+                r"|nominee|contact|father'?s?|mother'?s?|guardian)[ \t]+)?"
+                r"(?:name|naam)[ \t]*[:\-–][ \t]*", re.IGNORECASE | re.MULTILINE), None),
 )
 # Phrases preceded by the name: "suraj kumar bol raha hu"
 _AFTER_NAME = re.compile(

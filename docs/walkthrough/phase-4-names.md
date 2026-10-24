@@ -81,7 +81,8 @@ These models read at most **512 tokens** at once. A pasted chat log can be longe
 - the text is tokenised **without** truncation (many published `tokenizer.json` files switch truncation on at 512, which would silently stop reading; `NameModel` switches it off),
 - tokens are cut into windows of 510 (+ the two special tokens), **overlapping by 64**, so a name on an edge appears whole in at least one window,
 - each token takes its prediction from the window where it sits **furthest from an edge**, where the model sees the most context around it,
-- all windows of one message run as **one batch**: one call into ONNX Runtime, not one per window.
+- windows run **4 at a time** in one call into ONNX Runtime. At first *all* windows of a message ran as one batch; the final review measured what that costs. Memory grows with the batch, **3.2 GB peak for a 50 KB message**, so a message near the 1 MiB request limit could have crashed the guard. With batches of 4, peak memory stays about **1 GB at 50 KB and at 200 KB**, with identical dev and test results (`test_windows_run_in_bounded_batches`).
+- **Known limit:** time still grows with length, about **0.3 s per KB** on one thread (a 50 KB paste takes ~15 s). Other requests keep being served meanwhile (§6). For deployments that expect huge pastes: lower `LEAKGUARD_MAX_REQUEST_BYTES` or raise `LEAKGUARD_NER_THREADS`.
 
 Short messages are padded only to their own length, not to 512, which is most of why inference takes milliseconds.
 
@@ -149,7 +150,7 @@ The first comparison quantised every model with **one scale per weight matrix**.
 | one scale per tensor | 0.0% | 89.0% |
 | **one scale per channel** | **85.2%** | **89.3%** |
 
-(model alone, no cue fallback)
+(model alone, no cue fallback; one-off dev probes. The committed comparison shows the final per-mode numbers as deployed.)
 
 So I switched everything to per-channel. That was **wrong for distilbert** (81.1% → 78.9%). A 2×2 check (quantisation × cues) proved it was the quantisation, not something else I'd changed. The fix: treat the int8 mode as a **hyperparameter chosen per model on dev**, like the threshold. Each candidate export now writes both int8 files; the comparison keeps the better one.
 
@@ -235,7 +236,7 @@ Five pinned candidates, one rule written down before running (best dev F1 as dep
 Storing weights as 8-bit integers instead of 32-bit floats. For the winner: 4× smaller (1.1 GB → 280 MB) and 2.6× faster (p50 43 → 17 ms), with no measurable accuracy loss. But it isn't free in general: with one scale per tensor, MuRIL went from 93% to 0%. Always measure after quantising.
 
 **How do you handle text longer than the model's 512-token limit?**
-Overlapping windows (64 tokens of overlap), all in one batch. Each token takes the prediction from the window where it has the most context. Tested with a name beyond the first window and one straddling a window edge.
+Overlapping windows (64 tokens of overlap), run 4 per inference call so memory stays bounded (measured: one big batch needed 3.2 GB for 50 KB). Each token takes the prediction from the window where it has the most context. Tested with a name beyond the first window and one straddling a window edge.
 
 **What if the model file is missing in production?**
 The guard refuses to start, with the fix in the error message. Starting without names would leak every name while looking healthy: fail closed.

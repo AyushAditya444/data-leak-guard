@@ -19,6 +19,8 @@ def _names(text):
     ("NAME: RAHUL SHARMA\nMOBILE: 9876543210", ["RAHUL SHARMA"]),
     ("APPLICANT NAME - PRIYA NAIR / DOB - 01/02/1990", ["PRIYA NAIR"]),
     ("Cust name: sunita devi", ["sunita devi"]),
+    ("Order 123 | Name - PRIYA NAIR | Mob 9876543210", ["PRIYA NAIR"]),
+    ("Beneficiary name: ramesh kumar", ["ramesh kumar"]),
 ])
 def test_cue_finds_name(text, expected):
     assert _names(text) == expected
@@ -34,6 +36,11 @@ def test_cue_finds_name(text, expected):
     "Name:",
     "Name: 9876543210",
     "username: rahul123",
+    # "name" fields that are not about a person
+    "Bank name: SBI, branch Andheri",
+    "Branch name - Andheri West",
+    "file name: report.pdf",
+    "Product name: Redmi Note",
 ])
 def test_no_cue_no_name(text):
     assert _names(text) == []

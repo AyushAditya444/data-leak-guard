@@ -126,7 +126,8 @@ def export(candidate: Candidate, out_dir: Path, keep_fp32: bool) -> dict:
     _export_onnx(model, fp32)
     # Per-channel: each output channel of a weight matrix gets its own int8 scale; per-tensor:
     # one scale for the whole matrix, so a few large weights can squash the rest to zero (on
-    # dev, MuRIL's NAME F1 fell from 93% to 0% that way). Neither is best for every model,
+    # dev, MuRIL as deployed fell from 97.1% NAME F1 in fp32 to 53.2% per-tensor, vs 93.9%
+    # per-channel: see docs/evaluation/ner-comparison.md). Neither is best for every model,
     # so the mode is chosen per candidate on dev, like the threshold.
     modes = {"per-channel": True, "per-tensor": False}
     quantize_dynamic(str(fp32), str(int8), weight_type=QuantType.QInt8,
