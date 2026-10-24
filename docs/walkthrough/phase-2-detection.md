@@ -132,3 +132,56 @@ This is a deliberate trade-off: some real account numbers without context will b
 ### Q&A
 **Q: How do you tell a bank account number from any other long number?**
 A: You can't from the digits alone: account numbers have no checksum. So I use context: an account keyword just before it (a/c, account, khata, bank) or an IFSC code nearby. It's a precision/recall trade-off. Without context I'd mask every order number and confuse the chatbot; with context I miss some bare account numbers. The evaluation quantifies that miss rate.
+
+---
+
+## 4. Secret detection and the combined engine
+
+### Files
+| File | Purpose |
+|---|---|
+| `src/leakguard/detect/secrets.py` | `detect_secrets()`, `shannon_entropy()`, `word_fraction()` |
+| `src/leakguard/detect/engine.py` | `DETECTORS` (every detector) and `detect_all()` |
+| `src/leakguard/detect/__init__.py` | re-exports `detect_all` so callers write `from leakguard.detect import detect_all` |
+
+### Three ways to find a secret
+1. **Known prefixes.** Many providers stamp their keys: `sk-` (OpenAI, Anthropic), `AKIA` (AWS), `ghp_` (GitHub), `xoxb-` (Slack), `AIza` (Google), `sk_live_` (Stripe), `eyJ…` (JWT), `-----BEGIN PRIVATE KEY-----`. Precise and cheap.
+2. **Key/value context.** `password=hunter22`, `api_key: "zx81"`, `Authorization: Bearer …`. The value after the `:`/`=` is the secret.
+3. **Entropy**, for formats nobody has seen before. See below.
+
+All hits are merged inside `detect_secrets()`, because one key can match several rules (a prefix *and* entropy) and should be reported once.
+
+### Shannon entropy, worked example
+Entropy measures how unpredictable each character is, in bits:  `H = −Σ p(c)·log₂ p(c)`.
+- `"aaaa"`: one symbol, p = 1, so H = 0 bits. Completely predictable.
+- `"abcd"`: four symbols, each p = ¼, so H = 4 × (¼ × 2) = **2 bits**.
+- A random 28-character key using upper, lower and digits: almost every character is different, so H ≈ 4.8 bits.
+
+A token is flagged when it is **≥ 24 characters**, **mixes lowercase, uppercase and digits**, has **entropy > 4.0**, and is **not mostly words** (next section).
+
+**Why > 4.0 excludes hex:** hex uses only 16 symbols, and the maximum entropy of 16 equally likely symbols is log₂16 = **4.0**. So git commit hashes and UUIDs (very common in developer prompts, and not secret) can never pass.
+
+### The bug the plan didn't foresee: code names
+While building this I probed extra strings and found `getUserAccountBalance2024Handler` was flagged as a secret: long, mixed-case, has digits, entropy 4.05. Since secrets are **blocked**, every developer pasting code would be rejected. The fix, which I measured before choosing:
+- `word_fraction()` = the share of the token made of word-like chunks (`[A-Z]?[a-z]{3,}` like `Invoice`, or `[A-Z]{4,}` like `HTTP`).
+- Code names: **0.83–0.88**. Random keys: median **0.25**, and 99.9% of 9,000 random samples score below **0.79**.
+- Threshold **0.75**: tokens above it read like code and are not flagged.
+- Result: **1,993 / 2,000** random 32-character keys still caught (99.65%). The few misses are mostly keys that happen to contain no digit.
+
+The first idea (counting how often the character type switches) was tried and **rejected**: `parseInvoiceLineItemsFromCsvV3` switches case 41% of the time, too close to random keys. The lesson: *measure before you pick a threshold.*
+
+### Why "my password is wrong" is not a secret
+Because secrets are blocked, false positives are expensive: the user's whole message is rejected. So the key/value rule:
+- requires `:` or `=` after the keyword. "password is wrong" has neither.
+- strips trailing punctuation and requires the value to be ≥ 4 characters **and contain a digit or symbol**. "reset password: how?" gives `how`, and "password: please help" gives letters only, so neither is flagged.
+- The trade-off: a password made only of letters (`password: sunshine`) is missed. That's documented, and the evaluation will measure it.
+
+### The engine
+`DETECTORS` is a tuple of functions with the same shape, `str -> list[Span]`. `detect_all()` runs them all and merges the results with `merge_spans()`. Adding the name model (Phase 4) or the address detector (Phase 5) means adding one entry to the tuple and nothing else.
+
+### ReDoS test
+`test_detect_all_is_fast_on_adversarial_input` feeds 100,000-character hostile inputs (`"9 " * 50_000`, `"a" * 100_000 + "@"`, …) and requires each to finish in under 2 seconds. The token-start lookbehinds (section 3) are what make this pass.
+
+### Q&A
+**Q: How do you detect an API key format you've never seen?**
+A: Entropy. Random keys pack about 5 bits per character; normal text and identifiers much less, and hex IDs can't exceed 4. I flag long tokens that mix character classes, exceed 4 bits per character, and aren't mostly English-like word chunks. The last rule came from a real false positive I found: code identifiers. I measured it on 9,000 random samples, so I can state its miss rate (about 0.35% on 32-character keys) instead of guessing.
