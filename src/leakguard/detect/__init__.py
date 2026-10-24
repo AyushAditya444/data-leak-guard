@@ -1,5 +1,5 @@
 """Detection: find sensitive data in text and return it as Spans."""
 
-from leakguard.detect.engine import detect_all
+from leakguard.detect.engine import build_detector, detect_rules
 
-__all__ = ["detect_all"]
+__all__ = ["build_detector", "detect_rules"]

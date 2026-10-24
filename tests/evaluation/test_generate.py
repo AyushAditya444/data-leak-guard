@@ -1,9 +1,11 @@
 import random
+import re
 
 from leakguard.entities import EntityType as T
 from leakguard.evaluation.generate import SPLIT_SIZES, build_split, render_template
 from leakguard.evaluation.samples import parse_marked, read_jsonl
 from leakguard.evaluation.templates import TEMPLATES
+from leakguard.evaluation.values import NAME_POOLS
 
 
 def test_render_template_marks_gold_and_not_filler():
@@ -59,3 +61,34 @@ def test_generated_splits_are_built_in_memory_not_read_from_disk():
     assert load_split("dev") == build_split("dev", seed=1)
     assert load_split("test") == build_split("test", seed=2)
     assert load_split("handwritten") == read_jsonl("data/eval/handwritten.jsonl")
+
+
+def test_test_split_names_never_appear_in_dev_pool():
+    dev_f, dev_l = NAME_POOLS["dev"]
+    for s in build_split("test", seed=2):
+        for sp in s.spans:
+            if sp.type is T.NAME and "wordlike" not in s.template:
+                words = re.findall(r"[A-Za-z]{2,}", sp.text(s.text))
+                assert not {w.capitalize() for w in words} & (set(dev_f) | set(dev_l)), s.id
+
+
+def test_every_name_form_in_both_splits():
+    forms = ("first", "lower", "surname", "initial", "three", "caps", "wordlike")
+    for split, seed in (("dev", 1), ("test", 2)):
+        templates = {s.template for s in build_split(split, seed)}
+        for form in forms:
+            assert any(f"{{NAME.{form}}}" in t for t in templates), (split, form)
+
+
+def test_name_negatives_in_both_splits():
+    for split, seed in (("dev", 1), ("test", 2)):
+        assert any(s.category == "negative" and ("{~FESTIVAL}" in s.template
+                   or "{~BRAND}" in s.template) for s in build_split(split, seed))
+
+
+def test_name_form_of_template():
+    from leakguard.evaluation.generate import name_form
+    assert name_form("mera naam {NAME.lower} hai") == "lower"
+    assert name_form("I'm {NAME}. Call {PHONE}") == "mixed"
+    assert name_form("call {PHONE}") is None
+    assert name_form("handwritten") is None

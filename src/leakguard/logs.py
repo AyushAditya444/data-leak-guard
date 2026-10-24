@@ -37,6 +37,11 @@ def log_request(
     logger.info(json.dumps(record))
 
 
+def log_ner_disabled() -> None:
+    logger.warning(json.dumps({"event": "ner_disabled",
+                               "detail": "LEAKGUARD_NER=off: person names are not detected"}))
+
+
 def log_detection_failed(*, request_id: str, failure_mode: str) -> None:
     logger.warning(json.dumps(
         {"event": "detection_failed", "request_id": request_id, "failure_mode": str(failure_mode)}

@@ -2,7 +2,7 @@
 
 A drop-in, OpenAI-compatible proxy that stops Indian personal data and secrets from leaking into LLMs. It sits between your app and the LLM provider, finds sensitive data (Aadhaar, PAN, phone numbers, UPI IDs, bank accounts, IFSC codes, addresses, names, API keys), hides it before the request leaves, and puts the real values back into the reply, so your app works normally. You adopt it by changing **one line**: your SDK's `base_url`.
 
-> **Status: Phase 3 of 7.** Rule-based detection, masking, blocking and restoring work for non-streaming replies, and are measured on a held-out evaluation set (below). Streamed replies are masked (nothing leaks) but still show placeholders until Phase 6. Person names (Phase 4) and addresses (Phase 5) are not detected yet. See the [design](docs/superpowers/specs/2026-10-24-data-leak-guard-design.md).
+> **Status: Phase 4 of 7.** Detection (rules + a person-name model on CPU), masking, blocking and restoring work for non-streaming replies, and are measured on a held-out evaluation set (below). Streamed replies are masked (nothing leaks) but still show placeholders until Phase 6. Addresses (Phase 5) are not detected yet. See the [design](docs/superpowers/specs/2026-10-24-data-leak-guard-design.md).
 
 ## What it does
 
@@ -24,6 +24,7 @@ Your app gets:    "Refund to rahul.s@okicici is on its way."
 | IFSC | `HDFC0001234` structure | mask |
 | Bank account | 9–18 digits **with** account context ("a/c", "account", IFSC nearby) | mask |
 | Secrets | known key prefixes, `password=…`, `Bearer …`, high-entropy tokens | **block** (HTTP 400) |
+| Person name | NER model ([`xlm-roberta-base-ner-hrl`](https://huggingface.co/Davlan/xlm-roberta-base-ner-hrl), ONNX int8 on CPU, chosen from 5 candidates on dev: [comparison](docs/evaluation/ner-comparison.md)) + cue phrases for lowercase/all-caps names (`mera naam … hai`, `Name: …`) | mask |
 
 Logs record **counts only** (`"PHONE:mask": 2`), never values. Placeholder mappings live in memory for one request and are never stored.
 
@@ -33,22 +34,22 @@ Measured on a **held-out test set** of 1,500 synthetic messages (English, Hingli
 
 | Type | Support | Precision | Recall | F1 | Coverage | Exact |
 |---|---:|---:|---:|---:|---:|---:|
-| AADHAAR | 157 | 99.4% | 100.0% | 99.7% | 100.0% | 100.0% |
-| PAN | 257 | 100.0% | 92.2% | 96.0% | 90.8% | 100.0% |
-| PHONE | 495 | 97.5% | 96.0% | 96.7% | 96.2% | 100.0% |
-| UPI | 110 | 100.0% | 63.6% | 77.8% | 71.9% | 100.0% |
-| EMAIL | 274 | 100.0% | 100.0% | 100.0% | 100.0% | 100.0% |
-| CARD | 118 | 100.0% | 100.0% | 100.0% | 100.0% | 100.0% |
-| IFSC | 119 | 100.0% | 100.0% | 100.0% | 100.0% | 100.0% |
-| BANK_ACCOUNT | 119 | 100.0% | 99.2% | 99.6% | 100.0% | 100.0% |
-| SECRET | 240 | 100.0% | 91.7% | 95.7% | 97.2% | 65.9% |
-| NAME *(detector not built yet: Phase 4)* | 281 | – | – | – | – | – |
-| ADDRESS *(detector not built yet: Phase 5)* | 88 | – | – | – | – | – |
-| **All built types** | **1889** | **99.3%** | **94.7%** | **96.9%** | **96.4%** | **95.8%** |
+| AADHAAR | 112 | 100.0% | 100.0% | 100.0% | 100.0% | 100.0% |
+| PAN | 228 | 100.0% | 92.5% | 96.1% | 91.2% | 100.0% |
+| PHONE | 418 | 97.6% | 95.9% | 96.7% | 96.3% | 100.0% |
+| UPI | 82 | 100.0% | 61.0% | 75.8% | 69.5% | 100.0% |
+| EMAIL | 200 | 100.0% | 100.0% | 100.0% | 100.0% | 100.0% |
+| CARD | 88 | 100.0% | 100.0% | 100.0% | 100.0% | 100.0% |
+| IFSC | 88 | 100.0% | 100.0% | 100.0% | 100.0% | 100.0% |
+| BANK_ACCOUNT | 113 | 100.0% | 100.0% | 100.0% | 100.0% | 100.0% |
+| SECRET | 234 | 100.0% | 92.7% | 96.2% | 97.5% | 65.0% |
+| NAME | 428 | 96.0% | 89.0% | 92.4% | 89.6% | 97.9% |
+| ADDRESS *(detector not built yet: Phase 5)* | 63 | – | – | – | – | – |
+| **All built types** | **1991** | **98.6%** | **93.5%** | **96.0%** | **95.4%** | **95.5%** |
 
-- Negative messages (nothing sensitive) with at least one false alarm: 1 of 350 (0.3%).
-- Detection latency: p50 **0.042 ms**, p95 **0.084 ms** per message.
-- Hand-written set (43 messy real-style messages): **100.0%** precision, **93.0%** recall over built types.
+- Negative messages (nothing sensitive) with at least one false alarm: 9 of 350 (2.6%).
+- Detection latency per message, one CPU thread: rules **0.046 ms** (p50); rules + name model p50 **16.785 ms**, p95 **40.799 ms**.
+- Hand-written set (59 messy real-style messages): **98.4%** precision, **90.9%** recall over built types.
 - *Matching rule:* same type and overlapping. *Coverage* = share of the sensitive characters actually hidden from the LLM.
 - Reproduce: `python -m leakguard.evaluation report`.
 
@@ -61,6 +62,8 @@ docker compose up --build
 ```
 
 This starts the guard on `http://localhost:8080` and a free **mock LLM** behind it that replies `"You said: <your message>"`.
+
+The first build downloads CPU-only PyTorch and the name model's weights (~1.3 GB) to export the model inside a throwaway build stage, so it takes a while; later builds reuse Docker's cache. The image that runs contains only the exported ONNX model, not PyTorch.
 
 In another terminal:
 
@@ -102,6 +105,9 @@ LEAKGUARD_UPSTREAM_BASE_URL=http://host.docker.internal:11434/v1 docker compose 
 | `LEAKGUARD_UPSTREAM_TIMEOUT_S` | `60` | upstream timeout in seconds |
 | `LEAKGUARD_MAX_REQUEST_BYTES` | `1048576` | larger requests are rejected with 413 |
 | `LEAKGUARD_POLICY_PATH` | built-in default | YAML policy file, see [`config/policy.yaml`](config/policy.yaml) |
+| `LEAKGUARD_NER` | `on` | person-name detection (an ONNX model on CPU). `off` disables it; while `on`, the guard refuses to start if the model is missing |
+| `LEAKGUARD_NER_MODEL_DIR` | `models/ner` | exported name model (the Docker image includes it) |
+| `LEAKGUARD_NER_THREADS` | `1` | CPU threads per name-model inference |
 
 ### Policy
 
@@ -119,10 +125,23 @@ failure_mode: closed   # if detection itself fails: closed = reject, open = forw
 python -m venv .venv              # any location works
 .venv\Scripts\activate            # Windows (Linux/macOS: source .venv/bin/activate)
 pip install -e ".[dev]"
-pytest
+pytest                            # model-backed tests skip until the model is exported
 ruff check .
-python -m leakguard.evaluation report   # regenerate the evaluation report
 ```
+
+The name model is exported from a pinned Hugging Face revision (needs PyTorch once; the
+guard itself only needs ONNX Runtime):
+
+```bash
+pip install "torch>=2.14,<3" --index-url https://download.pytorch.org/whl/cpu
+pip install -e ".[export]"
+python -m leakguard.ner.export           # -> models/ner/ (what the guard loads)
+python -m leakguard.evaluation report    # regenerate the evaluation report
+```
+
+To redo the model choice: `python -m leakguard.ner.export --all` then
+`python -m leakguard.ner.compare` (dev split only; writes
+[docs/evaluation/ner-comparison.md](docs/evaluation/ner-comparison.md)).
 
 ## Docs
 

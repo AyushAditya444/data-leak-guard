@@ -41,3 +41,19 @@
 {"id": "hw-041", "category": "hard", "template": "handwritten", "text": "send to meera@okbizaxis pls", "spans": [{"start": 8, "end": 23, "type": "UPI"}]}
 {"id": "hw-042", "category": "hard", "template": "handwritten", "text": "transfer to 917020045678123 urgent", "spans": [{"start": 12, "end": 27, "type": "BANK_ACCOUNT"}]}
 {"id": "hw-043", "category": "hard", "template": "handwritten", "text": "DB_PASSWORD=Mango#7781", "spans": [{"start": 12, "end": 22, "type": "SECRET"}]}
+{"id": "hw-044", "category": "hinglish", "template": "handwritten", "text": "hello ji suraj kumar bol raha hu, parcel kab aayega??", "spans": [{"start": 9, "end": 20, "type": "NAME"}]}
+{"id": "hw-045", "category": "hinglish", "template": "handwritten", "text": "mera naam anjali hai aur mera number 9811122233 hai", "spans": [{"start": 10, "end": 16, "type": "NAME"}, {"start": 37, "end": 47, "type": "PHONE"}]}
+{"id": "hw-046", "category": "support", "template": "handwritten", "text": "Hi, Fr. Thomas Mathew here from the parish office, need an invoice copy", "spans": [{"start": 8, "end": 21, "type": "NAME"}]}
+{"id": "hw-047", "category": "support", "template": "handwritten", "text": "Pls connect me to the manager.\nRegards,\nNagarajan", "spans": [{"start": 40, "end": 49, "type": "NAME"}]}
+{"id": "hw-048", "category": "agent_record", "template": "handwritten", "text": "cust: T. R. Balasubramanian, mob 9444012345, wants EMI conversion", "spans": [{"start": 6, "end": 27, "type": "NAME"}, {"start": 33, "end": 43, "type": "PHONE"}]}
+{"id": "hw-049", "category": "agent_record", "template": "handwritten", "text": "Contact: Rakhi-9876501234", "spans": [{"start": 9, "end": 14, "type": "NAME"}, {"start": 15, "end": 25, "type": "PHONE"}]}
+{"id": "hw-050", "category": "agent_record", "template": "handwritten", "text": "Hand over to SHAIKH MOHAMMED ASLAM at counter 3", "spans": [{"start": 13, "end": 34, "type": "NAME"}]}
+{"id": "hw-051", "category": "hinglish", "template": "handwritten", "text": "pinky didi ka order cancel karna hai", "spans": [{"start": 0, "end": 5, "type": "NAME"}]}
+{"id": "hw-052", "category": "support", "template": "handwritten", "text": "my wife Lalitha and I both got charged, my name is Ganesh Iyer", "spans": [{"start": 8, "end": 15, "type": "NAME"}, {"start": 51, "end": 62, "type": "NAME"}]}
+{"id": "hw-053", "category": "agent_record", "template": "handwritten", "text": "Assigned to: Hardik | Raised by: Mrs. Kaur", "spans": [{"start": 13, "end": 19, "type": "NAME"}, {"start": 38, "end": 42, "type": "NAME"}]}
+{"id": "hw-054", "category": "support", "template": "handwritten", "text": "Thanks Bhavesh! issue resolved", "spans": [{"start": 7, "end": 14, "type": "NAME"}]}
+{"id": "hw-055", "category": "support", "template": "handwritten", "text": "@Nikhil please check the refund for Ms. Rao", "spans": [{"start": 1, "end": 7, "type": "NAME"}, {"start": 40, "end": 43, "type": "NAME"}]}
+{"id": "hw-056", "category": "negative", "template": "handwritten", "text": "Ganesh Chaturthi offer khatam ho gaya kya?", "spans": []}
+{"id": "hw-057", "category": "negative", "template": "handwritten", "text": "Paid via PhonePe, but Amazon shows payment pending", "spans": []}
+{"id": "hw-058", "category": "negative", "template": "handwritten", "text": "Is Mumbai Indians merchandise available in the Pune store?", "spans": []}
+{"id": "hw-059", "category": "negative", "template": "handwritten", "text": "Will the Lakme kit come by Monday?", "spans": []}

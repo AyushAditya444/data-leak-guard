@@ -16,3 +16,27 @@ jobs:
       - run: pip install -e ".[dev]"
       - run: ruff check .
       - run: pytest -v
+
+  # The real name model: exported once, cached until the candidates or the export change,
+  # then the full suite runs again with the model-backed tests enabled.
+  ner-model:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - id: model-cache
+        uses: actions/cache@v4
+        with:
+          path: models/ner
+          key: ner-${{ hashFiles('src/leakguard/ner/candidates.py', 'src/leakguard/ner/export.py') }}
+      - run: pip install -e ".[dev]"
+      - name: Export the shipped model (only when not cached)
+        if: steps.model-cache.outputs.cache-hit != 'true'
+        run: |
+          pip install "torch>=2.14,<3" --index-url https://download.pytorch.org/whl/cpu
+          pip install -e ".[export]"
+          python -m leakguard.ner.export
+      - run: pytest -v
