@@ -67,10 +67,20 @@ def test_name_on_window_boundary_found_once():
     assert _names(_model(max_length=16), text) == ["Rahul Sharma"]
 
 
-def test_all_windows_run_in_one_batch():
+def test_windows_run_in_bounded_batches():
+    # Memory grows with batch size (measured: ~52 MB per KB of text in one batch), so a
+    # 1 MiB message in one batch would need tens of GB. Batches are capped instead.
+    from leakguard.ner.model import MAX_BATCH
     session = FakeSession()
-    _model(max_length=16, session=session).detect("word " * 30)
-    assert len(session.calls) == 1 and session.calls[0][0] >= 3
+    text = "word " * 200 + "Rahul Sharma"  # ~29 windows of 14 tokens
+    assert _names(_model(max_length=16, session=session), text) == ["Rahul Sharma"]
+    assert len(session.calls) > 1 and all(rows <= MAX_BATCH for rows, _ in session.calls)
+
+
+def test_few_windows_still_run_in_one_call():
+    session = FakeSession()
+    _model(max_length=16, session=session).detect("word " * 25)  # windows 0-14, 7-21, 14-25
+    assert len(session.calls) == 1 and session.calls[0][0] == 3
 
 
 def test_short_text_is_not_padded_to_max_length():

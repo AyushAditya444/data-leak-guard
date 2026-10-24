@@ -23,6 +23,10 @@ from leakguard.ner.decode import decode_names, person_label_ids
 REQUIRED_KEYS = ("id2label", "cls_id", "sep_id", "pad_id", "max_length", "threshold",
                  "candidate")
 _OVERLAP = 64  # tokens shared by neighbouring windows, so no name is cut at an edge
+# Windows per inference call. Memory grows with the batch (measured: ~52 MB per KB of text
+# in a single batch), so a long message in one batch could exhaust RAM. With 4, peak memory
+# stays bounded however long the message is; most messages need just one window anyway.
+MAX_BATCH = 4
 
 
 class NameModelError(RuntimeError):
@@ -95,14 +99,9 @@ class NameModel:
             raise NameModelError(f"could not load the model in {model_dir}: {exc}") from None
         return model
 
-    def detect(self, text: str) -> list[Span]:
-        encoding = self._tokenizer.encode(text, add_special_tokens=False)
-        ids, offsets = encoding.ids, encoding.offsets
-        if not ids:
-            return []
-        windows = _windows(len(ids), self._body)
-
-        # One batch for the whole text: [CLS] tokens [SEP], padded to the longest window.
+    def _run(self, ids: list[int], windows: list[tuple[int, int]]) -> np.ndarray:
+        """Label probabilities for a batch of windows: [CLS] tokens [SEP], padded to the
+        longest window in the batch."""
         width = max(end - start for start, end in windows) + 2
         input_ids = np.full((len(windows), width), self._pad, dtype=np.int64)
         mask = np.zeros((len(windows), width), dtype=np.int64)
@@ -111,19 +110,29 @@ class NameModel:
             input_ids[row, 0], input_ids[row, n + 1] = self._cls, self._sep
             input_ids[row, 1:n + 1] = ids[start:end]
             mask[row, :n + 2] = 1
-        probs = _softmax(self._session.run(None, {"input_ids": input_ids,
-                                                  "attention_mask": mask})[0])
+        return _softmax(self._session.run(None, {"input_ids": input_ids,
+                                                 "attention_mask": mask})[0])
+
+    def detect(self, text: str) -> list[Span]:
+        encoding = self._tokenizer.encode(text, add_special_tokens=False)
+        ids, offsets = encoding.ids, encoding.offsets
+        if not ids:
+            return []
+        windows = _windows(len(ids), self._body)
+        # one array per window (batches are padded to different widths)
+        probs = [row for i in range(0, len(windows), MAX_BATCH)
+                 for row in self._run(ids, windows[i:i + MAX_BATCH])]
 
         # A token near a window's edge has little context on one side, so each token
         # takes its prediction from the window where it sits furthest from an edge.
-        token_probs = np.zeros((len(ids), probs.shape[-1]), dtype=np.float32)
+        token_probs = np.zeros((len(ids), probs[0].shape[-1]), dtype=np.float32)
         best_distance = np.full(len(ids), -1)
         for row, (start, end) in enumerate(windows):
             for t in range(start, end):
                 distance = min(t - start, end - 1 - t)
                 if distance > best_distance[t]:
                     best_distance[t] = distance
-                    token_probs[t] = probs[row, t - start + 1]  # +1 skips [CLS]
+                    token_probs[t] = probs[row][t - start + 1]  # +1 skips [CLS]
 
         label_ids = token_probs.argmax(axis=-1).tolist()
         scores = token_probs[:, self._person_cols].sum(axis=-1).tolist()
