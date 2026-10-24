@@ -59,7 +59,7 @@ Each event is `data: <json>` followed by a blank line. The client glues the `con
 - **Why echo?** When the guard later masks `9876543210` → `[PHONE_1]`, the mock echoes `[PHONE_1]` back — giving the guard's restore step a realistic job, for free.
 - **Why 3-character chunks?** So `[PHONE_1]` gets split like `[PH` / `ONE` / `_1]` across chunks. That's the hardest case for restoring placeholders in streams (Phase 6). Real LLMs split text unpredictably too; the mock makes it happen *every* time so tests catch it.
 - `_stream_events` yields: a first chunk with the role, one chunk per 3 characters, a final chunk with `finish_reason: "stop"`, then `[DONE]` — the same order real OpenAI uses.
-- `ensure_ascii=False` keeps Hindi/emoji readable in the JSON instead of `न...` escapes.
+- `ensure_ascii=False` keeps Hindi/emoji readable in the JSON, instead of turning each character into an escape code (a backslash, the letter u, and four hex digits).
 
 ### Fixtures (`conftest.py`)
 pytest looks at a test's parameter names and supplies matching fixtures. `def test_x(mock_app)` automatically receives `create_mock_app(chunk_size=3)`. `anyio_backend` tells async tests to run on asyncio.
