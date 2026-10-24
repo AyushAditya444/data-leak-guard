@@ -22,7 +22,7 @@ _PAN = re.compile(r"(?<![A-Za-z0-9])[A-Za-z]{3}[ABCFGHJLPT][A-Za-z]\d{4}[A-Za-z]
 _CARD = re.compile(r"(?<!\d)\d(?:[ -]?\d){12,18}(?!\d)")
 
 # IFSC: 4-letter bank code, a literal 0 (reserved), 6-character branch code.
-_IFSC = re.compile(r"(?<![A-Za-z0-9])[A-Za-z]{4}0[A-Za-z0-9]{6}(?![A-Za-z0-9])")
+IFSC_PATTERN = re.compile(r"(?<![A-Za-z0-9])[A-Za-z]{4}0[A-Za-z0-9]{6}(?![A-Za-z0-9])")
 
 
 def _digits(value: str) -> str:
@@ -54,4 +54,4 @@ def detect_card(text: str) -> list[Span]:
 
 
 def detect_ifsc(text: str) -> list[Span]:
-    return _find(_IFSC, text, EntityType.IFSC, "ifsc")
+    return _find(IFSC_PATTERN, text, EntityType.IFSC, "ifsc")

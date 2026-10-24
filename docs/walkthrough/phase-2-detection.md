@@ -89,3 +89,46 @@ Regular expressions look scary; here's the Aadhaar one piece by piece:
 ### Q&A
 **Q: How do you avoid flagging order numbers as Aadhaar numbers?**
 A: Three filters in a row. Shape: exactly 12 digits, first digit 2–9, not part of a longer number (lookarounds), consistent grouping. Then the Verhoeff checksum, which ~90% of random numbers fail. And if a number still slips through, the evaluation in Phase 3 measures how often, so the false-positive rate is a known number, not a guess.
+
+---
+
+## 3. Contact and payment detectors — phone, UPI, email, bank account
+
+### Files
+| File | Purpose |
+|---|---|
+| `src/leakguard/detect/contact.py` | `detect_phone`, `detect_upi`, `detect_email`, `detect_bank_account` |
+| `src/leakguard/data/upi_handles.txt` | the list of known UPI handles (`okicici`, `ybl`, `paytm`…) |
+| `pyproject.toml` | `package-data` so the `.txt` file is installed with the package |
+
+### Phone numbers
+```
+(?<![\d+])  (?:(?:\+91|91)[ -]?|0)?   [6-9]   (?:[ -]?\d){9}   (?!\d)
+            optional +91 / 91 / 0      first   9 more digits,
+            prefix                     digit   each optionally after one space/hyphen
+```
+Indian mobile numbers are 10 digits starting with 6, 7, 8 or 9. Allowing one optional separator between digits covers `98765 43210`, `98765-43210` and `+91 98765 43210` with one pattern. The prefix is part of the span, so the *whole* `+91 98765 43210` gets masked — nothing like `+91 [PHONE_1]` leaks the country code.
+
+**Look-alikes rejected:** a 6-digit **OTP** (`482913`) is too short; `5876543210` starts with 5; `98765432101234` is part of a longer number.
+
+### UPI vs email — why a handle list
+`rahul.s@okicici` and `rahul@gmail.com` look alike: `something@something`. The difference is the part after `@`:
+- a UPI **handle** is a short bank/app code with no dot (`okicici`, `ybl`, `paytm`);
+- an email has a **domain** with a dot (`gmail.com`).
+
+So UPI requires the handle to be in `upi_handles.txt` **and** not followed by a dot. Without the list, every `user@company` mention would be flagged. The list lives in a plain text file so it can be updated without touching code. `importlib.resources` reads it from inside the installed package, so it works the same in Docker, in tests and from a wheel.
+
+### Bank account numbers — context decides
+Indian bank account numbers are 9–18 digits with **no checksum**, so on its own a long number could be anything: an order ID, a ticket, a tracking number. The detector only reports a digit run when:
+- within **40 characters before** it there's a context word: `a/c`, `ac no`, `acc`, `account`, `acct`, `khata` (Hindi for account) or `bank`; **or**
+- an **IFSC code** appears within 50 characters either side (an IFSC next to a number almost always means bank details).
+
+`"Ticket 50100123456789 is open"` → no context → not masked. `"My a/c no 50100123456789"` → masked.
+This is a deliberate trade-off: some real account numbers without context will be missed. Phase 3's evaluation measures how many.
+
+### ReDoS — why every pattern starts with a lookbehind
+**ReDoS** (Regular-expression Denial of Service) is when a crafted input makes a regex take a very long time. Example: `"a" * 100_000 + "@"`. A naive UPI pattern would try to start a match at *every one* of the 100,000 positions, and each attempt scans forward to the `@`: about 100,000 × 100,000 steps. The lookbehind `(?<![A-Za-z0-9._@-])` allows a match to start only at the *beginning* of a token, so there's one attempt instead of 100,000. Upper bounds like `{2,256}` cap how far one attempt can scan. A test in the next task feeds such inputs and requires each to finish within 2 seconds.
+
+### Q&A
+**Q: How do you tell a bank account number from any other long number?**
+A: You can't from the digits alone: account numbers have no checksum. So I use context: an account keyword just before it (a/c, account, khata, bank) or an IFSC code nearby. It's a precision/recall trade-off. Without context I'd mask every order number and confuse the chatbot; with context I miss some bare account numbers. The evaluation quantifies that miss rate.
