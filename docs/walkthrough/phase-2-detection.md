@@ -284,3 +284,56 @@ Every detection is counted as `(type, action)`, e.g. `(PHONE, mask): 3`. Only th
 ### Q&A
 **Q: What if a user types `[PHONE_1]` themselves?**
 A: Before numbering, the guard scans the request for placeholder-shaped text and reserves those numbers, so the real phone becomes `[PHONE_2]`. And restore only replaces placeholders the guard itself created in this request. So user-typed or LLM-invented placeholders are never turned into real values. It's the same principle as SQL injection defences: keep data and control separate.
+
+---
+
+## 7. Wiring it into the guard
+
+### Files
+| File | Change |
+|---|---|
+| `src/leakguard/app.py` | `_apply_policy()`, restore in `_relay()`, policy loaded in `create_app()` |
+| `src/leakguard/logs.py` | `findings`, `blocked`, `detection_ms`; `log_detection_failed()` |
+| `tests/conftest.py` | `make_guard(policy=...)` |
+| `tests/test_guard_masking.py` | end-to-end behaviour |
+| `README.md` | what's detected, the policy, the streaming limitation |
+
+### The full request journey now
+```
+POST /v1/chat/completions
+ 1. _read_chat_request()   size limit → valid JSON → 'messages' is a list of objects
+ 2. _apply_policy()        mask_messages(): detect every text field, apply policy
+      ├─ detector crashed? → fail-closed: 500 detection_failed
+      │                      (fail-open: forward original, log a warning)
+      ├─ anything to BLOCK? → 400 sensitive_data_blocked (names the TYPES, never values)
+      └─ otherwise         → masked body + PlaceholderMap
+ 3. _send_upstream()       the LLM only ever sees the masked body
+ 4a. normal reply   → _restored_content(): parse JSON, restore placeholders, re-serialise
+ 4b. streamed reply → passed through (masked; restored in Phase 6)
+ 5. ctx.finish()           log: status, findings counts, timings, never values
+```
+
+### Verified in Docker
+```
+REPLY:  You said: My Aadhaar is 2345 6789 0124, a/c 50100123456789 IFSC HDFC0001234, upi rahul.s@okicici
+STREAM: You said: pan [PAN_1]
+BLOCKED: 400 sensitive_data_blocked
+log: {"findings": {"AADHAAR:mask": 1, "BANK_ACCOUNT:mask": 1, "IFSC:mask": 1, "UPI:mask": 1},
+      "detection_ms": 0.13, ...}
+```
+The fake AI only saw `[AADHAAR_1]`, `[BANK_ACCOUNT_1]`, `[IFSC_1]` and `[UPI_1]`; the app got the real values back. Detection costs about **0.1 ms** per request, against ~20 ms for even the local mock LLM.
+
+### Key design decisions
+**1. Block before sending.** When a secret is found, the guard returns 400 **without contacting the LLM at all** (`test_secret_blocked...` asserts the upstream was never called). The error message names the kind (`SECRET`) so the developer knows what to fix, but never echoes the value: error messages end up in logs and screenshots.
+
+**2. Fail-closed in code.** `_apply_policy()` wraps detection in a deliberately broad `try/except Exception`. Normally catching every exception is bad style (the linter flags it), but here it's the whole point: *any* unexpected failure must turn into a refusal, not a silent pass-through. It's marked `# noqa: BLE001` with a comment explaining why.
+
+**3. Restore only what's safe to touch.** `_restored_content()` restores only successful JSON replies. Error bodies and non-JSON content are relayed byte-for-byte. If the reply can't be parsed, the original bytes go back unchanged rather than crashing.
+
+**4. Policy loaded once, at startup.** `create_app()` calls `load_policy()`, so a broken policy file stops the guard from starting instead of failing on the first customer request.
+
+**5. Streaming is safe, just not pretty yet.** Streamed requests *are* masked, so nothing leaks. The reply shows `[PAN_1]` until Phase 6 adds the restorer that handles placeholders split across chunks (`[PA` + `N_1]`). Shipping the safe half first is a deliberate order.
+
+### Q&A
+**Q: Walk me through what happens to a request containing an Aadhaar number.**
+A: The guard parses and validates the body, then runs every detector over every text field of every message. The Aadhaar regex finds 12 digits in the right shape and the Verhoeff checksum confirms it. The policy says `mask`, so it becomes `[AADHAAR_1]` in a fresh request-scoped mapping. Only the masked request goes to the LLM. When the reply comes back, `[AADHAAR_1]` is swapped back for the real number and the mapping is discarded. The log line records `"AADHAAR:mask": 1` and timings, never the number. Detection takes about a tenth of a millisecond.
