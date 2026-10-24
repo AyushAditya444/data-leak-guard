@@ -33,6 +33,13 @@ def test_category_table_excludes_unbuilt_types():
     assert "| support | 100.0% | 100.0% | 0 |" in md
 
 
+def test_report_includes_methodology_notes():
+    ev = score(_samples(), detect_all)
+    md = render_report({"test": ev}, measure_latency(_samples(), detect_all, 1), {"test": 4},
+                       notes=["Test errors were inspected once."])
+    assert "## Methodology notes" in md and "- Test errors were inspected once." in md
+
+
 def test_latency_buckets():
     lat = measure_latency(_samples(), detect_all, repeats=1)
     assert lat["all"]["n"] == 4 and lat["all"]["p95_ms"] >= lat["all"]["p50_ms"] >= 0

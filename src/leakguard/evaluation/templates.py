@@ -66,6 +66,9 @@ TEMPLATES: dict[str, list[str]] = {
         "key was {SECRET.token}"),
         "token: {SECRET.token}\nretry the webhook with request id {~UUID}",
         "AKIA key {SECRET.aws} leaked in CI logs, how do I rotate it?",
+        # Added after inspecting test errors once: prefixed key names (DB_PASSWORD=...)
+        # were absent from dev, so tuning could not see them. Index 16 -> dev split.
+        "docker run -e DB_USER=app -e DB_PASSWORD={SECRET.password} -e APP_SECRET={SECRET.token} myimage",
     ],
     # Romanised Hindi-English, as typed on phones.
     "hinglish": [

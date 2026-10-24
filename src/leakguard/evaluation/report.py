@@ -117,6 +117,7 @@ def render_report(
     latency: dict[str, dict[str, float]],
     dataset_sizes: dict[str, int],
     hard_cases: dict[str, TypeScores] | None = None,
+    notes: list[str] | None = None,
 ) -> str:
     out = [
         "# Evaluation report",
@@ -160,6 +161,9 @@ def render_report(
         out += [f"| `{_short(t, 70)}` | {_pct(st.recall)} | {_pct(st.coverage)} |"
                 for t, st in hard_cases.items()]
         out.append("")
+
+    if notes:
+        out += ["## Methodology notes", "", *[f"- {note}" for note in notes], ""]
 
     if "handwritten" in results:
         out += ["## Error examples (hand-written set)", "", *_examples(results["handwritten"]),

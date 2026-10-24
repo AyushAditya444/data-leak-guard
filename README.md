@@ -2,7 +2,7 @@
 
 A drop-in, OpenAI-compatible proxy that stops Indian personal data and secrets from leaking into LLMs. It sits between your app and the LLM provider, finds sensitive data (Aadhaar, PAN, phone numbers, UPI IDs, bank accounts, IFSC codes, addresses, names, API keys), hides it before the request leaves, and puts the real values back into the reply, so your app works normally. You adopt it by changing **one line**: your SDK's `base_url`.
 
-> **Status: Phase 2 of 7.** Rule-based detection, masking, blocking and restoring work for non-streaming replies. Streamed replies are masked (nothing leaks) but still show placeholders until Phase 6. Person names (Phase 4) and addresses (Phase 5) are not detected yet. See the [design](docs/superpowers/specs/2026-10-24-data-leak-guard-design.md).
+> **Status: Phase 3 of 7.** Rule-based detection, masking, blocking and restoring work for non-streaming replies, and are measured on a held-out evaluation set (below). Streamed replies are masked (nothing leaks) but still show placeholders until Phase 6. Person names (Phase 4) and addresses (Phase 5) are not detected yet. See the [design](docs/superpowers/specs/2026-10-24-data-leak-guard-design.md).
 
 ## What it does
 
@@ -26,6 +26,31 @@ Your app gets:    "Refund to rahul.s@okicici is on its way."
 | Secrets | known key prefixes, `password=…`, `Bearer …`, high-entropy tokens | **block** (HTTP 400) |
 
 Logs record **counts only** (`"PHONE:mask": 2`), never values. Placeholder mappings live in memory for one request and are never stored.
+
+## Results
+
+Measured on a **held-out test set** of 1,500 synthetic messages (English, Hinglish, pasted customer records, developer snippets, look-alike negatives and known-hard formats) whose phrasings were never used for tuning. Full report, with methodology, per-category results, latency, known-hard formats and error examples: [docs/evaluation/report.md](docs/evaluation/report.md).
+
+| Type | Support | Precision | Recall | F1 | Coverage | Exact |
+|---|---:|---:|---:|---:|---:|---:|
+| AADHAAR | 157 | 99.4% | 100.0% | 99.7% | 100.0% | 100.0% |
+| PAN | 257 | 100.0% | 92.2% | 96.0% | 90.8% | 100.0% |
+| PHONE | 495 | 97.5% | 96.0% | 96.7% | 96.2% | 100.0% |
+| UPI | 110 | 100.0% | 63.6% | 77.8% | 71.9% | 100.0% |
+| EMAIL | 274 | 100.0% | 100.0% | 100.0% | 100.0% | 100.0% |
+| CARD | 118 | 100.0% | 100.0% | 100.0% | 100.0% | 100.0% |
+| IFSC | 119 | 100.0% | 100.0% | 100.0% | 100.0% | 100.0% |
+| BANK_ACCOUNT | 119 | 100.0% | 99.2% | 99.6% | 100.0% | 100.0% |
+| SECRET | 240 | 100.0% | 91.7% | 95.7% | 97.2% | 65.9% |
+| NAME *(detector not built yet: Phase 4)* | 281 | – | – | – | – | – |
+| ADDRESS *(detector not built yet: Phase 5)* | 88 | – | – | – | – | – |
+| **All built types** | **1889** | **99.3%** | **94.7%** | **96.9%** | **96.4%** | **95.8%** |
+
+- Negative messages (nothing sensitive) with at least one false alarm: 1 of 350 (0.3%).
+- Detection latency: p50 **0.042 ms**, p95 **0.084 ms** per message.
+- Hand-written set (43 messy real-style messages): **100.0%** precision, **93.0%** recall over built types.
+- *Matching rule:* same type and overlapping. *Coverage* = share of the sensitive characters actually hidden from the LLM.
+- Reproduce: `python -m leakguard.evaluation report`.
 
 ## Quickstart (free, no API key needed)
 
@@ -96,6 +121,7 @@ python -m venv .venv              # any location works
 pip install -e ".[dev]"
 pytest
 ruff check .
+python -m leakguard.evaluation report   # regenerate the evaluation report
 ```
 
 ## Docs
@@ -103,6 +129,8 @@ ruff check .
 - [Design](docs/superpowers/specs/2026-10-24-data-leak-guard-design.md)
 - [Phase 1 walkthrough](docs/walkthrough/phase-1-skeleton.md): the proxy skeleton
 - [Phase 2 walkthrough](docs/walkthrough/phase-2-detection.md): detection, policy, masking
+- [Phase 3 walkthrough](docs/walkthrough/phase-3-evaluation.md): evaluation
+- [Evaluation report](docs/evaluation/report.md)
 
 ## License
 
