@@ -129,7 +129,10 @@ OpenAI SDKs expect `{"error": {"message", "type", "param", "code"}}`. Matching i
 **6. Only `Authorization` is forwarded.**
 The guard passes the caller's own provider key through and holds none itself. Other headers (`Host`, `Content-Length`, hop-by-hop headers like `Connection`) belong to *this* hop and must not be copied to the next one — httpx sets the correct ones.
 
-**7. Unknown fields are forwarded unchanged.**
+**7. Rate-limit headers are relayed (an allowlist).**
+When a provider says `429 Too Many Requests`, it also sends `Retry-After` and `x-ratelimit-*` headers. The OpenAI SDK reads `Retry-After` to decide how long to wait before retrying. The guard copies exactly these headers back (`_relayed_headers()`), and nothing else — so a provider's cookies or connection headers never leak through to the caller. This was caught in the final review: without it, the SDK's retry timing silently changes behind the guard, which breaks the "drop-in" promise.
+
+**8. Unknown fields are forwarded unchanged.**
 The guard parses the body to check `messages`, but forwards the whole object, so new OpenAI features (`some_future_field` in the test) keep working without updating the guard.
 
 ### Q&A

@@ -34,6 +34,19 @@ def test_stream_upstream_error_relayed(make_guard):
     assert r.json() == err
 
 
+def test_stream_success_relays_rate_limit_headers(make_guard):
+    sse = b'data: {"choices":[{"delta":{"content":"ok"}}]}\n\ndata: [DONE]\n\n'
+
+    def handler(req):
+        return httpx.Response(200, content=sse, headers={
+            "content-type": "text/event-stream", "x-ratelimit-remaining-tokens": "42"})
+
+    guard = make_guard(transport=httpx.MockTransport(handler))
+    with guard.stream("POST", CHAT, json=_stream_req()) as r:
+        assert r.status_code == 200
+        assert r.headers["x-ratelimit-remaining-tokens"] == "42"
+
+
 @pytest.mark.anyio
 async def test_relay_stream_closes_upstream_on_early_exit():
     async def body():

@@ -46,6 +46,19 @@ def test_upstream_error_status_relayed(make_guard):
     assert r.status_code == 401 and r.json() == err
 
 
+def test_rate_limit_headers_relayed(make_guard):
+    # The OpenAI SDK reads retry-after to schedule retries; a drop-in proxy must keep it.
+    def handler(req):
+        return httpx.Response(429, json={"error": {"message": "slow down"}}, headers={
+            "retry-after": "7", "x-ratelimit-remaining-requests": "0", "set-cookie": "a=b"})
+
+    r = make_guard(transport=httpx.MockTransport(handler)).post(CHAT, json=_req())
+    assert r.status_code == 429
+    assert r.headers["retry-after"] == "7"
+    assert r.headers["x-ratelimit-remaining-requests"] == "0"
+    assert "set-cookie" not in r.headers
+
+
 def test_upstream_unreachable_returns_502(make_guard):
     def handler(req):
         raise httpx.ConnectError("refused")

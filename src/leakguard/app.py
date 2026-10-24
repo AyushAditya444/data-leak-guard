@@ -91,9 +91,20 @@ async def _send_upstream(
                             "upstream_error", "upstream_unreachable")
 
 
+def _relayed_headers(resp: httpx.Response) -> dict[str, str]:
+    """Provider headers SDKs rely on (retry timing, rate limits). An allowlist, so
+    cookies and hop-by-hop headers from the provider never reach the caller."""
+    return {
+        name: value
+        for name, value in resp.headers.items()
+        if name in ("retry-after", "retry-after-ms", "openai-processing-ms")
+        or name.startswith("x-ratelimit-")
+    }
+
+
 def _relay(resp: httpx.Response) -> Response:
     return Response(content=resp.content, status_code=resp.status_code,
-                    media_type=resp.headers.get("content-type"))
+                    headers=_relayed_headers(resp), media_type=resp.headers.get("content-type"))
 
 
 async def relay_stream(resp: httpx.Response) -> AsyncIterator[bytes]:
@@ -137,7 +148,7 @@ async def _proxy_chat(
 
     if ctx.stream and sent.is_success:
         return StreamingResponse(_stream_and_log(sent, ctx), status_code=sent.status_code,
-                                 media_type="text/event-stream")
+                                 headers=_relayed_headers(sent), media_type="text/event-stream")
 
     if ctx.stream:
         # An error reply to a stream request (e.g. 429) is plain JSON, not SSE:
