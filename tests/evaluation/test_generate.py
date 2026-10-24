@@ -52,6 +52,10 @@ def test_each_type_well_represented_in_both_splits():
             assert counts[t] >= 50, (split, t, counts[t])
 
 
-def test_committed_datasets_match_generator():
-    assert read_jsonl("data/eval/dev.jsonl") == build_split("dev", seed=1)
-    assert read_jsonl("data/eval/test.jsonl") == build_split("test", seed=2)
+def test_generated_splits_are_built_in_memory_not_read_from_disk():
+    # dev/test are not committed (their fake API keys trip GitHub's secret scanning);
+    # the CLI rebuilds them deterministically instead.
+    from leakguard.evaluation.__main__ import load_split
+    assert load_split("dev") == build_split("dev", seed=1)
+    assert load_split("test") == build_split("test", seed=2)
+    assert load_split("handwritten") == read_jsonl("data/eval/handwritten.jsonl")

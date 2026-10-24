@@ -4,3 +4,9 @@ __pycache__/
 .pytest_cache/
 .ruff_cache/
 .env
+
+# Generated evaluation splits: rebuilt deterministically by
+# `python -m leakguard.evaluation generate`. Not committed: their fake API keys
+# look real to GitHub secret scanning.
+data/eval/dev.jsonl
+data/eval/test.jsonl

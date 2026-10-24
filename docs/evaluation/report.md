@@ -75,9 +75,9 @@ Best of 3 runs per message, on the test split, single CPU thread.
 
 | Message length | n | p50 | p95 | max |
 |---|---:|---:|---:|---:|
-| all | 1500 | 0.042 ms | 0.084 ms | 0.150 ms |
-| short (<200 chars) | 1498 | 0.042 ms | 0.084 ms | 0.150 ms |
-| medium (200-1000) | 2 | 0.117 ms | 0.121 ms | 0.121 ms |
+| all | 1500 | 0.041 ms | 0.084 ms | 0.144 ms |
+| short (<200 chars) | 1498 | 0.041 ms | 0.084 ms | 0.144 ms |
+| medium (200-1000) | 2 | 0.112 ms | 0.115 ms | 0.115 ms |
 
 ## Known-hard formats (test split)
 

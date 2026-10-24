@@ -8,7 +8,7 @@ from leakguard.detect import detect_all
 from leakguard.evaluation.generate import SPLIT_SEEDS, build_split
 from leakguard.evaluation.metrics import score
 from leakguard.evaluation.report import measure_latency, render_errors, render_report
-from leakguard.evaluation.samples import read_jsonl, write_jsonl
+from leakguard.evaluation.samples import Sample, read_jsonl, write_jsonl
 
 DATA = Path("data/eval")
 REPORT = Path("docs/evaluation/report.md")
@@ -25,7 +25,11 @@ NOTES = [
 ]
 
 
-def _load(split: str):
+def load_split(split: str) -> list[Sample]:
+    """dev/test are rebuilt from the seeded generator, not read from disk: they are not
+    committed, because their (fake) API keys look real to GitHub's secret scanning."""
+    if split in SPLIT_SEEDS:
+        return build_split(split, SPLIT_SEEDS[split])
     return read_jsonl(DATA / f"{split}.jsonl")
 
 
@@ -37,7 +41,7 @@ def cmd_generate(_: argparse.Namespace) -> None:
 
 
 def cmd_report(_: argparse.Namespace) -> None:
-    test, handwritten = _load("test"), _load("handwritten")
+    test, handwritten = load_split("test"), load_split("handwritten")
     results = {"test": score(test, detect_all), "handwritten": score(handwritten, detect_all)}
     hard_templates = sorted({s.template for s in test if s.category == "hard"})
     hard_cases = {}
@@ -54,7 +58,7 @@ def cmd_report(_: argparse.Namespace) -> None:
 
 
 def cmd_errors(args: argparse.Namespace) -> None:
-    print(render_errors(score(_load(args.split), detect_all), limit=args.limit))
+    print(render_errors(score(load_split(args.split), detect_all), limit=args.limit))
 
 
 def main() -> None:
@@ -63,7 +67,7 @@ def main() -> None:
     sys.stdout.reconfigure(errors="replace")
     parser = argparse.ArgumentParser(prog="python -m leakguard.evaluation")
     sub = parser.add_subparsers(dest="command", required=True)
-    sub.add_parser("generate", help="rebuild data/eval/dev.jsonl and test.jsonl")
+    sub.add_parser("generate", help="write data/eval/dev.jsonl and test.jsonl (for browsing)")
     sub.add_parser("report", help="write docs/evaluation/report.md from test + handwritten")
     errors = sub.add_parser("errors", help="print false positives/negatives for one split")
     errors.add_argument("--split", default="dev", choices=["dev", "test", "handwritten"])

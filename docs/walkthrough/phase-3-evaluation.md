@@ -135,8 +135,10 @@ A naive split takes 3,000 generated messages and puts half in each set. But then
 ### A balance problem caught by a test
 The first version gave the test set only **38** Aadhaar numbers, because most Aadhaar templates happened to sit at even positions. Results built on 38 examples are noisy: one miss moves recall by almost 3 points. A new test (`test_each_type_well_represented_in_both_splits`) requires ≥ 50 examples of every type in each split. Swapping three templates' positions fixed it; now every type has ≥ 88 per split.
 
-### Determinism and committed data
-`build_split("dev", seed=1)` always produces byte-identical output. The JSONL files are committed so anyone can inspect exactly what was measured, and `test_committed_datasets_match_generator` fails if the files and the generator ever drift apart.
+### Determinism, and why the generated files are *not* committed
+`build_split("dev", seed=1)` always produces byte-identical output, so the datasets don't need to be stored: the report and tests rebuild them in memory (`load_split()`), and `python -m leakguard.evaluation generate` writes them to `data/eval/` if you want to browse them.
+
+They were committed at first, and then **GitHub's push protection blocked the push**: the fake Slack and Stripe keys in the developer snippets look exactly like real ones (that's the point, the detectors must see realistic formats), and GitHub can't tell they're fake. It was the same job this project does, done by someone else. The fix was to not commit generated data at all (it's in `.gitignore`), and to remove it from the branch's history before the first push. Only the small hand-written set is committed.
 
 ### Q&A
 **Q: How do you make sure your test numbers aren't inflated?**
