@@ -4,6 +4,7 @@ from collections.abc import Callable
 
 from leakguard.detect.contact import detect_bank_account, detect_email, detect_phone, detect_upi
 from leakguard.detect.ids import detect_aadhaar, detect_card, detect_ifsc, detect_pan
+from leakguard.detect.name_cues import detect_name_cues
 from leakguard.detect.secrets import detect_secrets
 from leakguard.detect.spans import Span, merge_spans
 
@@ -21,6 +22,7 @@ RULE_DETECTORS: tuple[Detector, ...] = (
     detect_email,
     detect_bank_account,
     detect_secrets,
+    detect_name_cues,  # lowercase / ALL CAPS names after cues like "mera naam"
 )
 
 

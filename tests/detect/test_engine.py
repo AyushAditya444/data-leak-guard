@@ -22,3 +22,10 @@ def test_build_detector_adds_names_and_rules_win_overlaps():
 def test_build_detector_without_names_is_rules_only():
     text = "I am Rahul, mail rahul@gmail.com"
     assert build_detector(None)(text) == detect_rules(text)
+
+
+def test_rules_include_name_cues():
+    # lowercase names have no capital letter for the model: the cue detector is a rule
+    text = "mera naam rahul hai, number 9876543210"
+    assert [(s.type, s.text(text)) for s in detect_rules(text)] == [
+        (T.NAME, "rahul"), (T.PHONE, "9876543210")]

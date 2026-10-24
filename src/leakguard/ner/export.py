@@ -122,7 +122,10 @@ def export(candidate: Candidate, out_dir: Path, keep_fp32: bool) -> dict:
 
     fp32, int8 = out_dir / "model.fp32.onnx", out_dir / "model.onnx"
     _export_onnx(model, fp32)
-    quantize_dynamic(str(fp32), str(int8), weight_type=QuantType.QInt8)
+    # Per-channel: each output channel of a weight matrix gets its own int8 scale. With a
+    # single scale per tensor, a few large weights squash the rest to zero: on dev, MuRIL's
+    # NAME F1 fell from 93% (fp32) to 0%; per-channel kept 85%, at the same size and speed.
+    quantize_dynamic(str(fp32), str(int8), weight_type=QuantType.QInt8, per_channel=True)
 
     tokenizer_json = out_dir / "tokenizer.json"
     hf_tokenizer.backend_tokenizer.save(str(tokenizer_json))
