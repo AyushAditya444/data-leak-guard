@@ -77,6 +77,49 @@ CODE_VERBS = ("get", "parse", "load", "update", "build", "validate", "fetch", "r
 CODE_NOUNS = ("Customer", "Invoice", "Account", "Order", "Payment", "Ledger", "Session", "User")
 CODE_SUFFIXES = ("Handler", "Service", "Factory", "Controller", "Repository", "Mapper")
 
+# Person names for NAME gold values, split by dataset: test names never appear in dev,
+# so the reported numbers come from names no tuning decision ever saw. Spread across
+# regions and communities. (FIRST_NAMES/LAST_NAMES above only build email/UPI local parts.)
+NAME_POOLS: dict[str, tuple[tuple[str, ...], tuple[str, ...]]] = {
+    "dev": (
+        ("Rahul", "Priya", "Amit", "Sneha", "Arjun", "Kavya", "Rohan", "Ananya", "Vikram",
+         "Pooja", "Suresh", "Lakshmi", "Imran", "Fatima", "Harpreet", "Deepak", "Neha",
+         "Karthik", "Meera", "Aditya", "Divya", "Sanjay", "Ritu", "Abdul", "Ayesha", "Joseph",
+         "Mary", "Venkatesh", "Swati", "Gurpreet", "Ankit", "Shreya", "Manish", "Nikita",
+         "Tanvi", "Rakesh", "Bhavna", "Sachin", "Farhan", "Zoya", "Thomas", "Anita",
+         "Balwinder", "Lalremruati", "Tenzin", "Bikash", "Sourav", "Moumita", "Hemant", "Jyoti",
+         "Prakash", "Shalini", "Naveen", "Sunita", "Yusuf"),
+        ("Sharma", "Verma", "Patel", "Reddy", "Iyer", "Nair", "Singh", "Khan", "Gupta", "Mehta",
+         "Das", "Banerjee", "Joshi", "Kulkarni", "Pillai", "Menon", "Rao", "Shaikh",
+         "Fernandes", "Mishra", "Yadav", "Choudhary", "Agarwal", "Bose", "Saxena", "Thakur",
+         "Gill", "Hazarika", "Sangma", "Pandey", "Chatterjee", "Dsouza"),
+    ),
+    "test": (
+        ("Aarav", "Ishita", "Varun", "Riya", "Siddharth", "Nandini", "Kunal", "Sakshi",
+         "Rajesh", "Geeta", "Arvind", "Kamala", "Salman", "Nazia", "Jaspreet", "Mohit",
+         "Komal", "Srinivas", "Revathi", "Abhishek", "Anjali", "Vivek", "Preeti", "Rizwan",
+         "Sana", "Peter", "Grace", "Murugan", "Ashwini", "Manpreet", "Gaurav", "Isha", "Pankaj",
+         "Rupali", "Akash", "Madhuri", "Dinesh", "Kiranjit", "Arif", "Shabana", "Francis",
+         "Leela", "Sukhwinder", "Zothanpuii", "Pema", "Debashish", "Arnab", "Sudipta", "Girish",
+         "Pallavi", "Ramesh", "Usha", "Harish", "Nasreen", "Tejas"),
+        ("Tiwari", "Srivastava", "Desai", "Naidu", "Krishnan", "Kurup", "Sandhu", "Ansari",
+         "Jain", "Shah", "Ghosh", "Mukherjee", "Pawar", "Deshpande", "Nambiar", "Warrier",
+         "Hegde", "Qureshi", "Pinto", "Dubey", "Chauhan", "Bhatt", "Goel", "Sen", "Kapoor",
+         "Rathore", "Grewal", "Bora", "Marak", "Lyngdoh", "Trivedi", "Chakraborty"),
+    ),
+}
+# Names that are also ordinary English words: genuinely hard for a model, used in "hard".
+WORDLIKE_NAMES = ("Kiran", "Sunny", "Lucky", "Rose", "Hira", "Pinky", "Honey", "Bunty",
+                  "Prince", "Lovely", "Golden", "Daisy")
+HONORIFICS = ("Mr.", "Mrs.", "Ms.", "Dr.", "Shri", "Smt.")
+FESTIVALS = ("Ganesh Chaturthi", "Guru Nanak Jayanti", "Durga Puja", "Raksha Bandhan",
+             "Diwali", "Eid", "Onam", "Makar Sankranti", "Christmas")
+BRANDS = ("Paytm", "PhonePe", "Tata Motors", "Maruti Suzuki", "Bajaj Finance", "Flipkart",
+          "Amazon Pay", "Reliance Jio")
+CITIES = ("Pune", "Chennai", "Lucknow", "Indore", "Guwahati", "Kochi", "Jaipur", "Bhopal")
+PRODUCTS = ("Redmi Note 13", "Galaxy M34", "iPhone 15", "OnePlus Nord", "Boat Airdopes",
+            "Prestige cooker")
+
 _BASE62 = string.ascii_letters + string.digits
 _UPI_HANDLES_SORTED = tuple(sorted(UPI_HANDLES))  # sets of strings iterate in random order
 
@@ -170,10 +213,38 @@ def bank_account(rng: random.Random) -> str:
     return _digits(rng, rng.randint(9, 18), first="123456789")
 
 
-def name(rng: random.Random) -> str:
-    first = rng.choice(FIRST_NAMES)
-    return first if rng.random() < 0.2 else f"{first} {rng.choice(LAST_NAMES)}"
+def name_makers(split: str) -> dict[str, Maker]:
+    """NAME value makers drawing on one split's name pool, one per name form."""
+    firsts, lasts = NAME_POOLS[split]
 
+    def full(rng: random.Random) -> str:
+        return f"{rng.choice(firsts)} {rng.choice(lasts)}"
+
+    def mixed(rng: random.Random) -> str:  # the original {NAME}: usually full, sometimes first
+        return rng.choice(firsts) if rng.random() < 0.2 else full(rng)
+
+    def initial(rng: random.Random) -> str:  # South Indian style: "K. Venkatesh"
+        initials = rng.sample(string.ascii_uppercase, rng.choice((1, 1, 2)))
+        return " ".join(f"{c}." for c in initials) + " " + rng.choice(firsts)
+
+    def three(rng: random.Random) -> str:
+        first, middle = rng.sample(firsts, 2)
+        return f"{first} {middle} {rng.choice(lasts)}"
+
+    def wordlike(rng: random.Random) -> str:
+        first = rng.choice(WORDLIKE_NAMES)
+        return first if rng.random() < 0.5 else f"{first} {rng.choice(lasts)}"
+
+    return {
+        "NAME": mixed,
+        "NAME.first": lambda rng: rng.choice(firsts),
+        "NAME.lower": lambda rng: mixed(rng).lower(),
+        "NAME.surname": lambda rng: rng.choice(lasts),
+        "NAME.initial": initial,
+        "NAME.three": three,
+        "NAME.caps": lambda rng: full(rng).upper(),
+        "NAME.wordlike": wordlike,
+    }
 
 def address(rng: random.Random) -> str:
     locality, city, pin_prefix = rng.choice(PLACES)
@@ -240,6 +311,11 @@ FILLER_MAKERS: dict[str, Maker] = {
     "COUPON": lambda rng: rng.choice(("SAVE", "DIWALI", "FEST", "WELCOME")) + str(
         rng.choice((10, 20, 50, 100))),
     "BANK": lambda rng: rng.choice(BANK_NAMES),
+    "HONORIFIC": lambda rng: rng.choice(HONORIFICS),
+    "FESTIVAL": lambda rng: rng.choice(FESTIVALS),
+    "BRAND": lambda rng: rng.choice(BRANDS),
+    "CITY": lambda rng: rng.choice(CITIES),
+    "PRODUCT": lambda rng: rng.choice(PRODUCTS),
 }
 
 VALUE_MAKERS: dict[str, Maker] = {
@@ -256,7 +332,8 @@ VALUE_MAKERS: dict[str, Maker] = {
     "CARD": card,
     "IFSC": ifsc,
     "BANK_ACCOUNT": bank_account,
-    "NAME": name,
+    # Default for ad-hoc rendering; build_split always uses the split's own pool.
+    **name_makers("dev"),
     "ADDRESS": address,
     **{f"SECRET.{kind}": maker for kind, maker in SECRET_MAKERS.items()},
     **FILLER_MAKERS,

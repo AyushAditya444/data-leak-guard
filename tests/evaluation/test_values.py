@@ -3,7 +3,12 @@ import re
 
 from leakguard.detect.checksums import luhn_valid, verhoeff_valid
 from leakguard.detect.contact import UPI_HANDLES
-from leakguard.evaluation.values import VALUE_MAKERS, verhoeff_check_digit
+from leakguard.evaluation.values import (
+    NAME_POOLS,
+    VALUE_MAKERS,
+    name_makers,
+    verhoeff_check_digit,
+)
 
 
 def _many(key, n=200):
@@ -52,3 +57,22 @@ def test_every_declared_maker_exists_and_is_deterministic():
 def test_values_never_contain_marker_syntax():
     for key in VALUE_MAKERS:
         assert all("[[" not in v and "]]" not in v for v in _many(key, 50)), key
+
+
+def test_name_pools_are_disjoint_between_splits():
+    (dev_f, dev_l), (test_f, test_l) = NAME_POOLS["dev"], NAME_POOLS["test"]
+    assert not set(dev_f) & set(test_f) and not set(dev_l) & set(test_l)
+    assert min(len(dev_f), len(test_f)) >= 50 and min(len(dev_l), len(test_l)) >= 30
+
+
+def test_name_forms():
+    m = name_makers("dev")
+    for seed in range(20):
+        lower = m["NAME.lower"](random.Random(seed))
+        assert lower == lower.lower()
+        caps = m["NAME.caps"](random.Random(seed))
+        assert caps == caps.upper()
+        assert re.fullmatch(r"([A-Z]\. )+[A-Z][a-z]+", m["NAME.initial"](random.Random(seed)))
+        assert len(m["NAME.three"](random.Random(seed)).split()) == 3
+        assert " " not in m["NAME.surname"](random.Random(seed))
+        assert " " not in m["NAME.first"](random.Random(seed))

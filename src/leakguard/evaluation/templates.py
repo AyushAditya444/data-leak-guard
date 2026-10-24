@@ -29,6 +29,13 @@ TEMPLATES: dict[str, list[str]] = {
         "Please call {PHONE} or WhatsApp {PHONE} anytime after 6pm.",
         "My account {BANK_ACCOUNT} was debited {~AMOUNT} on {~DATE}, please check.",
         "Send invoice {~INVOICE} to {EMAIL}, GST details are with my PAN {PAN}.",
+        # Phase 4: name forms. Appended in pairs so each form reaches both splits.
+        "Hi, this is {NAME.first}, my order {~ORDER_ID} is late.",
+        "{NAME.first} here, can you check why my refund of {~AMOUNT} is pending?",
+        "Please address the letter to {~HONORIFIC} {NAME.surname}, phone {PHONE}.",
+        "{~HONORIFIC} {NAME.surname} called about the failed payment of {~AMOUNT}.",
+        "I am {NAME.initial} and my registered email is {EMAIL}.",
+        "Account holder name is {NAME.initial} as per PAN {PAN}.",
     ],
     # Support agents pasting whole customer records for the AI to summarise.
     "agent_record": [
@@ -45,6 +52,10 @@ TEMPLATES: dict[str, list[str]] = {
         ("Draft a reply to {NAME} <{EMAIL}> about the delivery to {ADDRESS} "
         "(order {~ORDER_ID}, contact {PHONE})."),
         "Lead: {NAME}, {PHONE}, {EMAIL}, PAN {PAN}, wants a loan against card {CARD}.",
+        "Customer: {NAME.three} | Mob: {PHONE} | Issue: charged twice for {~ORDER_ID}",
+        "Callback requested by {NAME.three} on {PHONE} regarding ticket {~TICKET}.",
+        "NAME: {NAME.caps}\nMOBILE: {PHONE}\nPAN: {PAN}",
+        "APPLICANT NAME - {NAME.caps} / DOB - {~DATE} / A/C - {BANK_ACCOUNT}",
     ],
     # Developers testing prompts and pasting code, configs and logs.
     "dev_snippet": [
@@ -88,6 +99,10 @@ TEMPLATES: dict[str, list[str]] = {
         "{NAME} bol raha hoon, mobile {PHONE}, email {EMAIL}",
         "sir ji upi {UPI} pe bhejo, ya phir a/c {BANK_ACCOUNT}",
         "aadhaar {AADHAAR} aur pan {PAN} dono upload kar diye",
+        "mera naam {NAME.lower} hai, order {~ORDER_ID} cancel kar do",
+        "{NAME.lower} bol raha hoon, refund kab aayega?",
+        "main {NAME.lower} hoon, mera number {PHONE} hai",
+        "bhaiya {NAME.lower} ko parcel de dena, {PHONE} pe call karo",
     ],
     # Nothing sensitive: look-alike numbers and harmless sentences. Every flag is an FP.
     "negative": [
@@ -109,6 +124,13 @@ TEMPLATES: dict[str, list[str]] = {
         "reset password: how do I do it from the app?",
         "Order {~ORDER_ID} and ticket {~TICKET} both refer to the same issue.",
         "My account was locked after 3 wrong attempts, ref {~TICKET}.",
+        # Phase 4: capitalised words that are not people's names.
+        "Is the store open on {~FESTIVAL}?",
+        "Happy {~FESTIVAL}! Any offers on the {~PRODUCT}?",
+        "Can I pay with {~BRAND} instead of cash on delivery?",
+        "My {~BRAND} EMI got deducted twice this month.",
+        "Will the {~PRODUCT} reach {~CITY} before {~FESTIVAL}?",
+        "I bought the {~PRODUCT} in May and it stopped working, can {~BRAND} replace it?",
     ],
     # Real formats the rules are known not to handle. Expected misses, measured honestly.
     "hard": [
@@ -122,5 +144,7 @@ TEMPLATES: dict[str, list[str]] = {
         "DB_PASSWORD={SECRET.password}",
         "ph: {PHONE.words}, alt {PHONE.dots}",
         "my upi {UPI.unknown_handle} and backup {UPI.unknown_handle}",
+        "my name is {NAME.wordlike}, please call back",
+        "{NAME.wordlike} here, the refund still hasn't come",
     ],
 }

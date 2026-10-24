@@ -5,7 +5,7 @@ import re
 
 from leakguard.evaluation.samples import Sample, parse_marked
 from leakguard.evaluation.templates import TEMPLATES
-from leakguard.evaluation.values import VALUE_MAKERS
+from leakguard.evaluation.values import VALUE_MAKERS, Maker, name_makers
 
 _SLOT = re.compile(r"\{(~?)([A-Z_]+)(?:\.([a-z_]+))?\}")
 
@@ -25,11 +25,13 @@ def template_split(category: str, index: int) -> str:
     return "dev" if index % 2 == 0 else "test"
 
 
-def render_template(template: str, rng: random.Random) -> str:
+def render_template(
+    template: str, rng: random.Random, makers: dict[str, Maker] = VALUE_MAKERS,
+) -> str:
     """Fill every slot; gold slots become [[TYPE:value]] marks, fillers plain values."""
     def fill(m: re.Match) -> str:
         is_filler, name, variant = m.group(1), m.group(2), m.group(3)
-        value = VALUE_MAKERS[f"{name}.{variant}" if variant else name](rng)
+        value = makers[f"{name}.{variant}" if variant else name](rng)
         return value if is_filler else f"[[{name}:{value}]]"
 
     return _SLOT.sub(fill, template)
@@ -37,13 +39,14 @@ def render_template(template: str, rng: random.Random) -> str:
 
 def build_split(split: str, seed: int) -> list[Sample]:
     rng = random.Random(seed)
+    makers = {**VALUE_MAKERS, **name_makers(split)}  # names come from this split's pool
     samples: list[Sample] = []
     for category, size in SPLIT_SIZES.items():
         templates = [t for i, t in enumerate(TEMPLATES[category])
                      if template_split(category, i) == split]
         for k in range(size):
             template = templates[k % len(templates)]
-            text, spans = parse_marked(render_template(template, rng))
+            text, spans = parse_marked(render_template(template, rng, makers))
             samples.append(Sample(f"{split}-{len(samples) + 1:05d}", category, template,
                                   text, spans))
     return samples
