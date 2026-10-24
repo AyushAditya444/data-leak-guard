@@ -141,3 +141,27 @@ The first version gave the test set only **38** Aadhaar numbers, because most Aa
 ### Q&A
 **Q: How do you make sure your test numbers aren't inflated?**
 A: Four ways. Thresholds are tuned only on the dev split. Dev and test share no templates, so test sentences are phrased in ways tuning never saw. Negatives and look-alikes are a fifth of the data, so false positives show up. And a separate hand-written set, not produced by the generator at all, checks the generator isn't making things too easy.
+
+---
+
+## 4. The hand-written set
+
+### File
+`data/eval/handwritten.jsonl`: 43 messages written by hand, **not** produced by the templates.
+
+### Why it exists
+A generator can only produce what its templates describe. If the templates are too tidy, the detectors look great on synthetic data and then stumble on real users. The hand-written set has the messiness templates don't:
+```
+hii my adhar no is 5214 7896 3019 pls update kyc fast 🙏          (typo "adhar", emoji)
+REFUND NOT RECEIVED. UPI ID neha.k@oksbi AMOUNT 2,499              (all caps)
+Pls summarise:\nCust name: Sunita Devi\nMob: 09812345670 ...      (multi-line record)
+khata no 20123456789012 SBI ka hai, ifsc SBIN0004321              (Hinglish)
+meeting id 845 2290 1173, join at 5                                (negative: phone-shaped)
+```
+It covers every type except NAME/ADDRESS at least twice, has 11 negatives and 4 hard cases. Aadhaar and card values were checked with Verhoeff/Luhn after writing.
+
+### How to read the results
+- **Synthetic ≈ hand-written:** the generator is realistic enough.
+- **Synthetic ≫ hand-written:** the generator is too easy. Trust the hand-written numbers and add templates for what was missed.
+
+It's small (43 samples), so treat its numbers as a sanity check, not a precise measurement: one miss moves a type's recall a lot.
