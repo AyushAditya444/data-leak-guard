@@ -184,3 +184,65 @@ It uses the real `openai` Python library with only `base_url` changed. Both norm
 ### Q&A
 **Q: What happens to the upstream connection if the user closes the chat mid-reply?**
 A: The client disconnect makes the server stop iterating our async generator; its `finally` block calls `resp.aclose()`, which closes the connection to the provider immediately — so we don't keep generating (and paying for) tokens no one will read. I have a unit test that stops a stream after one chunk and asserts the upstream response is closed.
+
+
+---
+
+## 4. Docker, CI, README, and the example client
+
+### Files
+| File | Purpose |
+|---|---|
+| `Dockerfile` | recipe for the container image (used for both the guard and the mock LLM) |
+| `.dockerignore` | files *not* copied into the image (git history, tests, docs, caches) |
+| `docker-compose.yml` | starts `mock-llm` + `guard` together with one command |
+| `.github/workflows/ci.yml` | GitHub runs lint + all tests on every push |
+| `examples/chat.py` | the official OpenAI SDK talking to the guard — normal + streamed |
+| `README.md` | what it is, quickstart, configuration |
+
+### The Dockerfile, line by line
+| Line | Why |
+|---|---|
+| `FROM python:3.11-slim` | small official Python image (no compilers/docs) → smaller, faster, fewer vulnerabilities |
+| `PYTHONDONTWRITEBYTECODE`, `PYTHONUNBUFFERED` | no `.pyc` clutter; logs appear immediately instead of being buffered |
+| `PIP_NO_CACHE_DIR=1` | don't keep pip's download cache inside the image → smaller |
+| `COPY pyproject.toml ...` then `RUN pip install .` | installs the package and its dependencies |
+| `useradd ... appuser` + `USER appuser` | **never run as root**: if someone exploits the app, they don't get root in the container |
+| `CMD ["uvicorn", "--factory", "leakguard.app:build_app", ...]` | `--factory` tells uvicorn to *call* `build_app()` to get the app, which reads settings from env vars at startup |
+
+### docker-compose: two services, one image
+- `mock-llm` runs the same image with a different command (`create_mock_app` on port 9000).
+- `guard` exposes port 8080 to your machine and points at `http://mock-llm:9000/v1`.
+- **Service names are hostnames:** inside Compose's private network, `mock-llm` resolves to the mock's container. That's why the URL isn't `localhost` — inside the guard's container, `localhost` means *the guard's own container*.
+- To reach Ollama running on your laptop from inside a container, use `host.docker.internal` (Docker Desktop's name for "the host machine").
+- `${LEAKGUARD_UPSTREAM_BASE_URL:-http://mock-llm:9000/v1}` = "use the env var if set, otherwise the mock".
+
+### CI (`ci.yml`)
+On every push or pull request, GitHub starts a fresh Ubuntu machine, installs Python 3.11 and the project, runs `ruff check .` (lint) and `pytest -v` (all tests). A green check mark on the repo shows visitors the tests **really run** — not just exist. It runs once the code is pushed to GitHub.
+
+### Verified end to end
+```
+$ docker compose up -d --build
+$ curl -s http://localhost:8080/healthz
+{"status":"ok"}
+$ python examples/chat.py
+Full reply:    You said: Hi, my phone number is 9876543210.
+Streamed reply: You| sa|id:| Hi|, m|y p|hon|e n|umb|er |is |987|654|321|0.|
+```
+The `|` marks show each streamed chunk — the mock's 3-character chunks travelling through the guard. And the guard's log line contains **only metadata**:
+```
+{"event": "request", "request_id": "c38f...", "status": 200, "stream": true, "upstream_ms": 14.9, "total_ms": 55.7}
+```
+(Notice the phone number is still visible in the reply — Phase 1 has no detection yet. Phase 2 will turn it into `[PHONE_1]` before it leaves.)
+
+### Running it yourself from a fresh terminal
+1. Start **Docker Desktop** and wait until it says "Engine running".
+2. `cd data-leak-guard` (your clone of the repo)
+3. `docker compose up --build` (leave it running; logs appear here)
+4. In a second terminal, same folder: activate your virtual environment (e.g. `.venv\Scripts\activate`), then `python examples/chat.py`
+5. Run the tests: `pytest` (with the venv activated).
+6. Stop: `Ctrl+C` in the first terminal, then `docker compose down`.
+
+### Q&A
+**Q: Why does the guard's config say `http://mock-llm:9000` and not `http://localhost:9000`?**
+A: Each container has its own network namespace — `localhost` inside the guard's container is the guard itself. Docker Compose puts both services on a private network with built-in DNS, where each **service name** resolves to that container. So the guard reaches the mock at `mock-llm`. Same idea in Kubernetes, where services are reached by name.
