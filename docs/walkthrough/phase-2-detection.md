@@ -185,3 +185,48 @@ Because secrets are blocked, false positives are expensive: the user's whole mes
 ### Q&A
 **Q: How do you detect an API key format you've never seen?**
 A: Entropy. Random keys pack about 5 bits per character; normal text and identifiers much less, and hex IDs can't exceed 4. I flag long tokens that mix character classes, exceed 4 bits per character, and aren't mostly English-like word chunks. The last rule came from a real false positive I found: code identifiers. I measured it on 9,000 random samples, so I can state its miss rate (about 0.35% on 32-character keys) instead of guessing.
+
+---
+
+## 5. The policy — what to do with each kind of data
+
+### Files
+| File | Purpose |
+|---|---|
+| `src/leakguard/policy.py` | `Action`, `FailureMode`, `Policy`, `DEFAULT_POLICY`, `load_policy()` |
+| `config/policy.yaml` | the documented default policy, ready to copy and edit |
+| `src/leakguard/config.py` | `policy_path` setting (`LEAKGUARD_POLICY_PATH`) |
+
+### Three actions
+| Action | What happens | Typical use |
+|---|---|---|
+| `mask` | value replaced by `[TYPE_N]` before sending, restored in the reply | personal data (default) |
+| `block` | whole request rejected with HTTP 400, nothing sent | secrets (default): no LLM needs your API key |
+| `log_only` | sent unchanged, counted in logs | trying the guard out on live traffic first ("monitor mode") |
+
+A company that's fine sending names writes a two-line file:
+```yaml
+actions:
+  NAME: log_only
+```
+Every type it doesn't mention keeps its default. That's why `load_policy()` starts from a copy of `DEFAULT_POLICY` and only overrides what the file lists.
+
+### Fail-closed vs fail-open
+What if the detector itself crashes (a bug, a bad input)?
+- **closed** (default): reject the request. Nothing can leak, but the app gets an error.
+- **open**: forward the request **unmasked** and log a warning. The app keeps working, but data may leak.
+
+Security tools default to fail-closed because a silent leak is worse than a visible error. Some companies prefer availability, so it's configurable.
+
+### Fail at startup, not mid-request
+A typo like `PHONE: hide` raises `PolicyError` **when the guard starts**, naming the bad value and listing the allowed ones. The alternative, discovering it on the first real request, would mean a broken guard in production. The tests check four kinds of mistakes: an unknown type, an unknown action, an unknown failure mode and an unknown top-level key.
+
+### Why `yaml.safe_load`
+Plain `yaml.load` can construct arbitrary Python objects from tags in the file, which is a known code-execution risk if someone can edit the config. `safe_load` only builds plain data (dicts, lists, strings, numbers). For a security tool it's the only acceptable choice.
+
+### Enums instead of strings
+`Action` and `EntityType` are `StrEnum`s. Code compares `action is Action.BLOCK` instead of `action == "blcok"`, so a typo in code is an immediate `AttributeError` rather than a silent bug. Because they're *string* enums, they still read and print as plain text in YAML and in logs.
+
+### Q&A
+**Q: What does fail-closed mean, and why is it the default?**
+A: If the protection mechanism fails, the system denies rather than allows. For the guard, a crash in detection rejects the request instead of forwarding unchecked data. Leaking an Aadhaar number can't be undone, while a rejected request can be retried. So for a data-protection tool the safe failure is denial. It's configurable because some teams value availability more, and then they make that choice explicitly.

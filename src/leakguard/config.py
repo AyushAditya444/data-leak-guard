@@ -12,6 +12,7 @@ class Settings:
     upstream_base_url: str = "http://localhost:9000/v1"
     upstream_timeout_s: float = 60.0
     max_request_bytes: int = 1_048_576  # 1 MiB
+    policy_path: str | None = None  # None = built-in default policy
 
     @classmethod
     def from_env(cls, env: Mapping[str, str] | None = None) -> "Settings":
@@ -23,4 +24,5 @@ class Settings:
                 env.get("LEAKGUARD_UPSTREAM_TIMEOUT_S", defaults.upstream_timeout_s)),
             max_request_bytes=int(
                 env.get("LEAKGUARD_MAX_REQUEST_BYTES", defaults.max_request_bytes)),
+            policy_path=env.get("LEAKGUARD_POLICY_PATH") or None,
         )
