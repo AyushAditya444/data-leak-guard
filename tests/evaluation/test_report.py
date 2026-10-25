@@ -1,4 +1,5 @@
 from leakguard.detect import detect_rules
+from leakguard.entities import EntityType as T
 from leakguard.evaluation.metrics import TypeScores, score
 from leakguard.evaluation.report import measure_latency, render_errors, render_report
 from leakguard.evaluation.samples import Sample, parse_marked
@@ -18,22 +19,42 @@ def _lat():
     return {"rules only": measure_latency(_samples(), detect_rules, 1)}
 
 
-def test_report_contains_tables_rule_and_unbuilt_detectors():
+def test_report_contains_tables_and_rule():
     ev = score(_samples(), detect_rules)
     md = render_report({"test": ev, "handwritten": ev}, _lat(),
                        {"test": 4, "handwritten": 4})
     assert "| Type | Support | Precision | Recall | F1 | Coverage | Exact |" in md
     assert "overlaps" in md and "same type" in md
-    assert "detector not built yet" in md
     assert "p95" in md
 
 
-def test_category_table_excludes_unbuilt_types():
-    # "[[ADDRESS:...]] here" is the only gold in its sample; ADDRESS has no detector yet, so
-    # the support category's recall must come from PHONE + BANK_ACCOUNT only (both found).
+def _never_finds_addresses(text):
+    return [s for s in detect_rules(text) if s.type is not T.ADDRESS]
+
+
+def test_unbuilt_types_are_marked_and_left_out_of_categories(monkeypatch):
+    # The mechanism stays for future types: pretend ADDRESS has no detector yet. Then the
+    # support category's recall comes from PHONE + BANK_ACCOUNT only (both found).
+    from leakguard.evaluation import report
+    monkeypatch.setattr(report, "UNBUILT", {T.ADDRESS: "Phase 99"})
+    ev = score(_samples(), _never_finds_addresses)
+    md = render_report({"test": ev}, _lat(), {"test": 4})
+    assert "detector not built yet: Phase 99" in md
+    assert "| support | 100.0% | 100.0% | 0 |" in md
+
+
+def test_address_not_marked_unbuilt():
     ev = score(_samples(), detect_rules)
     md = render_report({"test": ev}, _lat(), {"test": 4})
-    assert "| support | 100.0% | 100.0% | 0 |" in md
+    assert "| ADDRESS | 1 | 100.0% | 100.0% |" in md and "not built" not in md
+
+
+def test_report_has_address_styles_table():
+    styles = {"multiline": TypeScores(tp=4, fn=1, exact=2, gold_chars=100, covered_chars=90)}
+    md = render_report({"test": score(_samples(), detect_rules)}, _lat(), {"test": 4},
+                       address_styles=styles)
+    assert "## Addresses by style (test)" in md
+    assert "| multiline | 5 | 80.0% | 90.0% | 50.0% |" in md
 
 
 def test_report_includes_methodology_notes():
@@ -61,7 +82,9 @@ def test_errors_cli_works_on_a_legacy_windows_console():
 
 
 def test_render_errors_lists_misses():
-    ev = score(_samples(), detect_rules)
+    # a landmark with no place is a known miss of the address detector
+    text, spans = parse_marked("i stay [[ADDRESS:near the water tank]] only")
+    ev = score([*_samples(), Sample("m", "hard", "t", text, spans)], detect_rules)
     assert "FN ADDRESS" in render_errors(ev)
 
 

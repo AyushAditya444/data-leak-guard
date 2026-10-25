@@ -19,7 +19,8 @@ from fastapi.responses import StreamingResponse
 from starlette.concurrency import run_in_threadpool
 
 from leakguard.config import Settings
-from leakguard.detect.engine import Detector, build_detector
+from leakguard.detect.engine import Detector, EntityModel, build_detector
+from leakguard.detect.gazetteer import load_gazetteer
 from leakguard.errors import openai_error
 from leakguard.logs import log_detection_failed, log_ner_disabled, log_request
 from leakguard.masking import PlaceholderMap, mask_messages, restore_response
@@ -228,6 +229,9 @@ async def _proxy_chat(
 
 
 def _load_name_model(settings: Settings) -> Detector | None:
+    """The name model's detect(): names only. Its location tags are not used by the
+    address detector: on dev they raised recall and coverage but lowered precision, so the
+    pre-stated rule rejected them (docs/evaluation/address-tuning.md)."""
     if not settings.ner_enabled:
         log_ner_disabled()
         return None
@@ -244,12 +248,18 @@ def create_app(
     transport: httpx.AsyncBaseTransport | None = None,
     policy: Policy | None = None,
     name_model: Detector | None = None,
+    ner: EntityModel | None = None,
 ) -> FastAPI:
     """Build the guard. Tests pass `transport` to route upstream calls in-process, and
-    `name_model` to stand in for the real NER model. The policy and the model are loaded
-    here, so an invalid policy file or a missing model stops the guard at startup."""
+    `name_model` (names only) or `ner` (names + location tags) to stand in for the real
+    NER model. The policy and the model are loaded here, so an invalid policy file or a
+    missing model stops the guard at startup."""
     policy = policy or load_policy(settings.policy_path)
-    detect = build_detector(name_model or _load_name_model(settings))
+    load_gazetteer()  # the PIN directory (~1 MB): load now, not on the first request
+    if ner is not None:
+        detect = build_detector(ner=ner)
+    else:
+        detect = build_detector(name_model or _load_name_model(settings))
 
     @asynccontextmanager
     async def lifespan(app: FastAPI):

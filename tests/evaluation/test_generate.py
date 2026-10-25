@@ -92,3 +92,28 @@ def test_name_form_of_template():
     assert name_form("I'm {NAME}. Call {PHONE}") == "mixed"
     assert name_form("call {PHONE}") is None
     assert name_form("handwritten") is None
+
+
+def test_every_address_style_in_both_splits():
+    from collections import Counter
+
+    from leakguard.evaluation.generate import address_style
+    from leakguard.evaluation.values import ADDRESS_STYLES
+    for split, seed in (("dev", 1), ("test", 2)):
+        counts = Counter(address_style(s.template) for s in build_split(split, seed))
+        for style in (*ADDRESS_STYLES, "mixed"):
+            assert counts[style] >= 20, (split, style, counts[style])
+
+
+def test_address_style_of_template():
+    from leakguard.evaluation.generate import address_style
+    assert address_style("Deliver to {ADDRESS}.") == "mixed"
+    assert address_style("ship to {ADDRESS.multiline}") == "multiline"
+    assert address_style("call {PHONE}") is None
+
+
+def test_address_negatives_in_both_splits():
+    for split, seed in (("dev", 1), ("test", 2)):
+        negatives = [s for s in build_split(split, seed) if s.category == "negative"]
+        assert any("{~PIN_LIKE}" in s.template for s in negatives)
+        assert any("{~PLACE}" in s.template for s in negatives)

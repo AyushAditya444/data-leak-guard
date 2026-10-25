@@ -1,4 +1,5 @@
-"""NameModel: runs an exported NER model (ONNX) over a text and returns NAME spans.
+"""NameModel: runs an exported NER model (ONNX) over a text and returns NAME spans,
+plus location ranges that the address detector uses as place signals.
 
 Only `onnxruntime` and `tokenizers` are needed here, both small: PyTorch is used once,
 offline, to export the model (see export.py), and is never installed in the guard.
@@ -12,13 +13,19 @@ A model directory (written by `python -m leakguard.ner.export`) holds:
 
 import json
 import os
+from dataclasses import dataclass
 from pathlib import Path
 
 import numpy as np
 from tokenizers import Tokenizer
 
 from leakguard.detect.spans import Span
-from leakguard.ner.decode import decode_names, person_label_ids
+from leakguard.ner.decode import (
+    decode_locations,
+    decode_names,
+    location_label_ids,
+    person_label_ids,
+)
 
 REQUIRED_KEYS = ("id2label", "cls_id", "sep_id", "pad_id", "max_length", "threshold",
                  "candidate")
@@ -27,6 +34,13 @@ _OVERLAP = 64  # tokens shared by neighbouring windows, so no name is cut at an 
 # in a single batch), so a long message in one batch could exhaust RAM. With 4, peak memory
 # stays bounded however long the message is; most messages need just one window anyway.
 MAX_BATCH = 4
+
+
+@dataclass(frozen=True)
+class Entities:
+    """What one model run found: NAME spans, and location ranges (address signals only)."""
+    names: list[Span]
+    locations: list[tuple[int, int]]
 
 
 class NameModelError(RuntimeError):
@@ -60,6 +74,8 @@ class NameModel:
         id2label = {int(k): v for k, v in config["id2label"].items()}
         self._begin, self._inside = person_label_ids(id2label)
         self._person_cols = sorted(self._begin | self._inside)
+        self._loc_begin, self._loc_inside = location_label_ids(id2label)
+        self._loc_cols = sorted(self._loc_begin | self._loc_inside)
         self._cls, self._sep, self._pad = config["cls_id"], config["sep_id"], config["pad_id"]
         self._body = int(config["max_length"]) - 2  # room for [CLS] and [SEP]
         self.threshold = float(config["threshold"])
@@ -114,10 +130,14 @@ class NameModel:
                                                  "attention_mask": mask})[0])
 
     def detect(self, text: str) -> list[Span]:
+        return self.analyse(text).names
+
+    def analyse(self, text: str) -> Entities:
+        """Names and locations from ONE pass of the model."""
         encoding = self._tokenizer.encode(text, add_special_tokens=False)
         ids, offsets = encoding.ids, encoding.offsets
         if not ids:
-            return []
+            return Entities([], [])
         windows = _windows(len(ids), self._body)
         # one array per window (batches are padded to different widths)
         probs = [row for i in range(0, len(windows), MAX_BATCH)
@@ -136,5 +156,11 @@ class NameModel:
 
         label_ids = token_probs.argmax(axis=-1).tolist()
         scores = token_probs[:, self._person_cols].sum(axis=-1).tolist()
-        return decode_names(text, offsets, label_ids, scores, self._begin, self._inside,
-                            self.threshold)
+        names = decode_names(text, offsets, label_ids, scores, self._begin, self._inside,
+                             self.threshold)
+        locations: list[tuple[int, int]] = []
+        if self._loc_cols:
+            loc_scores = token_probs[:, self._loc_cols].sum(axis=-1).tolist()
+            locations = decode_locations(text, offsets, label_ids, loc_scores, self._loc_begin,
+                                         self._loc_inside, self.threshold)
+        return Entities(names, locations)

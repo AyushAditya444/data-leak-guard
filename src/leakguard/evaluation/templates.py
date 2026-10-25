@@ -36,6 +36,15 @@ TEMPLATES: dict[str, list[str]] = {
         "{~HONORIFIC} {NAME.surname} called about the failed payment of {~AMOUNT}.",
         "I am {NAME.initial} and my registered email is {EMAIL}.",
         "Account holder name is {NAME.initial} as per PAN {PAN}.",
+        # Phase 5: address styles, in pairs so each style reaches both splits.
+        "Please deliver to {ADDRESS.formal_pin}, I'll be home after 6.",
+        "My billing address is {ADDRESS.formal_pin}.",
+        "Change my shipping address to {ADDRESS.formal}, thanks.",
+        "Courier should come to {ADDRESS.formal}. Call {PHONE} first.",
+        "Pickup from {ADDRESS.landmark} please, around 11am.",
+        "The house is {ADDRESS.landmark}, the delivery boy got lost.",
+        "Send the technician to {ADDRESS.partial} tomorrow.",
+        "I'm at {ADDRESS.partial}, the order {~ORDER_ID} never came.",
     ],
     # Support agents pasting whole customer records for the AI to summarise.
     "agent_record": [
@@ -56,6 +65,10 @@ TEMPLATES: dict[str, list[str]] = {
         "Callback requested by {NAME.three} on {PHONE} regarding ticket {~TICKET}.",
         "NAME: {NAME.caps}\nMOBILE: {PHONE}\nPAN: {PAN}",
         "APPLICANT NAME - {NAME.caps} / DOB - {~DATE} / A/C - {BANK_ACCOUNT}",
+        "Customer: {NAME}\nAddress:\n{ADDRESS.multiline}\nPhone: {PHONE}",
+        "Ship to:\n{ADDRESS.multiline}\nOrder: {~ORDER_ID}",
+        "Address - {ADDRESS.abbrev} | Mob - {PHONE}",
+        "Delivery addr: {ADDRESS.abbrev}; COD; ticket {~TICKET}",
     ],
     # Developers testing prompts and pasting code, configs and logs.
     "dev_snippet": [
@@ -103,6 +116,10 @@ TEMPLATES: dict[str, list[str]] = {
         "{NAME.lower} bol raha hoon, refund kab aayega?",
         "main {NAME.lower} hoon, mera number {PHONE} hai",
         "bhaiya {NAME.lower} ko parcel de dena, {PHONE} pe call karo",
+        "bhai {ADDRESS.hinglish} pe aa jao",
+        "mera ghar {ADDRESS.hinglish} mein hai, wahan bhej do",
+        "address hai {ADDRESS.nocomma} jaldi bhejo",
+        "parcel {ADDRESS.nocomma} pe dena, {PHONE} pe call karo",
     ],
     # Nothing sensitive: look-alike numbers and harmless sentences. Every flag is an FP.
     "negative": [
@@ -131,6 +148,26 @@ TEMPLATES: dict[str, list[str]] = {
         "My {~BRAND} EMI got deducted twice this month.",
         "Will the {~PRODUCT} reach {~CITY} before {~FESTIVAL}?",
         "I bought the {~PRODUCT} in May and it stopped working, can {~BRAND} replace it?",
+        # Phase 5: address look-alikes. A real PIN used as an OTP or order number, places
+        # outside an address, and "near"/"society"/"12/3" in small talk.
+        "Your OTP is {~PIN_LIKE}. Do not share it with anyone.",
+        "Order {~PIN_LIKE} has been shipped.",
+        "I live in {~PLACE}, is delivery available there?",
+        "Shifting to {~PLACE}, {~PLACE} next month, will update later.",
+        "Stuck in traffic near {~PLACE}, will be late.",
+        "The society meeting is on Sunday at 6.",
+        "Score was 12/3 at lunch, what a match!",
+        "Meet me near the station after work.",
+        "Is cash on delivery available in {~PLACE}?",
+        "Use code {~PIN_LIKE} at checkout for 10% off.",
+        # Added after the final review: everyday prose with fractions, scores, "#N" and city
+        # names, which the address detector must leave alone.
+        "Rating 4/5 for the {~PLACE} hotel, would book again.",
+        "India scored 245/6 against Australia in {~CITY}, what a match!",
+        "I need 1/2 kg rice delivered in {~PLACE} by evening, is that possible?",
+        "Order #45 was late and the man said wait, are you sure it is coming?",
+        "The ratio is 3/4 in {~CITY}, are you sure about these numbers?",
+        "Ticket #4521 is still open for my {~CITY} order, please check.",
     ],
     # Real formats the rules are known not to handle. Expected misses, measured honestly.
     "hard": [
@@ -146,5 +183,8 @@ TEMPLATES: dict[str, list[str]] = {
         "my upi {UPI.unknown_handle} and backup {UPI.unknown_handle}",
         "my name is {NAME.wordlike}, please call back",
         "{NAME.wordlike} here, the refund still hasn't come",
+        # A landmark with no place: not an address by the detector's definition.
+        "the parcel should come {ADDRESS.landmark_only}",
+        "I stay {ADDRESS.landmark_only}, call when you reach",
     ],
 }

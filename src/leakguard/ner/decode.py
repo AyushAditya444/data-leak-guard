@@ -69,6 +69,40 @@ def _strip(text: str, start: int, end: int) -> tuple[int, int]:
     return start, end
 
 
+def _decode(
+    text: str,
+    offsets: Sequence[tuple[int, int]],
+    label_ids: Sequence[int],
+    scores: Sequence[float],
+    begin_ids: Collection[int],
+    inside_ids: Collection[int],
+    threshold: float,
+) -> list[tuple[int, int, float]]:
+    """(start, end, mean score) of each entity whose tokens carry the given labels."""
+    groups: list[list[int]] = []
+    prev_end: int | None = None
+    for i, label in enumerate(label_ids):
+        start, end = offsets[i]
+        if start == end or (label not in begin_ids and label not in inside_ids):
+            continue
+        if prev_end is not None and _continues(text, prev_end, start, label in inside_ids):
+            groups[-1].append(i)
+        else:
+            groups.append([i])
+        prev_end = end  # a word between two entity tokens fails _NAME_GAP, splitting them
+
+    found = []
+    for group in groups:
+        score = sum(scores[i] for i in group) / len(group)
+        if score < threshold:
+            continue
+        start, end = _whole_words(text, offsets[group[0]][0], offsets[group[-1]][1])
+        start, end = _strip(text, start, end)
+        if start < end:
+            found.append((start, end, score))
+    return found
+
+
 def decode_names(
     text: str,
     offsets: Sequence[tuple[int, int]],
@@ -80,25 +114,37 @@ def decode_names(
 ) -> list[Span]:
     """NAME spans from per-token predictions. `scores[i]` is token i's probability of
     being part of a person's name; a name is kept if its tokens' mean score >= threshold."""
-    groups: list[list[int]] = []
-    prev_end: int | None = None
-    for i, label in enumerate(label_ids):
-        start, end = offsets[i]
-        if start == end or (label not in begin_ids and label not in inside_ids):
-            continue
-        if prev_end is not None and _continues(text, prev_end, start, label in inside_ids):
-            groups[-1].append(i)
-        else:
-            groups.append([i])
-        prev_end = end  # a word between two person tokens fails _NAME_GAP, splitting them
+    return [Span(start, end, EntityType.NAME, score, detector="ner")
+            for start, end, score in _decode(text, offsets, label_ids, scores, begin_ids,
+                                             inside_ids, threshold)]
 
-    spans: list[Span] = []
-    for group in groups:
-        score = sum(scores[i] for i in group) / len(group)
-        if score < threshold:
-            continue
-        start, end = _whole_words(text, offsets[group[0]][0], offsets[group[-1]][1])
-        start, end = _strip(text, start, end)
-        if start < end:
-            spans.append(Span(start, end, EntityType.NAME, score, detector="ner"))
-    return spans
+
+def location_label_ids(id2label: dict[int, str]) -> tuple[frozenset[int], frozenset[int]]:
+    """(begin ids, inside ids) of the location labels; empty sets for a model without any
+    (locations are only an extra address signal, so their absence is not an error)."""
+    begin, inside = set(), set()
+    for label_id, label in id2label.items():
+        name = label.upper()
+        if name in ("B-LOC", "B-LOCATION"):
+            begin.add(int(label_id))
+        elif name in ("I-LOC", "I-LOCATION"):
+            inside.add(int(label_id))
+        elif name in ("LOC", "LOCATION"):
+            begin.add(int(label_id))
+            inside.add(int(label_id))
+    return frozenset(begin), frozenset(inside)
+
+
+def decode_locations(
+    text: str,
+    offsets: Sequence[tuple[int, int]],
+    label_ids: Sequence[int],
+    scores: Sequence[float],
+    begin_ids: Collection[int],
+    inside_ids: Collection[int],
+    threshold: float,
+) -> list[tuple[int, int]]:
+    """Character ranges of locations, decoded exactly like names. Never masked on their
+    own: the address detector uses them as place signals."""
+    return [(start, end) for start, end, _ in _decode(text, offsets, label_ids, scores,
+                                                      begin_ids, inside_ids, threshold)]

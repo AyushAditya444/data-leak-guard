@@ -3,10 +3,16 @@ import re
 
 from leakguard.detect.checksums import luhn_valid, verhoeff_valid
 from leakguard.detect.contact import UPI_HANDLES
+from leakguard.detect.gazetteer import load_gazetteer
 from leakguard.evaluation.values import (
+    ADDRESS_STYLES,
+    INVENTED_LOCALITIES,
     NAME_POOLS,
     VALUE_MAKERS,
+    address_makers,
+    city_name,
     name_makers,
+    place_pools,
     verhoeff_check_digit,
 )
 
@@ -76,3 +82,50 @@ def test_name_forms():
         assert len(m["NAME.three"](random.Random(seed)).split()) == 3
         assert " " not in m["NAME.surname"](random.Random(seed))
         assert " " not in m["NAME.first"](random.Random(seed))
+
+
+# --- Phase 5: addresses ------------------------------------------------------------------
+
+def test_place_pools_disjoint():
+    dev, test = place_pools("dev"), place_pools("test")
+    assert len(dev) >= 1000 and len(test) >= 1000
+    assert not {o.district for o in dev} & {o.district for o in test}
+    assert all(o.district for o in dev + test)
+
+
+def test_invented_localities_not_in_gazetteer():
+    places = load_gazetteer().places
+    for split in ("dev", "test"):
+        assert len(INVENTED_LOCALITIES[split]) >= 20
+        for name in INVENTED_LOCALITIES[split]:
+            assert " ".join(name.lower().split()) not in places, name
+    assert not set(INVENTED_LOCALITIES["dev"]) & set(INVENTED_LOCALITIES["test"])
+
+
+def test_address_gold_boundaries():
+    # Gold covers the address only: no lead-in words, no trailing punctuation, and it
+    # ends with the PIN or a place name from the split's own pools.
+    for split in ("dev", "test"):
+        endings = ({o.office.lower().rstrip(".") for o in place_pools(split)}
+                   | {city_name(o.district).lower() for o in place_pools(split)}
+                   | {n.lower() for n in INVENTED_LOCALITIES[split]})
+        makers = address_makers(split)
+        rng = random.Random(5)
+        for style in ADDRESS_STYLES:
+            for _ in range(50):
+                value = makers[f"ADDRESS.{style}"](rng)
+                assert value == value.strip(" ,.;:-\r\n"), (style, value)
+                assert not value.lower().startswith(("deliver", "to ", "address")), value
+                if style != "landmark_only":
+                    tail = value.lower().rstrip()
+                    assert re.search(r"\d{6}$", tail) or any(
+                        tail.endswith(e) for e in endings), (style, value)
+
+
+def test_address_pins_are_real():
+    pins = load_gazetteer().pins
+    rng = random.Random(9)
+    makers = address_makers("dev")
+    found = [re.search(r"(?<!\d)\d{6}(?!\d)", makers["ADDRESS.formal_pin"](rng))
+             for _ in range(100)]
+    assert all(m and m.group() in pins for m in found)

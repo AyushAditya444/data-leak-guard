@@ -7,9 +7,10 @@ from pathlib import Path
 
 from leakguard.config import Settings
 from leakguard.detect import build_detector, detect_rules
+from leakguard.detect.address import detect_address
 from leakguard.detect.engine import Detector
 from leakguard.entities import EntityType
-from leakguard.evaluation.generate import SPLIT_SEEDS, build_split, name_form
+from leakguard.evaluation.generate import SPLIT_SEEDS, address_style, build_split, name_form
 from leakguard.evaluation.metrics import score
 from leakguard.evaluation.report import measure_latency, render_errors, render_report
 from leakguard.evaluation.samples import Sample, read_jsonl, write_jsonl
@@ -36,6 +37,42 @@ NOTES = [
     "were written by the same author as the message templates, so the fallback's test "
     "numbers may be optimistic. The hand-written set and the lowercase test template "
     "without any cue (`bhaiya ... ko parcel de dena`) are the more independent checks."),
+    ("Phase 5 extended the dataset (address styles, places drawn from India Post's PIN "
+    "directory with dev and test using different districts, invented localities that are "
+    "not post offices, and address look-alikes such as real PINs used as OTPs or order "
+    "numbers). `agent_record` grew from 150 to 180 and `hard` from 100 to 170 messages per "
+    "split so every address style has at least 20 samples. Non-ADDRESS rows therefore moved "
+    "from the Phase 4 report: UPI, PAN and PHONE recall fell because the larger `hard` "
+    "category holds more of their known-hard formats (unknown UPI handles, spaced PANs, "
+    "numbers as words). On dev, adding the address detector changed no other type's "
+    "recall."),
+    ("Every address setting (gap 24, the name model's location tags off, the place stop "
+    "list) and every address detector fix (locality endings such as Layout/Colony as "
+    "places, dropping a leading place joined only by ordinary words, absorbing a name that "
+    "overlaps an address) was chosen from the dev split; see "
+    "[address-tuning.md](address-tuning.md). No test-set inspection informed any Phase 5 "
+    "decision."),
+    ("The address keyword lists, the generator's address vocabulary and the hand-written "
+    "addresses were all written by the same author, so address numbers may be optimistic. "
+    "In particular, the generator's invented localities (in both splits) often end in "
+    "Layout, Colony or Extn, which the detector recognises as locality endings. Places and "
+    "PINs in generated addresses come from the same PIN directory the detector uses "
+    "(snapshot downloaded 2026-10-25), so directory places are found by construction; "
+    "about a quarter of generated addresses use an invented locality instead."),
+    ("A final code review of Phase 5 (a fresh reviewer probing the detector with its own "
+    "inputs) found address leaks around phone numbers and false addresses in everyday "
+    "prose (\"The ratio is 3/4, are you sure?\"). The fixes, a stop list of everyday words "
+    "built from a hand-written common-word list, and six everyday-prose negatives were "
+    "added; the dev tuning was re-run and this report regenerated. The test split was "
+    "not inspected for these fixes. The negatives still cover only a few kinds of everyday "
+    "prose, so precision on arbitrary chat may be lower than measured here."),
+    ("A name right next to an address can be absorbed into the ADDRESS span (surnames like "
+    "Sharma are also village names, and an address must never cut a name in half). The "
+    "name is still hidden, but the typed metrics count it as a missed NAME. On dev, the "
+    "address detector lowers NAME recall by 1.4 points while NAME coverage rises slightly."),
+    ("`landmark_only` addresses (\"near the metro station\", no place) are labelled as "
+    "addresses but are not addresses by the detector's definition, so they are counted as "
+    "misses on purpose; see *Addresses by style*."),
 ]
 
 
@@ -60,7 +97,7 @@ def load_detector(require_names: bool) -> tuple[Detector, NameModel | None, Sett
     except NameModelError as exc:
         sys.exit(f"The name model could not be loaded ({exc}). "
                  "Run: python -m leakguard.ner.export")
-    return build_detector(model.detect), model, settings
+    return build_detector(model.detect), model, settings  # as deployed: names only
 
 
 def _memo(detect: Detector) -> Detector:
@@ -104,11 +141,15 @@ def cmd_report(_: argparse.Namespace) -> None:
     forms = sorted({f for s in test if (f := name_form(s.template))})
     name_forms = {form: score([s for s in test if name_form(s.template) == form],
                               cached).by_type[EntityType.NAME] for form in forms}
+    styles = sorted({st for s in test if (st := address_style(s.template))})
+    address_styles = {style: score([s for s in test if address_style(s.template) == style],
+                                   cached).by_type[EntityType.ADDRESS] for style in styles}
     latencies = {"rules only": measure_latency(test, detect_rules),
-                 "rules + names": measure_latency(test, detect)}
+                 "rules + name model": measure_latency(test, detect),
+                 "address detector alone": measure_latency(test, detect_address)}
     md = render_report(results, latencies,
                        {"test": len(test), "handwritten": len(handwritten)}, hard_cases,
-                       NOTES, name_forms, _model_info(model, settings))
+                       NOTES, name_forms, _model_info(model, settings), address_styles)
     REPORT.parent.mkdir(parents=True, exist_ok=True)
     REPORT.write_text(md + "\n", encoding="utf-8", newline="\n")
     print(f"wrote {REPORT}")

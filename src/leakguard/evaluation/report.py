@@ -10,8 +10,9 @@ from leakguard.entities import EntityType
 from leakguard.evaluation.metrics import Evaluation, TypeScores
 from leakguard.evaluation.samples import Sample
 
-# Types with labels in the data but no detector yet. Later phases remove their entry.
-UNBUILT = {EntityType.ADDRESS: "Phase 5"}
+# Types with labels in the data but no detector yet, mapped to the phase that builds them.
+# Every type is built as of Phase 5; the mechanism stays for future types.
+UNBUILT: dict[EntityType, str] = {}
 
 _BUCKETS = (("short (<200 chars)", 0, 200), ("medium (200-1000)", 200, 1000),
             ("long (>1000)", 1000, math.inf))
@@ -128,6 +129,7 @@ def render_report(
     notes: list[str] | None = None,
     name_forms: dict[str, TypeScores] | None = None,
     model_info: dict | None = None,
+    address_styles: dict[str, TypeScores] | None = None,
 ) -> str:
     """`latencies` maps a layer label ("rules only", "rules + names") to measure_latency()
     output; `model_info` describes the name model (candidate, repo, revision, size_mb,
@@ -170,6 +172,17 @@ def render_report(
                 "| Form | Recall | Coverage |", "|---|---:|---:|"]
         out += [f"| {form} | {_pct(st.recall)} | {_pct(st.coverage)} |"
                 for form, st in name_forms.items()]
+        out.append("")
+
+    if address_styles:
+        out += ["## Addresses by style (test)", "",
+                ("How ADDRESS detection depends on how the address is written. "
+                 "`landmark_only` (\"near the metro station\", no place) is not an address by "
+                 "the detector's definition, so it is an expected miss."), "",
+                "| Style | Support | Recall | Coverage | Exact |", "|---|---:|---:|---:|---:|"]
+        out += [f"| {style} | {st.support} | {_pct(st.recall)} | {_pct(st.coverage)} | "
+                f"{_pct(st.exact / st.tp) if st.tp else '–'} |"
+                for style, st in address_styles.items()]
         out.append("")
 
     out += ["## Latency (detection only)", "",

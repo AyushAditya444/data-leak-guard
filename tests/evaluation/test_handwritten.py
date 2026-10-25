@@ -11,5 +11,6 @@ def test_handwritten_set_shape():
     for t in set(T) - {T.NAME, T.ADDRESS}:
         assert types[t] >= 2, t
     assert types[T.NAME] >= 15
-    assert sum(s.category == "negative" for s in samples) >= 12
+    assert types[T.ADDRESS] >= 25
+    assert sum(s.category == "negative" for s in samples) >= 20
     assert len({s.id for s in samples}) == len(samples)
