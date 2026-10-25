@@ -84,12 +84,13 @@ Presidio plus its spaCy model is ~600 MB, too heavy for CI. So the code is split
 |---|---:|---:|---:|
 | F1, types both support | 95.3% | 62.6% | 74.5% |
 | Coverage, types both support | 93.9% | 79.6% | 94.3% |
-| Clean messages with a false alarm | 5 / 350 | 115 / 350 | 116 / 350 |
-| Detection p50 | 17.7 ms | 7.1 ms | 7.4 ms |
+| Clean messages with a false alarm (any type) | 5 / 350 | 115 / 350 | 116 / 350 |
+| ... on the six types both support | 4 / 350 | 67 / 350 | 68 / 350 |
+| Detection p50 | 17.0 ms | 6.5 ms | 6.6 ms |
 
 How to read it honestly:
-- **Presidio's best shot hides as much as ours does** on the types both support (94.3% vs 93.9% coverage). It gets there by **over-masking**: a third of clean messages get a false alarm, and only 40% of what it calls a name is a name. Over-masking hides words the LLM needs, so answers get worse, and every false alarm is a placeholder the reply has to restore.
-- **Presidio is faster** (7 ms vs 18 ms), because our name model costs ~17 ms. Say so; don't hide it.
+- **Presidio's best shot hides as much as ours does** on the types both support (94.3% vs 93.9% coverage). It gets there by **over-masking**: on those six types, 68 of 350 clean messages get a false alarm (ours: 4); counting its place names, 116 (ours: 5), and only 40% of what it calls a name is a name. Over-masking hides words the LLM needs, so answers get worse, and every false alarm is a placeholder the reply has to restore.
+- **Presidio is faster** (6.6 ms vs 17.0 ms), because our name model costs ~17 ms. Say so; don't hide it.
 - **The home advantage:** the test data was written by the same author as our detectors, so the message styles are the ones ours was built for. The page says this too. What it measures is how well each tool fits *this* use case (Indian identifiers, UPI, Hinglish), not Presidio's quality in general.
 
 ---
@@ -149,10 +150,23 @@ That second list is what makes a threat model credible. A tool that claims to st
 
 ---
 
-## 7. Interview Q&A
+## 7. The final review: a key that could silently be off
+
+A fresh reviewer read the whole branch and probed it with real Presidio and a real uvicorn server. It confirmed the measurements: our conflict resolution matched Presidio's anonymiser on all 4,586 real outputs, the tuning reproduced, and every README number matched the JSON. It also found four real problems, all fixed with a test that failed first:
+
+1. **The guard key never reached the container (critical).** `docker-compose.yml` only passes environment variables that the service lists, and it didn't list `LEAKGUARD_API_KEY`. So `LEAKGUARD_API_KEY=... docker compose up` started a guard **with no key**, and clients sending the header still worked, so nobody would notice. The one setup the key exists for was the one where it was off. Fixed, and `test_guard_key_reaches_the_container` pins it.
+2. **A path prefix switched the key off.** Behind a reverse proxy that serves the guard under `/guard`, uvicorn's `--root-path` puts the prefix *in* the path (`/guard/v1/...`). Routing strips it, but the middleware checked `startswith("/v1/")`, so it waved the request through. Now the middleware strips the prefix too. (The first version of the test passed without the fix, because TestClient keeps the prefix out of the path; it was rewritten to send the path the way uvicorn does.)
+3. **"Huge requests are rejected" wasn't fully true.** A body sent in chunks has no `Content-Length`, and it was read whole before the size check. So one request could fill memory first. Now the guard counts while reading and stops at the limit. TestClient also reads whole bodies, so this test drives the raw ASGI app and counts how many chunks the guard pulled: 100 before, at most 11 after.
+4. **A Presidio sentence was scoped wrong.** "116 of 350 clean messages" counted Presidio's place names, but the sentence said "on the six shared types". The page now records which types each false alarm had and shows both counts: **68** on the shared types, **116** in total. Getting that needed one more test run. It was made with Python's hash seed fixed, because the reviewer found that Presidio's order for equal-score results depends on it, which moved a few counts between runs. `presidio-run` now fixes the seed itself, and the page says the test was run twice and why.
+
+The lesson from 1 and 2: a security setting that can be **silently** off is worse than one that's visibly off. Both now have tests that check the setting from the outside, the way a user would actually set it.
+
+---
+
+## 8. Interview Q&A
 
 **Q: Why not just use Presidio?**
-A: I measured it. On the same Indian test set, Presidio's Indian recognizers are off by default, so out of the box it finds no Aadhaar or PAN at all. With them turned on and its thresholds tuned on dev, it hides about as much as mine (94% coverage) but flags something in a third of clean messages; mine flags 5 in 350. It has no UPI, IFSC or bank-account detection, and it's a library, not a drop-in proxy with streaming restore. It's faster than mine, though: 7 ms against 18 ms, because of my name model.
+A: I measured it. On the same Indian test set, Presidio's Indian recognizers are off by default, so out of the box it finds no Aadhaar or PAN at all. With them turned on and its thresholds tuned on dev, it hides about as much as mine (94% coverage) but on those types it flags 68 of 350 clean messages; mine flags 4. It has no UPI, IFSC or bank-account detection, and it's a library, not a drop-in proxy with streaming restore. It's faster than mine, though: about 7 ms against 17 ms, because of my name model.
 
 **Q: How do I know you didn't set Presidio up to lose?**
 A: Two setups: exactly as installed, and its best shot with its own settings tuned on dev by a rule fixed before the run. Duplicates were resolved the way Presidio's own anonymiser does, so I didn't count its duplicates against it, and its detections of types I don't track count towards its coverage. Everything's in the committed JSON and regenerates with one command.
