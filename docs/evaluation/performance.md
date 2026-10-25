@@ -6,7 +6,7 @@ Generated 2026-10-25 at commit `bdbb8e4` with `python -m leakguard.evaluation pe
 
 - CPU: 11th Gen Intel(R) Core(TM) i7-1165G7 @ 2.80GHz, 8 logical cores
 - RAM: 31.7 GB
-- OS: Windows-10-10.0.26200-SP0, Python 3.11.0
+- OS: Windows 11 (build 26200), Python 3.11.0
 - Docker 29.7.2 (its VM: 8 CPUs, 15.5 GB)
 
 A laptop, not a server: absolute numbers will differ elsewhere; the comparisons between rows are what carries over.

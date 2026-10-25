@@ -72,7 +72,9 @@ def _detail(results: dict, engine: str, split: str) -> list[str]:
         if st is None or (st.support == 0 and st.fp == 0):
             continue
         if _supported(engine, entity):
-            cells = [_pct(st.precision), _pct(st.recall), _pct(st.f1)]
+            # Nothing predicted: precision is 0/0, undefined rather than 0%.
+            precision = "–" if st.tp + st.fp == 0 else _pct(st.precision)
+            cells = [precision, _pct(st.recall), _pct(st.f1)]
         else:
             cells = [NOT_SUPPORTED] * 3
         lines.append(f"| {_label(entity)} | {st.support} | " + " | ".join(cells)
@@ -82,15 +84,20 @@ def _detail(results: dict, engine: str, split: str) -> list[str]:
     return lines
 
 
-def _false_alarms(results: dict) -> list[str]:
-    """Clean messages flagged at all, and flagged on a type both engines support. The
-    second column leaves out ADDRESS, where Presidio flags place names by design."""
+def _scoped_false_alarms(test: dict) -> int:
+    """Clean messages flagged on a type both engines support (ADDRESS left out: Presidio
+    flags place names by design)."""
     both = {str(entity) for entity in BOTH_SUPPORT}
+    return sum(1 for types in test.get("negative_fp_types", []) if both & set(types))
+
+
+def _false_alarms(results: dict) -> list[str]:
+    """Clean messages flagged at all, and flagged on a type both engines support."""
     lines = ["| Engine | Any type | Types both support |", "|---|---:|---:|"]
     for engine, label in ENGINES:
         test = results["engines"][engine]["test"]
         total = test["negatives_total"]
-        scoped = sum(1 for types in test.get("negative_fp_types", []) if both & set(types))
+        scoped = _scoped_false_alarms(test)
         lines.append(f"| {label} | {test['negatives_with_fp']} of {total} | {scoped} of {total} |")
     return lines
 
@@ -206,3 +213,17 @@ def render_presidio_tuning(dev: dict) -> str:
         lines.append(f"| {threshold:.2f} | "
                      + " | ".join(_pct(f1[(t, threshold)]) for t in types) + " |")
     return "\n".join(lines)
+
+
+def both_support_summary(results: dict) -> dict[str, dict]:
+    """The "Types both support" row and scoped false alarms per engine, on test: the
+    numbers the demo's results scene shows, computed exactly as on the Presidio page."""
+    scores = _scores(results, "test")
+    summary = {}
+    for engine, label in ENGINES:
+        both = _sum([scores[engine][e] for e in BOTH_SUPPORT if e in scores[engine]])
+        test = results["engines"][engine]["test"]
+        summary[engine] = {"label": label, "f1": both.f1, "coverage": both.coverage,
+                           "false_alarms": _scoped_false_alarms(test),
+                           "negatives": test["negatives_total"]}
+    return summary

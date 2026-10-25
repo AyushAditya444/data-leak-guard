@@ -51,9 +51,16 @@ def _crash(*args, **kwargs):
 
 
 def test_detection_failure_fails_closed(make_guard, monkeypatch):
+    sent = []
+
+    def upstream(request):
+        sent.append(request)
+        return httpx.Response(200, json={})
+
     monkeypatch.setattr(app_module, "mask_messages", _crash)
-    r = make_guard().post(CHAT, json=_req("hi"))
+    r = make_guard(transport=httpx.MockTransport(upstream)).post(CHAT, json=_req("hi"))
     assert r.status_code == 500 and r.json()["error"]["code"] == "detection_failed"
+    assert sent == []  # fail-closed means nothing reached the LLM
 
 
 def test_detection_failure_open_mode_forwards(make_guard, monkeypatch):

@@ -1,0 +1,82 @@
+1
+00:00:00,300 --> 00:00:05,975
+This is Data Leak Guard: it keeps Indian personal data and secrets
+from reaching an LLM.
+
+2
+00:00:07,075 --> 00:00:13,006
+Your app keeps its code. You change one line, the base URL, so
+requests go through the guard.
+
+3
+00:00:14,106 --> 00:00:20,122
+Here is a support message with a name, an Aadhaar number, a UPI ID, a
+phone number and a home address.
+
+4
+00:00:20,472 --> 00:00:27,555
+This is what actually left the machine: every one of them is now a
+placeholder, so the model never sees the real values.
+
+5
+00:00:27,905 --> 00:00:36,054
+The reply comes back with the real values put back in, before your app
+sees it. This was recorded live against a real model on Groq.
+
+6
+00:00:37,154 --> 00:00:42,402
+Streaming works too. Here is a short request whose reply is streamed
+back piece by piece.
+
+7
+00:00:42,752 --> 00:00:46,229
+On the wire, the model's placeholder arrives split across chunks.
+
+8
+00:00:46,579 --> 00:00:52,915
+The guard holds back only what could still become a placeholder, so
+your app gets the real number, still streamed.
+
+9
+00:00:54,015 --> 00:00:58,538
+Now a developer pastes a config file that contains a database
+password.
+
+10
+00:00:58,888 --> 00:01:03,133
+The guard blocks the whole request with an error, and nothing is sent
+to the model.
+
+11
+00:01:04,233 --> 00:01:11,550
+Not every number is sensitive: an OTP that happens to be a real PIN
+code, and a twelve-digit order number.
+
+12
+00:01:11,900 --> 00:01:15,100
+Both go through unchanged, so the model can still help.
+
+13
+00:01:16,200 --> 00:01:23,517
+For every request, the guard logs what it found and restored as
+counts. The values themselves never appear in its logs.
+
+14
+00:01:24,617 --> 00:01:31,081
+How good is the detection? Here is Microsoft Presidio on the same
+held-out test set, set up two ways.
+
+15
+00:01:31,431 --> 00:01:38,727
+The guard has a higher F1 than both setups, with far fewer false
+alarms on messages with nothing sensitive in them.
+
+16
+00:01:39,827 --> 00:01:45,224
+To try it, run docker compose up. No API key is needed for the
+built-in mock model.
+
+17
+00:01:45,574 --> 00:01:53,766
+One honest limit: UPI IDs with handles it doesn't know are often
+missed. The README has the full results and the threat model.

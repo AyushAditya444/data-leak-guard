@@ -3,6 +3,8 @@
 Every number here was measured on one laptop, so the hardware comes first.
 """
 
+import re
+
 SIZES_GB = (0.5, 1, 2, 4)
 HEADROOM = 1.25  # a machine should have 25% more memory than the measured peak
 
@@ -24,11 +26,20 @@ def _ms(x: float | None) -> str:
     return "–" if x is None else f"{x:.2f} ms"
 
 
+def _os_label(os_name: str) -> str:
+    """Python's platform module reports Windows 11 as "Windows-10-10.0.<build>"; builds
+    22000 and later are Windows 11."""
+    match = re.fullmatch(r"Windows-10-10\.0\.(\d+)(?:-.*)?", os_name)
+    if match and int(match.group(1)) >= 22000:
+        return f"Windows 11 (build {match.group(1)})"
+    return os_name
+
+
 def _hardware(machine: dict) -> list[str]:
     docker = machine.get("docker")
     lines = [f"- CPU: {machine['cpu']}, {machine['logical_cores']} logical cores",
              f"- RAM: {machine['ram_gb']} GB" if machine.get("ram_gb") else "- RAM: unknown",
-             f"- OS: {machine['os']}, Python {machine['python']}"]
+             f"- OS: {_os_label(machine['os'])}, Python {machine['python']}"]
     if docker:
         lines.append(f"- Docker {docker['server']} (its VM: {docker['cpus']} CPUs, "
                      f"{docker['memory_gb']} GB)")

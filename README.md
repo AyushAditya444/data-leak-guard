@@ -2,7 +2,12 @@
 
 A drop-in, OpenAI-compatible proxy that stops Indian personal data and secrets from leaking into LLMs. It sits between your app and the LLM provider, finds sensitive data (Aadhaar, PAN, phone numbers, UPI IDs, bank accounts, IFSC codes, addresses, names, API keys), hides it before the request leaves, and puts the real values back into the reply, so your app works normally. You adopt it by changing **one line**: your SDK's `base_url`.
 
-> **Status: Phase 7a of 7.** Detection (rules, Indian postal addresses, and a person-name model on CPU), masking, blocking and restoring work for both streaming and non-streaming replies. Detection is measured on a held-out evaluation set and compared with Microsoft Presidio, restoring is measured on two real LLMs, and speed and running cost are measured (below). Phase 7b adds a demo video. See the [design](docs/superpowers/specs/2026-10-24-data-leak-guard-design.md).
+> **Status: v1.** Detection (rules, Indian postal addresses, and a person-name model on CPU), masking, blocking and restoring work for both streaming and non-streaming replies. Detection is measured on a held-out evaluation set and compared with Microsoft Presidio, restoring is measured on two real LLMs, and speed and running cost are measured (below). See the [design](docs/superpowers/specs/2026-10-24-data-leak-guard-design.md).
+
+![The guard masking a support message on its way to a real LLM and restoring the reply](docs/demo/demo.gif)
+
+<!-- DEMO VIDEO: drag build/demo/demo.mp4 onto this line in GitHub's web editor. -->
+**Demo video (2 minutes, narrated, subtitled):** a support message, streaming, a blocked secret, look-alikes left alone, the log line and the Presidio comparison, recorded live against Groq's `openai/gpt-oss-120b` and replayed from [a session file you can read](examples/demo/session.json). How it is made, and how to rebuild it: [examples/demo/](examples/demo/README.md).
 
 ## What it does
 
@@ -205,7 +210,7 @@ A guard that leaks is worse than no guard, so the guard is treated as an attack 
 | Open relay: strangers use the guard to reach the LLM behind it (e.g. a keyless local Ollama) | anyone on the same network | Docker publishes the guard on `127.0.0.1` only. When exposing it on purpose, `LEAKGUARD_API_KEY` requires an `X-Leakguard-Key` header on every `/v1/` request | `test_guard_published_on_localhost_only`, `test_guard_key_reaches_the_container`, `test_guard_key_missing_or_wrong_is_401`, `test_guard_key_enforced_under_a_root_path` |
 | Detection crashes on some input, and the message goes out unchecked | a bug, or input that triggers one | Fail-closed by default: the request is rejected (500), not forwarded. `failure_mode: open` exists and is documented as unsafe | `test_detection_failure_fails_closed` |
 | Huge requests to exhaust memory or CPU | a malicious user | Bodies over `LEAKGUARD_MAX_REQUEST_BYTES` (1 MiB) are rejected with 413 before parsing; a body without `Content-Length` (chunked) is counted while it is read, and reading stops at the limit | `test_request_too_large_returns_413`, `test_chunked_body_over_the_limit_is_413_without_reading_it_all` |
-| Attacks on the guard key itself | anyone who can reach the guard | Compared in constant time (no timing leak), checked before the body is read, never forwarded upstream, never logged; a key under 16 characters stops the guard at startup | `test_guard_key_checked_before_body`, `test_guard_key_not_forwarded`, `test_short_key_refuses_start` |
+| Attacks on the guard key itself | anyone who can reach the guard | Compared in constant time (no timing leak), checked before the body is read, never forwarded upstream, never logged; a key under 16 characters stops the guard at startup | [`src/leakguard/auth.py`](src/leakguard/auth.py) (`hmac.compare_digest`), `test_guard_key_checked_before_body`, `test_guard_key_not_forwarded`, `test_short_key_refuses_start` |
 
 ### What it does not protect against
 
@@ -256,6 +261,8 @@ bundled PIN directory is rebuilt from India Post's CSV with
 - [Phase 5 walkthrough](docs/walkthrough/phase-5-addresses.md): Indian postal addresses
 - [Phase 6 walkthrough](docs/walkthrough/phase-6-streaming-restore.md): restoring streamed replies
 - [Phase 7a walkthrough](docs/walkthrough/phase-7a-measure-and-harden.md): Presidio comparison, speed and cost, hardening
+- [Phase 7b walkthrough](docs/walkthrough/phase-7b-demo.md): the demo video
+- [Demo video: how it is made](examples/demo/README.md)
 - [Evaluation report](docs/evaluation/report.md), [Presidio baseline](docs/evaluation/presidio-baseline.md), [performance and cost](docs/evaluation/performance.md), [restore report](docs/evaluation/restore-report.md)
 
 ## License
