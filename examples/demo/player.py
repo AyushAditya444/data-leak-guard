@@ -115,8 +115,8 @@ def _header(scene_id: str, session: dict, cols: int) -> str:
     if meta["upstream"] == "mock":
         where = f"live run against the mock LLM on {meta['recorded']}"
     else:
-        where = (f"recorded live against {meta['upstream'].capitalize()} {meta['model']} "
-                 f"on {meta['recorded']}, replayed from session.json")
+        where = (f"recorded live: {meta['upstream'].capitalize()} {meta['model']}, "
+                 f"{meta['recorded']} · replay of session.json")
     where = where[:max(0, cols - len(title) - 5)]
     return f"{BOLD}{CYAN}▌ {title}{RESET}{DIM} · {where}{RESET}"
 

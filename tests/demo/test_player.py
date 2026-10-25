@@ -99,6 +99,7 @@ def test_request_scene_header_says_recorded_live():
     header = _visible(player.render("core", session, 0, 108, 22)[0])
     assert "recorded live" in header and "openai/gpt-oss-120b" in header
     assert "2026-10-25" in header
+    assert header.endswith("session.json")  # not cut off, even with the longest title
 
 
 def test_player_imports_stdlib_only():

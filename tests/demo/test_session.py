@@ -97,3 +97,8 @@ def test_save_load_round_trip_keeps_unicode(session, tmp_path):
 def test_verify_missing_request_scene(session):
     del session["scenes"]["secret"]
     assert "blocked" in _problem(session, "session")
+
+
+def test_committed_session_passes_verification():
+    # The session the video replays (recorded against a real model) must keep every claim.
+    assert verify_session(load_session(Path("examples/demo/session.json"))) == []

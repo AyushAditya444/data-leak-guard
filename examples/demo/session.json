@@ -1,0 +1,468 @@
+{
+ "meta": {
+  "recorded": "2026-10-25",
+  "upstream": "groq",
+  "model": "openai/gpt-oss-120b",
+  "guard_commit": "cde216e"
+ },
+ "scenes": {
+  "title": {
+   "show": {
+    "title": "Data Leak Guard",
+    "highlight": [],
+    "beats": 1,
+    "expect": "none"
+   }
+  },
+  "one_line": {
+   "show": {
+    "title": "The one line you change",
+    "highlight": [],
+    "beats": 1,
+    "expect": "none"
+   }
+  },
+  "core": {
+   "show": {
+    "title": "A support message",
+    "highlight": [
+     "Priya Sharma",
+     "2345 6789 0124",
+     "priya.s@okhdfcbank",
+     "98765 43210",
+     "Flat 302, Sai Krupa Apartments, Kothrud, Pune 411038"
+    ],
+    "beats": 3,
+    "expect": "masked"
+   },
+   "app_sent": [
+    {
+     "role": "system",
+     "content": "You are a customer support agent for an Indian company. Reply in at most two short sentences. Always repeat the customer's details back exactly as written so they can check them."
+    },
+    {
+     "role": "user",
+     "content": "Hi, I'm Priya Sharma. My Aadhaar is 2345 6789 0124 and my refund should go to priya.s@okhdfcbank. Call me on 98765 43210. I live at Flat 302, Sai Krupa Apartments, Kothrud, Pune 411038. Please confirm my details."
+    }
+   ],
+   "stream": false,
+   "wire": [
+    {
+     "messages": [
+      {
+       "role": "system",
+       "content": "You are a customer support agent for an Indian company. Reply in at most two short sentences. Always repeat the customer's details back exactly as written so they can check them."
+      },
+      {
+       "role": "user",
+       "content": "Hi, I'm [NAME_1]. My Aadhaar is [AADHAAR_1] and my refund should go to [UPI_1]. Call me on [PHONE_1]. I live at [ADDRESS_1]. Please confirm my details."
+      }
+     ],
+     "status": 200,
+     "chunks": [
+      [
+       0.544,
+       "Your details are: Name: [NAME_1], Aadhaar: [AADHAAR_1], UPI: [UPI_1], Phone: [PHONE_1], Address: [ADDRESS_1]. All information has been noted."
+      ]
+     ]
+    }
+   ],
+   "app_got": {
+    "status": 200,
+    "text": "Your details are: Name: Priya Sharma, Aadhaar: 2345 6789 0124, UPI: priya.s@okhdfcbank, Phone: 98765 43210, Address: Flat 302, Sai Krupa Apartments, Kothrud, Pune 411038. All information has been noted.",
+    "chunks": []
+   },
+   "log": {
+    "event": "request",
+    "request_id": "71e93c9e49ff43e7adc5d1138307b1e2",
+    "status": 200,
+    "stream": false,
+    "blocked": false,
+    "findings": {
+     "AADHAAR:mask": 1,
+     "ADDRESS:mask": 1,
+     "NAME:mask": 1,
+     "PHONE:mask": 1,
+     "UPI:mask": 1
+    },
+    "restored": 5,
+    "unrestored": 0,
+    "detection_ms": 86.85,
+    "upstream_ms": 545.3,
+    "total_ms": 650.0
+   }
+  },
+  "stream": {
+   "show": {
+    "title": "Streaming",
+    "highlight": [
+     "9123456780"
+    ],
+    "beats": 3,
+    "expect": "masked"
+   },
+   "app_sent": [
+    {
+     "role": "system",
+     "content": "You are a customer support agent for an Indian company. Reply in at most two short sentences. Always repeat the customer's details back exactly as written so they can check them."
+    },
+    {
+     "role": "user",
+     "content": "Please call me back on 9123456780. Repeat the number so I know you have it right."
+    }
+   ],
+   "stream": true,
+   "wire": [
+    {
+     "messages": [
+      {
+       "role": "system",
+       "content": "You are a customer support agent for an Indian company. Reply in at most two short sentences. Always repeat the customer's details back exactly as written so they can check them."
+      },
+      {
+       "role": "user",
+       "content": "Please call me back on [PHONE_1]. Repeat the number so I know you have it right."
+      }
+     ],
+     "status": 200,
+     "chunks": [
+      [
+       0.501,
+       "Sure"
+      ],
+      [
+       0.502,
+       ","
+      ],
+      [
+       0.514,
+       " we"
+      ],
+      [
+       0.514,
+       " will"
+      ],
+      [
+       0.514,
+       " call"
+      ],
+      [
+       0.514,
+       " you"
+      ],
+      [
+       0.516,
+       " back"
+      ],
+      [
+       0.517,
+       " on"
+      ],
+      [
+       0.517,
+       " "
+      ],
+      [
+       0.52,
+       "["
+      ],
+      [
+       0.521,
+       "PHONE"
+      ],
+      [
+       0.525,
+       "_"
+      ],
+      [
+       0.526,
+       "1"
+      ],
+      [
+       0.528,
+       "]."
+      ],
+      [
+       0.529,
+       " "
+      ],
+      [
+       0.531,
+       "Your"
+      ],
+      [
+       0.533,
+       " number"
+      ],
+      [
+       0.536,
+       " is"
+      ],
+      [
+       0.538,
+       " exactly"
+      ],
+      [
+       0.54,
+       " "
+      ],
+      [
+       0.542,
+       "["
+      ],
+      [
+       0.544,
+       "PHONE"
+      ],
+      [
+       0.545,
+       "_"
+      ],
+      [
+       0.549,
+       "1"
+      ],
+      [
+       0.55,
+       "]."
+      ]
+     ]
+    }
+   ],
+   "app_got": {
+    "status": 200,
+    "text": "Sure, we will call you back on 9123456780. Your number is exactly 9123456780.",
+    "chunks": [
+     [
+      0.552,
+      "Sure"
+     ],
+     [
+      0.553,
+      ","
+     ],
+     [
+      0.565,
+      " we"
+     ],
+     [
+      0.565,
+      " will"
+     ],
+     [
+      0.565,
+      " call"
+     ],
+     [
+      0.565,
+      " you"
+     ],
+     [
+      0.566,
+      " back"
+     ],
+     [
+      0.567,
+      " on"
+     ],
+     [
+      0.568,
+      " "
+     ],
+     [
+      0.578,
+      "9123456780."
+     ],
+     [
+      0.579,
+      " "
+     ],
+     [
+      0.581,
+      "Your"
+     ],
+     [
+      0.583,
+      " number"
+     ],
+     [
+      0.587,
+      " is"
+     ],
+     [
+      0.588,
+      " exactly"
+     ],
+     [
+      0.59,
+      " "
+     ],
+     [
+      0.6,
+      "9123456780."
+     ]
+    ]
+   },
+   "log": {
+    "event": "request",
+    "request_id": "b565a6e5f4eb467d8a3f84a9d9e73f5b",
+    "status": 200,
+    "stream": true,
+    "blocked": false,
+    "findings": {
+     "PHONE:mask": 1
+    },
+    "restored": 2,
+    "unrestored": 0,
+    "detection_ms": 47.17,
+    "upstream_ms": 555.0,
+    "total_ms": 602.8
+   }
+  },
+  "secret": {
+   "show": {
+    "title": "A pasted secret",
+    "highlight": [],
+    "beats": 2,
+    "expect": "blocked"
+   },
+   "app_sent": [
+    {
+     "role": "system",
+     "content": "You are a customer support agent for an Indian company. Reply in at most two short sentences. Always repeat the customer's details back exactly as written so they can check them."
+    },
+    {
+     "role": "user",
+     "content": "Our app crashes on login. Here's the config:\nDB_HOST=db.internal\nDB_PASSWORD=Monsoon@2026!pune"
+    }
+   ],
+   "stream": false,
+   "wire": [],
+   "app_got": {
+    "status": 400,
+    "text": "Request blocked: it contains sensitive data (SECRET) that this guard's policy does not allow to be sent to an LLM.",
+    "chunks": []
+   },
+   "log": {
+    "event": "request",
+    "request_id": "4d3c762587cc4eaea6e08bd6da37a691",
+    "status": 400,
+    "stream": false,
+    "blocked": true,
+    "findings": {
+     "SECRET:block": 1
+    },
+    "restored": 0,
+    "unrestored": 0,
+    "detection_ms": 54.43,
+    "upstream_ms": null,
+    "total_ms": 55.4
+   }
+  },
+  "lookalike": {
+   "show": {
+    "title": "Look-alikes",
+    "highlight": [],
+    "beats": 2,
+    "expect": "unchanged"
+   },
+   "app_sent": [
+    {
+     "role": "system",
+     "content": "You are a customer support agent for an Indian company. Reply in at most two short sentences. Always repeat the customer's details back exactly as written so they can check them."
+    },
+    {
+     "role": "user",
+     "content": "My OTP is 411038 and my order number is 1234 5678 9012. When will it ship?"
+    }
+   ],
+   "stream": false,
+   "wire": [
+    {
+     "messages": [
+      {
+       "role": "system",
+       "content": "You are a customer support agent for an Indian company. Reply in at most two short sentences. Always repeat the customer's details back exactly as written so they can check them."
+      },
+      {
+       "role": "user",
+       "content": "My OTP is 411038 and my order number is 1234 5678 9012. When will it ship?"
+      }
+     ],
+     "status": 200,
+     "chunks": [
+      [
+       0.491,
+       "Your OTP is 411038 and your order number is 1234 5678 9012.  \nYour order will be shipped within 2‑3 business days."
+      ]
+     ]
+    }
+   ],
+   "app_got": {
+    "status": 200,
+    "text": "Your OTP is 411038 and your order number is 1234 5678 9012.  \nYour order will be shipped within 2‑3 business days.",
+    "chunks": []
+   },
+   "log": {
+    "event": "request",
+    "request_id": "70cb4dfe18a94c338eeacc691f220b8b",
+    "status": 200,
+    "stream": false,
+    "blocked": false,
+    "findings": {},
+    "restored": 0,
+    "unrestored": 0,
+    "detection_ms": 43.7,
+    "upstream_ms": 491.8,
+    "total_ms": 535.9
+   }
+  },
+  "log": {
+   "show": {
+    "title": "What the guard logs",
+    "highlight": [],
+    "beats": 1,
+    "expect": "none"
+   }
+  },
+  "results": {
+   "show": {
+    "title": "Compared with Presidio",
+    "highlight": [],
+    "beats": 2,
+    "expect": "none"
+   }
+  },
+  "outro": {
+   "show": {
+    "title": "Try it",
+    "highlight": [],
+    "beats": 1,
+    "expect": "none"
+   }
+  }
+ },
+ "results": {
+  "ours": {
+   "label": "Ours",
+   "f1": 0.9534050179211468,
+   "coverage": 0.9392884090777178,
+   "false_alarms": 4,
+   "negatives": 350
+  },
+  "presidio_out_of_box": {
+   "label": "Presidio, out of the box",
+   "f1": 0.6259314456035766,
+   "coverage": 0.7957513494689187,
+   "false_alarms": 67,
+   "negatives": 350
+  },
+  "presidio_best_shot": {
+   "label": "Presidio, best shot",
+   "f1": 0.744673655732161,
+   "coverage": 0.9431772012304835,
+   "false_alarms": 68,
+   "negatives": 350
+  }
+ }
+}
