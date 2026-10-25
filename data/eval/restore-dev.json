@@ -1,0 +1,5138 @@
+{
+ "meta": {
+  "date": "2026-10-25",
+  "models": [
+   "openai/gpt-oss-120b",
+   "qwen/qwen3.8-27b"
+  ],
+  "conversations": 100,
+  "max_tokens": 600,
+  "temperature": "provider default",
+  "reasoning_effort": "low for openai/gpt-oss models, provider default otherwise",
+  "ner": true,
+  "policy": "default",
+  "guard_commit": "f0d9155",
+  "split": "dev"
+ },
+ "outcomes": [
+  {
+   "conversation": "dev-000",
+   "model": "openai/gpt-oss-120b",
+   "stream": false,
+   "tool": true,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-000",
+   "model": "openai/gpt-oss-120b",
+   "stream": true,
+   "tool": true,
+   "status": 200,
+   "mentions": {
+    "bracketless": 1
+   },
+   "restored": 0,
+   "unrestored": 1,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-000",
+   "model": "qwen/qwen3.8-27b",
+   "stream": false,
+   "tool": true,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-000",
+   "model": "qwen/qwen3.8-27b",
+   "stream": true,
+   "tool": true,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-001",
+   "model": "openai/gpt-oss-120b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 2
+   },
+   "restored": 2,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-001",
+   "model": "openai/gpt-oss-120b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 2
+   },
+   "restored": 2,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-001",
+   "model": "qwen/qwen3.8-27b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 2
+   },
+   "restored": 2,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-001",
+   "model": "qwen/qwen3.8-27b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 2
+   },
+   "restored": 2,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-002",
+   "model": "openai/gpt-oss-120b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 2
+   },
+   "restored": 2,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-002",
+   "model": "openai/gpt-oss-120b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 2
+   },
+   "restored": 2,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-002",
+   "model": "qwen/qwen3.8-27b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 2
+   },
+   "restored": 2,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-002",
+   "model": "qwen/qwen3.8-27b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 2
+   },
+   "restored": 2,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-003",
+   "model": "openai/gpt-oss-120b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 2
+   },
+   "restored": 2,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-003",
+   "model": "openai/gpt-oss-120b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-003",
+   "model": "qwen/qwen3.8-27b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-003",
+   "model": "qwen/qwen3.8-27b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-004",
+   "model": "openai/gpt-oss-120b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 2
+   },
+   "restored": 2,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-004",
+   "model": "openai/gpt-oss-120b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 2
+   },
+   "restored": 2,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-004",
+   "model": "qwen/qwen3.8-27b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 2
+   },
+   "restored": 2,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-004",
+   "model": "qwen/qwen3.8-27b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-005",
+   "model": "openai/gpt-oss-120b",
+   "stream": false,
+   "tool": true,
+   "status": 400,
+   "mentions": {},
+   "restored": 0,
+   "unrestored": 0,
+   "mentioned": false
+  },
+  {
+   "conversation": "dev-005",
+   "model": "openai/gpt-oss-120b",
+   "stream": true,
+   "tool": true,
+   "status": 200,
+   "mentions": {},
+   "restored": 0,
+   "unrestored": 0,
+   "mentioned": false
+  },
+  {
+   "conversation": "dev-005",
+   "model": "qwen/qwen3.8-27b",
+   "stream": false,
+   "tool": true,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-005",
+   "model": "qwen/qwen3.8-27b",
+   "stream": true,
+   "tool": true,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-006",
+   "model": "openai/gpt-oss-120b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "bracketless": 2
+   },
+   "restored": 0,
+   "unrestored": 2,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-006",
+   "model": "openai/gpt-oss-120b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "bracketless": 1
+   },
+   "restored": 0,
+   "unrestored": 1,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-006",
+   "model": "qwen/qwen3.8-27b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {},
+   "restored": 0,
+   "unrestored": 0,
+   "mentioned": false
+  },
+  {
+   "conversation": "dev-006",
+   "model": "qwen/qwen3.8-27b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-007",
+   "model": "openai/gpt-oss-120b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {},
+   "restored": 0,
+   "unrestored": 0,
+   "mentioned": false
+  },
+  {
+   "conversation": "dev-007",
+   "model": "openai/gpt-oss-120b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-007",
+   "model": "qwen/qwen3.8-27b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-007",
+   "model": "qwen/qwen3.8-27b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {},
+   "restored": 0,
+   "unrestored": 0,
+   "mentioned": false
+  },
+  {
+   "conversation": "dev-008",
+   "model": "openai/gpt-oss-120b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 8
+   },
+   "restored": 8,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-008",
+   "model": "openai/gpt-oss-120b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 8
+   },
+   "restored": 8,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-008",
+   "model": "qwen/qwen3.8-27b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 4
+   },
+   "restored": 4,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-008",
+   "model": "qwen/qwen3.8-27b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 4
+   },
+   "restored": 4,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-009",
+   "model": "openai/gpt-oss-120b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-009",
+   "model": "openai/gpt-oss-120b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-009",
+   "model": "qwen/qwen3.8-27b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-009",
+   "model": "qwen/qwen3.8-27b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-010",
+   "model": "openai/gpt-oss-120b",
+   "stream": false,
+   "tool": true,
+   "status": 200,
+   "mentions": {
+    "bracketless": 5
+   },
+   "restored": 0,
+   "unrestored": 5,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-010",
+   "model": "openai/gpt-oss-120b",
+   "stream": true,
+   "tool": true,
+   "status": 200,
+   "mentions": {
+    "exact": 5
+   },
+   "restored": 5,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-010",
+   "model": "qwen/qwen3.8-27b",
+   "stream": false,
+   "tool": true,
+   "status": 200,
+   "mentions": {
+    "exact": 5
+   },
+   "restored": 5,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-010",
+   "model": "qwen/qwen3.8-27b",
+   "stream": true,
+   "tool": true,
+   "status": 200,
+   "mentions": {
+    "exact": 5
+   },
+   "restored": 5,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-011",
+   "model": "openai/gpt-oss-120b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 5
+   },
+   "restored": 5,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-011",
+   "model": "openai/gpt-oss-120b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 7
+   },
+   "restored": 7,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-011",
+   "model": "qwen/qwen3.8-27b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 4
+   },
+   "restored": 4,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-011",
+   "model": "qwen/qwen3.8-27b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 3
+   },
+   "restored": 3,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-012",
+   "model": "openai/gpt-oss-120b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-012",
+   "model": "openai/gpt-oss-120b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-012",
+   "model": "qwen/qwen3.8-27b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-012",
+   "model": "qwen/qwen3.8-27b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-013",
+   "model": "openai/gpt-oss-120b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {},
+   "restored": 0,
+   "unrestored": 0,
+   "mentioned": false
+  },
+  {
+   "conversation": "dev-013",
+   "model": "openai/gpt-oss-120b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 2,
+    "bracketless": 2
+   },
+   "restored": 2,
+   "unrestored": 2,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-013",
+   "model": "qwen/qwen3.8-27b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 2
+   },
+   "restored": 2,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-013",
+   "model": "qwen/qwen3.8-27b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 2
+   },
+   "restored": 2,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-014",
+   "model": "openai/gpt-oss-120b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 2
+   },
+   "restored": 2,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-014",
+   "model": "openai/gpt-oss-120b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 4
+   },
+   "restored": 4,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-014",
+   "model": "qwen/qwen3.8-27b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 2
+   },
+   "restored": 2,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-014",
+   "model": "qwen/qwen3.8-27b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 2
+   },
+   "restored": 2,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-015",
+   "model": "openai/gpt-oss-120b",
+   "stream": false,
+   "tool": true,
+   "status": 200,
+   "mentions": {
+    "exact": 2
+   },
+   "restored": 2,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-015",
+   "model": "openai/gpt-oss-120b",
+   "stream": true,
+   "tool": true,
+   "status": 200,
+   "mentions": {
+    "exact": 2
+   },
+   "restored": 2,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-015",
+   "model": "qwen/qwen3.8-27b",
+   "stream": false,
+   "tool": true,
+   "status": 200,
+   "mentions": {
+    "exact": 3
+   },
+   "restored": 3,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-015",
+   "model": "qwen/qwen3.8-27b",
+   "stream": true,
+   "tool": true,
+   "status": 200,
+   "mentions": {
+    "exact": 3
+   },
+   "restored": 3,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-016",
+   "model": "openai/gpt-oss-120b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {},
+   "restored": 0,
+   "unrestored": 0,
+   "mentioned": false
+  },
+  {
+   "conversation": "dev-016",
+   "model": "openai/gpt-oss-120b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {},
+   "restored": 0,
+   "unrestored": 0,
+   "mentioned": false
+  },
+  {
+   "conversation": "dev-016",
+   "model": "qwen/qwen3.8-27b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {},
+   "restored": 0,
+   "unrestored": 0,
+   "mentioned": false
+  },
+  {
+   "conversation": "dev-016",
+   "model": "qwen/qwen3.8-27b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {},
+   "restored": 0,
+   "unrestored": 0,
+   "mentioned": false
+  },
+  {
+   "conversation": "dev-017",
+   "model": "openai/gpt-oss-120b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 7
+   },
+   "restored": 7,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-017",
+   "model": "openai/gpt-oss-120b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 5
+   },
+   "restored": 5,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-017",
+   "model": "qwen/qwen3.8-27b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 3
+   },
+   "restored": 3,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-017",
+   "model": "qwen/qwen3.8-27b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 3
+   },
+   "restored": 3,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-018",
+   "model": "openai/gpt-oss-120b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 2
+   },
+   "restored": 2,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-018",
+   "model": "openai/gpt-oss-120b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-018",
+   "model": "qwen/qwen3.8-27b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {},
+   "restored": 0,
+   "unrestored": 0,
+   "mentioned": false
+  },
+  {
+   "conversation": "dev-018",
+   "model": "qwen/qwen3.8-27b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-019",
+   "model": "openai/gpt-oss-120b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 2
+   },
+   "restored": 2,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-019",
+   "model": "openai/gpt-oss-120b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 2
+   },
+   "restored": 2,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-019",
+   "model": "qwen/qwen3.8-27b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 3
+   },
+   "restored": 3,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-019",
+   "model": "qwen/qwen3.8-27b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 3
+   },
+   "restored": 3,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-020",
+   "model": "openai/gpt-oss-120b",
+   "stream": false,
+   "tool": true,
+   "status": 200,
+   "mentions": {
+    "exact": 2
+   },
+   "restored": 2,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-020",
+   "model": "openai/gpt-oss-120b",
+   "stream": true,
+   "tool": true,
+   "status": 200,
+   "mentions": {
+    "exact": 2
+   },
+   "restored": 2,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-020",
+   "model": "qwen/qwen3.8-27b",
+   "stream": false,
+   "tool": true,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-020",
+   "model": "qwen/qwen3.8-27b",
+   "stream": true,
+   "tool": true,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-021",
+   "model": "openai/gpt-oss-120b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 4
+   },
+   "restored": 4,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-021",
+   "model": "openai/gpt-oss-120b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 3
+   },
+   "restored": 3,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-021",
+   "model": "qwen/qwen3.8-27b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 3
+   },
+   "restored": 3,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-021",
+   "model": "qwen/qwen3.8-27b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 3
+   },
+   "restored": 3,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-022",
+   "model": "openai/gpt-oss-120b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 3
+   },
+   "restored": 3,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-022",
+   "model": "openai/gpt-oss-120b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 3
+   },
+   "restored": 3,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-022",
+   "model": "qwen/qwen3.8-27b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 3
+   },
+   "restored": 3,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-022",
+   "model": "qwen/qwen3.8-27b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 3
+   },
+   "restored": 3,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-023",
+   "model": "openai/gpt-oss-120b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-023",
+   "model": "openai/gpt-oss-120b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-023",
+   "model": "qwen/qwen3.8-27b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-023",
+   "model": "qwen/qwen3.8-27b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-024",
+   "model": "openai/gpt-oss-120b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 2
+   },
+   "restored": 2,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-024",
+   "model": "openai/gpt-oss-120b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-024",
+   "model": "qwen/qwen3.8-27b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-024",
+   "model": "qwen/qwen3.8-27b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-025",
+   "model": "openai/gpt-oss-120b",
+   "stream": false,
+   "tool": true,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-025",
+   "model": "openai/gpt-oss-120b",
+   "stream": true,
+   "tool": true,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-025",
+   "model": "qwen/qwen3.8-27b",
+   "stream": false,
+   "tool": true,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-025",
+   "model": "qwen/qwen3.8-27b",
+   "stream": true,
+   "tool": true,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-026",
+   "model": "openai/gpt-oss-120b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {},
+   "restored": 0,
+   "unrestored": 0,
+   "mentioned": false
+  },
+  {
+   "conversation": "dev-026",
+   "model": "openai/gpt-oss-120b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 2
+   },
+   "restored": 2,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-026",
+   "model": "qwen/qwen3.8-27b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-026",
+   "model": "qwen/qwen3.8-27b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-027",
+   "model": "openai/gpt-oss-120b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 3
+   },
+   "restored": 3,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-027",
+   "model": "openai/gpt-oss-120b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 3
+   },
+   "restored": 3,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-027",
+   "model": "qwen/qwen3.8-27b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 3
+   },
+   "restored": 3,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-027",
+   "model": "qwen/qwen3.8-27b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 4
+   },
+   "restored": 4,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-028",
+   "model": "openai/gpt-oss-120b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {},
+   "restored": 0,
+   "unrestored": 0,
+   "mentioned": false
+  },
+  {
+   "conversation": "dev-028",
+   "model": "openai/gpt-oss-120b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {},
+   "restored": 0,
+   "unrestored": 0,
+   "mentioned": false
+  },
+  {
+   "conversation": "dev-028",
+   "model": "qwen/qwen3.8-27b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {},
+   "restored": 0,
+   "unrestored": 0,
+   "mentioned": false
+  },
+  {
+   "conversation": "dev-028",
+   "model": "qwen/qwen3.8-27b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {},
+   "restored": 0,
+   "unrestored": 0,
+   "mentioned": false
+  },
+  {
+   "conversation": "dev-029",
+   "model": "openai/gpt-oss-120b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-029",
+   "model": "openai/gpt-oss-120b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-029",
+   "model": "qwen/qwen3.8-27b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-029",
+   "model": "qwen/qwen3.8-27b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "unclosed": 1
+   },
+   "restored": 0,
+   "unrestored": 1,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-030",
+   "model": "openai/gpt-oss-120b",
+   "stream": false,
+   "tool": true,
+   "status": 200,
+   "mentions": {
+    "exact": 2
+   },
+   "restored": 2,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-030",
+   "model": "openai/gpt-oss-120b",
+   "stream": true,
+   "tool": true,
+   "status": 200,
+   "mentions": {
+    "exact": 2
+   },
+   "restored": 2,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-030",
+   "model": "qwen/qwen3.8-27b",
+   "stream": false,
+   "tool": true,
+   "status": 200,
+   "mentions": {
+    "exact": 2
+   },
+   "restored": 2,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-030",
+   "model": "qwen/qwen3.8-27b",
+   "stream": true,
+   "tool": true,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-031",
+   "model": "openai/gpt-oss-120b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 4
+   },
+   "restored": 4,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-031",
+   "model": "openai/gpt-oss-120b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 4
+   },
+   "restored": 4,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-031",
+   "model": "qwen/qwen3.8-27b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 3
+   },
+   "restored": 3,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-031",
+   "model": "qwen/qwen3.8-27b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 2
+   },
+   "restored": 2,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-032",
+   "model": "openai/gpt-oss-120b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 4
+   },
+   "restored": 4,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-032",
+   "model": "openai/gpt-oss-120b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 5
+   },
+   "restored": 5,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-032",
+   "model": "qwen/qwen3.8-27b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 5
+   },
+   "restored": 5,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-032",
+   "model": "qwen/qwen3.8-27b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 5
+   },
+   "restored": 5,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-033",
+   "model": "openai/gpt-oss-120b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "bracketless": 1
+   },
+   "restored": 0,
+   "unrestored": 1,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-033",
+   "model": "openai/gpt-oss-120b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-033",
+   "model": "qwen/qwen3.8-27b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-033",
+   "model": "qwen/qwen3.8-27b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-034",
+   "model": "openai/gpt-oss-120b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "bracketless": 1
+   },
+   "restored": 0,
+   "unrestored": 1,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-034",
+   "model": "openai/gpt-oss-120b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-034",
+   "model": "qwen/qwen3.8-27b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "bracketless": 1
+   },
+   "restored": 0,
+   "unrestored": 1,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-034",
+   "model": "qwen/qwen3.8-27b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-035",
+   "model": "openai/gpt-oss-120b",
+   "stream": false,
+   "tool": true,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-035",
+   "model": "openai/gpt-oss-120b",
+   "stream": true,
+   "tool": true,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-035",
+   "model": "qwen/qwen3.8-27b",
+   "stream": false,
+   "tool": true,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-035",
+   "model": "qwen/qwen3.8-27b",
+   "stream": true,
+   "tool": true,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-036",
+   "model": "openai/gpt-oss-120b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 6
+   },
+   "restored": 6,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-036",
+   "model": "openai/gpt-oss-120b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 3
+   },
+   "restored": 3,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-036",
+   "model": "qwen/qwen3.8-27b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 3
+   },
+   "restored": 3,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-036",
+   "model": "qwen/qwen3.8-27b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 3
+   },
+   "restored": 3,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-037",
+   "model": "openai/gpt-oss-120b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 4
+   },
+   "restored": 4,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-037",
+   "model": "openai/gpt-oss-120b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 4
+   },
+   "restored": 4,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-037",
+   "model": "qwen/qwen3.8-27b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 3
+   },
+   "restored": 3,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-037",
+   "model": "qwen/qwen3.8-27b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 2
+   },
+   "restored": 2,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-038",
+   "model": "openai/gpt-oss-120b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-038",
+   "model": "openai/gpt-oss-120b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 2
+   },
+   "restored": 2,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-038",
+   "model": "qwen/qwen3.8-27b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-038",
+   "model": "qwen/qwen3.8-27b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 2
+   },
+   "restored": 2,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-039",
+   "model": "openai/gpt-oss-120b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 5
+   },
+   "restored": 5,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-039",
+   "model": "openai/gpt-oss-120b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 5
+   },
+   "restored": 5,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-039",
+   "model": "qwen/qwen3.8-27b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 6
+   },
+   "restored": 6,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-039",
+   "model": "qwen/qwen3.8-27b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 5
+   },
+   "restored": 5,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-040",
+   "model": "openai/gpt-oss-120b",
+   "stream": false,
+   "tool": true,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-040",
+   "model": "openai/gpt-oss-120b",
+   "stream": true,
+   "tool": true,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-040",
+   "model": "qwen/qwen3.8-27b",
+   "stream": false,
+   "tool": true,
+   "status": 200,
+   "mentions": {},
+   "restored": 0,
+   "unrestored": 0,
+   "mentioned": false
+  },
+  {
+   "conversation": "dev-040",
+   "model": "qwen/qwen3.8-27b",
+   "stream": true,
+   "tool": true,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-041",
+   "model": "openai/gpt-oss-120b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 2
+   },
+   "restored": 2,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-041",
+   "model": "openai/gpt-oss-120b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 2
+   },
+   "restored": 2,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-041",
+   "model": "qwen/qwen3.8-27b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 2
+   },
+   "restored": 2,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-041",
+   "model": "qwen/qwen3.8-27b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 2
+   },
+   "restored": 2,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-042",
+   "model": "openai/gpt-oss-120b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-042",
+   "model": "openai/gpt-oss-120b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-042",
+   "model": "qwen/qwen3.8-27b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-042",
+   "model": "qwen/qwen3.8-27b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-043",
+   "model": "openai/gpt-oss-120b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 2
+   },
+   "restored": 2,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-043",
+   "model": "openai/gpt-oss-120b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-043",
+   "model": "qwen/qwen3.8-27b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 2
+   },
+   "restored": 2,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-043",
+   "model": "qwen/qwen3.8-27b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-044",
+   "model": "openai/gpt-oss-120b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {},
+   "restored": 0,
+   "unrestored": 0,
+   "mentioned": false
+  },
+  {
+   "conversation": "dev-044",
+   "model": "openai/gpt-oss-120b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {},
+   "restored": 0,
+   "unrestored": 0,
+   "mentioned": false
+  },
+  {
+   "conversation": "dev-044",
+   "model": "qwen/qwen3.8-27b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {},
+   "restored": 0,
+   "unrestored": 0,
+   "mentioned": false
+  },
+  {
+   "conversation": "dev-044",
+   "model": "qwen/qwen3.8-27b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {},
+   "restored": 0,
+   "unrestored": 0,
+   "mentioned": false
+  },
+  {
+   "conversation": "dev-045",
+   "model": "openai/gpt-oss-120b",
+   "stream": false,
+   "tool": true,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-045",
+   "model": "openai/gpt-oss-120b",
+   "stream": true,
+   "tool": true,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-045",
+   "model": "qwen/qwen3.8-27b",
+   "stream": false,
+   "tool": true,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-045",
+   "model": "qwen/qwen3.8-27b",
+   "stream": true,
+   "tool": true,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-046",
+   "model": "openai/gpt-oss-120b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-046",
+   "model": "openai/gpt-oss-120b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-046",
+   "model": "qwen/qwen3.8-27b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-046",
+   "model": "qwen/qwen3.8-27b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-047",
+   "model": "openai/gpt-oss-120b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 4
+   },
+   "restored": 4,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-047",
+   "model": "openai/gpt-oss-120b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 4
+   },
+   "restored": 4,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-047",
+   "model": "qwen/qwen3.8-27b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 4
+   },
+   "restored": 4,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-047",
+   "model": "qwen/qwen3.8-27b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 4
+   },
+   "restored": 4,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-048",
+   "model": "openai/gpt-oss-120b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "bracketless": 1
+   },
+   "restored": 0,
+   "unrestored": 1,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-048",
+   "model": "openai/gpt-oss-120b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 2
+   },
+   "restored": 2,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-048",
+   "model": "qwen/qwen3.8-27b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {},
+   "restored": 0,
+   "unrestored": 0,
+   "mentioned": false
+  },
+  {
+   "conversation": "dev-048",
+   "model": "qwen/qwen3.8-27b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 2
+   },
+   "restored": 2,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-049",
+   "model": "openai/gpt-oss-120b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-049",
+   "model": "openai/gpt-oss-120b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-049",
+   "model": "qwen/qwen3.8-27b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-049",
+   "model": "qwen/qwen3.8-27b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-050",
+   "model": "openai/gpt-oss-120b",
+   "stream": false,
+   "tool": true,
+   "status": 400,
+   "mentions": {},
+   "restored": 0,
+   "unrestored": 0,
+   "mentioned": false
+  },
+  {
+   "conversation": "dev-050",
+   "model": "openai/gpt-oss-120b",
+   "stream": true,
+   "tool": true,
+   "status": 200,
+   "mentions": {},
+   "restored": 0,
+   "unrestored": 0,
+   "mentioned": false
+  },
+  {
+   "conversation": "dev-050",
+   "model": "qwen/qwen3.8-27b",
+   "stream": false,
+   "tool": true,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-050",
+   "model": "qwen/qwen3.8-27b",
+   "stream": true,
+   "tool": true,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-051",
+   "model": "openai/gpt-oss-120b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "brackets": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-051",
+   "model": "openai/gpt-oss-120b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {},
+   "restored": 0,
+   "unrestored": 0,
+   "mentioned": false
+  },
+  {
+   "conversation": "dev-051",
+   "model": "qwen/qwen3.8-27b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {},
+   "restored": 0,
+   "unrestored": 0,
+   "mentioned": false
+  },
+  {
+   "conversation": "dev-051",
+   "model": "qwen/qwen3.8-27b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {},
+   "restored": 0,
+   "unrestored": 0,
+   "mentioned": false
+  },
+  {
+   "conversation": "dev-052",
+   "model": "openai/gpt-oss-120b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 3
+   },
+   "restored": 3,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-052",
+   "model": "openai/gpt-oss-120b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 3
+   },
+   "restored": 3,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-052",
+   "model": "qwen/qwen3.8-27b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 3
+   },
+   "restored": 3,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-052",
+   "model": "qwen/qwen3.8-27b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 2
+   },
+   "restored": 2,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-053",
+   "model": "openai/gpt-oss-120b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-053",
+   "model": "openai/gpt-oss-120b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-053",
+   "model": "qwen/qwen3.8-27b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-053",
+   "model": "qwen/qwen3.8-27b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-054",
+   "model": "openai/gpt-oss-120b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-054",
+   "model": "openai/gpt-oss-120b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-054",
+   "model": "qwen/qwen3.8-27b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-054",
+   "model": "qwen/qwen3.8-27b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-055",
+   "model": "openai/gpt-oss-120b",
+   "stream": false,
+   "tool": true,
+   "status": 200,
+   "mentions": {
+    "exact": 2
+   },
+   "restored": 2,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-055",
+   "model": "openai/gpt-oss-120b",
+   "stream": true,
+   "tool": true,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-055",
+   "model": "qwen/qwen3.8-27b",
+   "stream": false,
+   "tool": true,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-055",
+   "model": "qwen/qwen3.8-27b",
+   "stream": true,
+   "tool": true,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-056",
+   "model": "openai/gpt-oss-120b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-056",
+   "model": "openai/gpt-oss-120b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-056",
+   "model": "qwen/qwen3.8-27b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-056",
+   "model": "qwen/qwen3.8-27b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-057",
+   "model": "openai/gpt-oss-120b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {},
+   "restored": 0,
+   "unrestored": 0,
+   "mentioned": false
+  },
+  {
+   "conversation": "dev-057",
+   "model": "openai/gpt-oss-120b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {},
+   "restored": 0,
+   "unrestored": 0,
+   "mentioned": false
+  },
+  {
+   "conversation": "dev-057",
+   "model": "qwen/qwen3.8-27b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-057",
+   "model": "qwen/qwen3.8-27b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-058",
+   "model": "openai/gpt-oss-120b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-058",
+   "model": "openai/gpt-oss-120b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-058",
+   "model": "qwen/qwen3.8-27b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-058",
+   "model": "qwen/qwen3.8-27b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-059",
+   "model": "openai/gpt-oss-120b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 3
+   },
+   "restored": 3,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-059",
+   "model": "openai/gpt-oss-120b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 3
+   },
+   "restored": 3,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-059",
+   "model": "qwen/qwen3.8-27b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 3
+   },
+   "restored": 3,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-059",
+   "model": "qwen/qwen3.8-27b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 2
+   },
+   "restored": 2,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-060",
+   "model": "openai/gpt-oss-120b",
+   "stream": false,
+   "tool": true,
+   "status": 200,
+   "mentions": {
+    "bracketless": 1
+   },
+   "restored": 0,
+   "unrestored": 1,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-060",
+   "model": "openai/gpt-oss-120b",
+   "stream": true,
+   "tool": true,
+   "status": 200,
+   "mentions": {
+    "bracketless": 1
+   },
+   "restored": 0,
+   "unrestored": 1,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-060",
+   "model": "qwen/qwen3.8-27b",
+   "stream": false,
+   "tool": true,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-060",
+   "model": "qwen/qwen3.8-27b",
+   "stream": true,
+   "tool": true,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-061",
+   "model": "openai/gpt-oss-120b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 2
+   },
+   "restored": 2,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-061",
+   "model": "openai/gpt-oss-120b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 4
+   },
+   "restored": 4,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-061",
+   "model": "qwen/qwen3.8-27b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 3
+   },
+   "restored": 3,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-061",
+   "model": "qwen/qwen3.8-27b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 3
+   },
+   "restored": 3,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-062",
+   "model": "openai/gpt-oss-120b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 2
+   },
+   "restored": 2,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-062",
+   "model": "openai/gpt-oss-120b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 4
+   },
+   "restored": 4,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-062",
+   "model": "qwen/qwen3.8-27b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 2
+   },
+   "restored": 2,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-062",
+   "model": "qwen/qwen3.8-27b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 2
+   },
+   "restored": 2,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-063",
+   "model": "openai/gpt-oss-120b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 2
+   },
+   "restored": 2,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-063",
+   "model": "openai/gpt-oss-120b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 2
+   },
+   "restored": 2,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-063",
+   "model": "qwen/qwen3.8-27b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 2
+   },
+   "restored": 2,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-063",
+   "model": "qwen/qwen3.8-27b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 2
+   },
+   "restored": 2,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-064",
+   "model": "openai/gpt-oss-120b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-064",
+   "model": "openai/gpt-oss-120b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-064",
+   "model": "qwen/qwen3.8-27b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-064",
+   "model": "qwen/qwen3.8-27b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-065",
+   "model": "openai/gpt-oss-120b",
+   "stream": false,
+   "tool": true,
+   "status": 200,
+   "mentions": {
+    "exact": 2
+   },
+   "restored": 2,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-065",
+   "model": "openai/gpt-oss-120b",
+   "stream": true,
+   "tool": true,
+   "status": 200,
+   "mentions": {
+    "bracketless": 2
+   },
+   "restored": 0,
+   "unrestored": 2,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-065",
+   "model": "qwen/qwen3.8-27b",
+   "stream": false,
+   "tool": true,
+   "status": 200,
+   "mentions": {
+    "exact": 2
+   },
+   "restored": 2,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-065",
+   "model": "qwen/qwen3.8-27b",
+   "stream": true,
+   "tool": true,
+   "status": 200,
+   "mentions": {
+    "exact": 3
+   },
+   "restored": 3,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-066",
+   "model": "openai/gpt-oss-120b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-066",
+   "model": "openai/gpt-oss-120b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-066",
+   "model": "qwen/qwen3.8-27b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-066",
+   "model": "qwen/qwen3.8-27b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-067",
+   "model": "openai/gpt-oss-120b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 2
+   },
+   "restored": 2,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-067",
+   "model": "openai/gpt-oss-120b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 2
+   },
+   "restored": 2,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-067",
+   "model": "qwen/qwen3.8-27b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 2
+   },
+   "restored": 2,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-067",
+   "model": "qwen/qwen3.8-27b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 2
+   },
+   "restored": 2,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-068",
+   "model": "openai/gpt-oss-120b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-068",
+   "model": "openai/gpt-oss-120b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-068",
+   "model": "qwen/qwen3.8-27b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-068",
+   "model": "qwen/qwen3.8-27b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-069",
+   "model": "openai/gpt-oss-120b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-069",
+   "model": "openai/gpt-oss-120b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-069",
+   "model": "qwen/qwen3.8-27b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-069",
+   "model": "qwen/qwen3.8-27b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-070",
+   "model": "openai/gpt-oss-120b",
+   "stream": false,
+   "tool": true,
+   "status": 200,
+   "mentions": {
+    "exact": 2
+   },
+   "restored": 2,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-070",
+   "model": "openai/gpt-oss-120b",
+   "stream": true,
+   "tool": true,
+   "status": 200,
+   "mentions": {
+    "exact": 2
+   },
+   "restored": 2,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-070",
+   "model": "qwen/qwen3.8-27b",
+   "stream": false,
+   "tool": true,
+   "status": 200,
+   "mentions": {
+    "exact": 3
+   },
+   "restored": 3,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-070",
+   "model": "qwen/qwen3.8-27b",
+   "stream": true,
+   "tool": true,
+   "status": 200,
+   "mentions": {
+    "exact": 3
+   },
+   "restored": 3,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-071",
+   "model": "openai/gpt-oss-120b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 2
+   },
+   "restored": 2,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-071",
+   "model": "openai/gpt-oss-120b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 2
+   },
+   "restored": 2,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-071",
+   "model": "qwen/qwen3.8-27b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-071",
+   "model": "qwen/qwen3.8-27b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 2
+   },
+   "restored": 2,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-072",
+   "model": "openai/gpt-oss-120b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 7
+   },
+   "restored": 7,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-072",
+   "model": "openai/gpt-oss-120b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 5
+   },
+   "restored": 5,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-072",
+   "model": "qwen/qwen3.8-27b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {},
+   "restored": 0,
+   "unrestored": 0,
+   "mentioned": false
+  },
+  {
+   "conversation": "dev-072",
+   "model": "qwen/qwen3.8-27b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 2
+   },
+   "restored": 2,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-073",
+   "model": "openai/gpt-oss-120b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-073",
+   "model": "openai/gpt-oss-120b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-073",
+   "model": "qwen/qwen3.8-27b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-073",
+   "model": "qwen/qwen3.8-27b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-074",
+   "model": "openai/gpt-oss-120b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 3
+   },
+   "restored": 3,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-074",
+   "model": "openai/gpt-oss-120b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 2
+   },
+   "restored": 2,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-074",
+   "model": "qwen/qwen3.8-27b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 2
+   },
+   "restored": 2,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-074",
+   "model": "qwen/qwen3.8-27b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 2
+   },
+   "restored": 2,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-075",
+   "model": "openai/gpt-oss-120b",
+   "stream": false,
+   "tool": true,
+   "status": 400,
+   "mentions": {},
+   "restored": 0,
+   "unrestored": 0,
+   "mentioned": false
+  },
+  {
+   "conversation": "dev-075",
+   "model": "openai/gpt-oss-120b",
+   "stream": true,
+   "tool": true,
+   "status": 200,
+   "mentions": {
+    "exact": 3
+   },
+   "restored": 3,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-075",
+   "model": "qwen/qwen3.8-27b",
+   "stream": false,
+   "tool": true,
+   "status": 200,
+   "mentions": {
+    "exact": 3
+   },
+   "restored": 3,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-075",
+   "model": "qwen/qwen3.8-27b",
+   "stream": true,
+   "tool": true,
+   "status": 200,
+   "mentions": {
+    "exact": 3
+   },
+   "restored": 3,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-076",
+   "model": "openai/gpt-oss-120b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {},
+   "restored": 0,
+   "unrestored": 0,
+   "mentioned": false
+  },
+  {
+   "conversation": "dev-076",
+   "model": "openai/gpt-oss-120b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {},
+   "restored": 0,
+   "unrestored": 0,
+   "mentioned": false
+  },
+  {
+   "conversation": "dev-076",
+   "model": "qwen/qwen3.8-27b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 2
+   },
+   "restored": 2,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-076",
+   "model": "qwen/qwen3.8-27b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 2
+   },
+   "restored": 2,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-077",
+   "model": "openai/gpt-oss-120b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 3
+   },
+   "restored": 3,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-077",
+   "model": "openai/gpt-oss-120b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 4
+   },
+   "restored": 4,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-077",
+   "model": "qwen/qwen3.8-27b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 4
+   },
+   "restored": 4,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-077",
+   "model": "qwen/qwen3.8-27b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 4
+   },
+   "restored": 4,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-078",
+   "model": "openai/gpt-oss-120b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-078",
+   "model": "openai/gpt-oss-120b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-078",
+   "model": "qwen/qwen3.8-27b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-078",
+   "model": "qwen/qwen3.8-27b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-079",
+   "model": "openai/gpt-oss-120b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 2
+   },
+   "restored": 2,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-079",
+   "model": "openai/gpt-oss-120b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 2
+   },
+   "restored": 2,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-079",
+   "model": "qwen/qwen3.8-27b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-079",
+   "model": "qwen/qwen3.8-27b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-080",
+   "model": "openai/gpt-oss-120b",
+   "stream": false,
+   "tool": true,
+   "status": 200,
+   "mentions": {
+    "exact": 2
+   },
+   "restored": 2,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-080",
+   "model": "openai/gpt-oss-120b",
+   "stream": true,
+   "tool": true,
+   "status": 200,
+   "mentions": {
+    "exact": 2
+   },
+   "restored": 2,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-080",
+   "model": "qwen/qwen3.8-27b",
+   "stream": false,
+   "tool": true,
+   "status": 200,
+   "mentions": {
+    "exact": 4
+   },
+   "restored": 4,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-080",
+   "model": "qwen/qwen3.8-27b",
+   "stream": true,
+   "tool": true,
+   "status": 200,
+   "mentions": {
+    "exact": 4
+   },
+   "restored": 4,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-081",
+   "model": "openai/gpt-oss-120b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 2
+   },
+   "restored": 2,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-081",
+   "model": "openai/gpt-oss-120b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "bracketless": 2
+   },
+   "restored": 0,
+   "unrestored": 2,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-081",
+   "model": "qwen/qwen3.8-27b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "bracketless": 1
+   },
+   "restored": 0,
+   "unrestored": 1,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-081",
+   "model": "qwen/qwen3.8-27b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "brackets": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-082",
+   "model": "openai/gpt-oss-120b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 2
+   },
+   "restored": 2,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-082",
+   "model": "openai/gpt-oss-120b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 2
+   },
+   "restored": 2,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-082",
+   "model": "qwen/qwen3.8-27b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 2
+   },
+   "restored": 2,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-082",
+   "model": "qwen/qwen3.8-27b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 2
+   },
+   "restored": 2,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-083",
+   "model": "openai/gpt-oss-120b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 3
+   },
+   "restored": 3,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-083",
+   "model": "openai/gpt-oss-120b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 3
+   },
+   "restored": 3,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-083",
+   "model": "qwen/qwen3.8-27b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {},
+   "restored": 0,
+   "unrestored": 0,
+   "mentioned": false
+  },
+  {
+   "conversation": "dev-083",
+   "model": "qwen/qwen3.8-27b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {},
+   "restored": 0,
+   "unrestored": 0,
+   "mentioned": false
+  },
+  {
+   "conversation": "dev-084",
+   "model": "openai/gpt-oss-120b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 5
+   },
+   "restored": 5,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-084",
+   "model": "openai/gpt-oss-120b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 5
+   },
+   "restored": 5,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-084",
+   "model": "qwen/qwen3.8-27b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 5
+   },
+   "restored": 5,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-084",
+   "model": "qwen/qwen3.8-27b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 5
+   },
+   "restored": 5,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-085",
+   "model": "openai/gpt-oss-120b",
+   "stream": false,
+   "tool": true,
+   "status": 200,
+   "mentions": {
+    "bracketless": 1,
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 1,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-085",
+   "model": "openai/gpt-oss-120b",
+   "stream": true,
+   "tool": true,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-085",
+   "model": "qwen/qwen3.8-27b",
+   "stream": false,
+   "tool": true,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-085",
+   "model": "qwen/qwen3.8-27b",
+   "stream": true,
+   "tool": true,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-086",
+   "model": "openai/gpt-oss-120b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 8
+   },
+   "restored": 8,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-086",
+   "model": "openai/gpt-oss-120b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 6
+   },
+   "restored": 6,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-086",
+   "model": "qwen/qwen3.8-27b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 4
+   },
+   "restored": 4,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-086",
+   "model": "qwen/qwen3.8-27b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 4
+   },
+   "restored": 4,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-087",
+   "model": "openai/gpt-oss-120b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "bracketless": 2
+   },
+   "restored": 0,
+   "unrestored": 2,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-087",
+   "model": "openai/gpt-oss-120b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 2
+   },
+   "restored": 2,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-087",
+   "model": "qwen/qwen3.8-27b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 2
+   },
+   "restored": 2,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-087",
+   "model": "qwen/qwen3.8-27b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {},
+   "restored": 0,
+   "unrestored": 0,
+   "mentioned": false
+  },
+  {
+   "conversation": "dev-088",
+   "model": "openai/gpt-oss-120b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 8
+   },
+   "restored": 8,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-088",
+   "model": "openai/gpt-oss-120b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 4
+   },
+   "restored": 4,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-088",
+   "model": "qwen/qwen3.8-27b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 4
+   },
+   "restored": 4,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-088",
+   "model": "qwen/qwen3.8-27b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-089",
+   "model": "openai/gpt-oss-120b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {},
+   "restored": 0,
+   "unrestored": 0,
+   "mentioned": false
+  },
+  {
+   "conversation": "dev-089",
+   "model": "openai/gpt-oss-120b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-089",
+   "model": "qwen/qwen3.8-27b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-089",
+   "model": "qwen/qwen3.8-27b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-090",
+   "model": "openai/gpt-oss-120b",
+   "stream": false,
+   "tool": true,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-090",
+   "model": "openai/gpt-oss-120b",
+   "stream": true,
+   "tool": true,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-090",
+   "model": "qwen/qwen3.8-27b",
+   "stream": false,
+   "tool": true,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-090",
+   "model": "qwen/qwen3.8-27b",
+   "stream": true,
+   "tool": true,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-091",
+   "model": "openai/gpt-oss-120b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 1,
+    "bracketless": 1
+   },
+   "restored": 1,
+   "unrestored": 1,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-091",
+   "model": "openai/gpt-oss-120b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-091",
+   "model": "qwen/qwen3.8-27b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-091",
+   "model": "qwen/qwen3.8-27b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-092",
+   "model": "openai/gpt-oss-120b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {},
+   "restored": 0,
+   "unrestored": 0,
+   "mentioned": false
+  },
+  {
+   "conversation": "dev-092",
+   "model": "openai/gpt-oss-120b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "bracketless": 1
+   },
+   "restored": 0,
+   "unrestored": 1,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-092",
+   "model": "qwen/qwen3.8-27b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {},
+   "restored": 0,
+   "unrestored": 0,
+   "mentioned": false
+  },
+  {
+   "conversation": "dev-092",
+   "model": "qwen/qwen3.8-27b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-093",
+   "model": "openai/gpt-oss-120b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 2
+   },
+   "restored": 2,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-093",
+   "model": "openai/gpt-oss-120b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 2
+   },
+   "restored": 2,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-093",
+   "model": "qwen/qwen3.8-27b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {},
+   "restored": 0,
+   "unrestored": 0,
+   "mentioned": false
+  },
+  {
+   "conversation": "dev-093",
+   "model": "qwen/qwen3.8-27b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {},
+   "restored": 0,
+   "unrestored": 0,
+   "mentioned": false
+  },
+  {
+   "conversation": "dev-094",
+   "model": "openai/gpt-oss-120b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {},
+   "restored": 0,
+   "unrestored": 0,
+   "mentioned": false
+  },
+  {
+   "conversation": "dev-094",
+   "model": "openai/gpt-oss-120b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-094",
+   "model": "qwen/qwen3.8-27b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "bracketless": 1
+   },
+   "restored": 0,
+   "unrestored": 1,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-094",
+   "model": "qwen/qwen3.8-27b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-095",
+   "model": "openai/gpt-oss-120b",
+   "stream": false,
+   "tool": true,
+   "status": 200,
+   "mentions": {
+    "exact": 2
+   },
+   "restored": 2,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-095",
+   "model": "openai/gpt-oss-120b",
+   "stream": true,
+   "tool": true,
+   "status": 200,
+   "mentions": {
+    "exact": 2
+   },
+   "restored": 2,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-095",
+   "model": "qwen/qwen3.8-27b",
+   "stream": false,
+   "tool": true,
+   "status": 200,
+   "mentions": {
+    "exact": 2
+   },
+   "restored": 2,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-095",
+   "model": "qwen/qwen3.8-27b",
+   "stream": true,
+   "tool": true,
+   "status": 200,
+   "mentions": {
+    "exact": 3
+   },
+   "restored": 3,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-096",
+   "model": "openai/gpt-oss-120b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 2
+   },
+   "restored": 2,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-096",
+   "model": "openai/gpt-oss-120b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 2
+   },
+   "restored": 2,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-096",
+   "model": "qwen/qwen3.8-27b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 2
+   },
+   "restored": 2,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-096",
+   "model": "qwen/qwen3.8-27b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 2
+   },
+   "restored": 2,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-097",
+   "model": "openai/gpt-oss-120b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-097",
+   "model": "openai/gpt-oss-120b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-097",
+   "model": "qwen/qwen3.8-27b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-097",
+   "model": "qwen/qwen3.8-27b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-098",
+   "model": "openai/gpt-oss-120b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-098",
+   "model": "openai/gpt-oss-120b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-098",
+   "model": "qwen/qwen3.8-27b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-098",
+   "model": "qwen/qwen3.8-27b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-099",
+   "model": "openai/gpt-oss-120b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-099",
+   "model": "openai/gpt-oss-120b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-099",
+   "model": "qwen/qwen3.8-27b",
+   "stream": false,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  },
+  {
+   "conversation": "dev-099",
+   "model": "qwen/qwen3.8-27b",
+   "stream": true,
+   "tool": false,
+   "status": 200,
+   "mentions": {
+    "exact": 1
+   },
+   "restored": 1,
+   "unrestored": 0,
+   "mentioned": true
+  }
+ ]
+}

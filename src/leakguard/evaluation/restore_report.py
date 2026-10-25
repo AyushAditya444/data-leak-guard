@@ -112,7 +112,7 @@ def _meta_lines(results: dict) -> list[str]:
             f"guard commit `{m['guard_commit']}`.")]
 
 
-def render_restore_tuning(results: dict) -> str:
+def render_restore_tuning(results: dict, notes: list[str] | tuple[str, ...] = ()) -> str:
     share = bracketless_share(results)
     verdict = "accept" if share >= BRACKETLESS_RULE else "keep off"
     forms = _all_forms(results)
@@ -132,7 +132,9 @@ def render_restore_tuning(results: dict) -> str:
     unclosed = forms["unclosed"]
     if total and unclosed / total >= BRACKETLESS_RULE:
         lines += [(f"Unclosed placeholders are {_rate(unclosed, total)} of mentions: at or above "
-                  "the same threshold, see the decision below."), ""]
+                  "the same threshold, see the notes."), ""]
+    if notes:
+        lines += ["## Notes", ""] + [f"- {note}" for note in notes] + [""]
     return "\n".join(lines)
 
 

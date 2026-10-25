@@ -161,3 +161,25 @@ def test_flush_twice_and_close_counts_once():
     assert f.flush() == "[PH" and f.flush() == ""
     f.close()
     assert (r.stats.restored, r.stats.unrestored) == (0, 1)
+
+
+def test_bracketless_is_accepted_by_default():  # decided on the dev run (restore-tuning.md)
+    m = PlaceholderMap()
+    m.placeholder_for(T.PHONE, "9876543210")
+    assert Restorer(m).restore_text("call PHONE_1 now") == "call 9876543210 now"
+
+
+def test_user_typed_bare_placeholder_is_reserved():
+    r = mask_messages(_user("what is PHONE_1? my number is 9876543210"), DEFAULT_POLICY)
+    assert r.messages[0]["content"] == "what is PHONE_1? my number is [PHONE_2]"
+    assert Restorer(r.mapping).restore_text("PHONE_1 / PHONE_2") == "PHONE_1 / 9876543210"
+
+
+def test_unclosed_placeholder_gets_its_bare_part_restored():
+    # With bracketless on, "[PHONE_1" holds a strict bare PHONE_1: the value is shown and the
+    # stray bracket stays. Reservation covers the same form, so it can't be planted either.
+    m = PlaceholderMap()
+    m.placeholder_for(T.PHONE, "9876543210")
+    r = Restorer(m)
+    assert r.restore_text("call [PHONE_1 now") == "call [9876543210 now"
+    assert (r.stats.restored, r.stats.unrestored) == (1, 0)

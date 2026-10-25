@@ -131,11 +131,12 @@ def test_restore_failure_is_fail_safe(guard, monkeypatch, caplog):
 
 @pytest.mark.parametrize("stream", [False, True])
 def test_logs_restored_and_unrestored_counts(make_guard, caplog, stream):
-    reply = "[PHONE_1] and PHONE_1"
+    reply = "[PHONE_1] and phone 1 too"  # lowercase bare form: looks like ours, not accepted
 
     def handler(request):
         if json.loads(request.content).get("stream"):
-            return httpx.Response(200, content=_sse(*[reply[i:i + 3] for i in range(0, 21, 3)]),
+            chunks = [reply[i:i + 3] for i in range(0, len(reply), 3)]
+            return httpx.Response(200, content=_sse(*chunks),
                                   headers={"content-type": "text/event-stream"})
         return httpx.Response(200, json={"choices": [{"index": 0, "message": {
             "role": "assistant", "content": reply}}]})
@@ -143,7 +144,7 @@ def test_logs_restored_and_unrestored_counts(make_guard, caplog, stream):
     caplog.set_level("INFO", logger="leakguard")
     guard = make_guard(transport=httpx.MockTransport(handler))
     if stream:
-        assert _content(_payloads(guard, _stream_req(PHONE_MSG))) == "9876543210 and PHONE_1"
+        assert _content(_payloads(guard, _stream_req(PHONE_MSG))) == "9876543210 and phone 1 too"
     else:
         guard.post(CHAT, json={**_stream_req(PHONE_MSG), "stream": False})
     (record,) = _request_records(caplog)

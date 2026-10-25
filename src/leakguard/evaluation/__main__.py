@@ -178,6 +178,27 @@ RESTORE_NOTES = [
     ("Which placeholder forms are restored was decided on the dev run only "
      "([restore-tuning.md](restore-tuning.md)); this test run was made once, after that, and "
      "changed no code or setting."),
+    ("A strict bare `PHONE_1` is restored even inside an unclosed `[PHONE_1`, which shows the "
+     "value with a stray bracket; such mentions are still listed as `unclosed` in the forms "
+     "table, which is read from the raw replies."),
+    ("Errors are HTTP 400 `tool_use_failed` from Groq: the provider rejected a malformed tool "
+     "call from the model. The guard blocked nothing (checked by re-sending one on dev)."),
+]
+
+DEV_NOTES = [
+    ("Decision: bracketless placeholders accepted (`ACCEPT_BRACKETLESS = True` in "
+     "`src/leakguard/placeholders.py`), strictly: uppercase type, underscore, word boundaries "
+     "on both sides. Users typing that form get those numbers reserved, as for every accepted "
+     "form."),
+    ("The forms table counts every bracketless-looking mention (any case, any separator). "
+     "On dev, 28 of the 29 unrestored placeholders were bracketless (the other was the unclosed "
+     "one); how many of them the strict form restores is visible in the test run's "
+     "`unrestored` column."),
+    ("No other mutation reached 2%: one unclosed `[PHONE_1` (0.1%), so nothing else was added. "
+     "Case, separator and bracket variants were accepted from the start and are rare."),
+    ("The 3 errors are HTTP 400 `tool_use_failed` from Groq (gpt-oss-120b, non-streaming, "
+     "forced tool call): the provider rejected the model's malformed tool call. The guard "
+     "blocked nothing: one was re-sent directly (no blocked types, same error)."),
 ]
 
 
@@ -186,7 +207,8 @@ def cmd_restore_report(args: argparse.Namespace) -> None:
 
     results = json.loads((DATA / f"restore-{args.split}.json").read_text(encoding="utf-8"))
     if args.split == "dev":
-        out, md = Path("docs/evaluation/restore-tuning.md"), rep.render_restore_tuning(results)
+        out = Path("docs/evaluation/restore-tuning.md")
+        md = rep.render_restore_tuning(results, DEV_NOTES)
     else:
         out = Path("docs/evaluation/restore-report.md")
         md = rep.render_restore_report(results, rep.measure_stream_overhead(), RESTORE_NOTES)

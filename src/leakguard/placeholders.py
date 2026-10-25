@@ -20,9 +20,10 @@ from functools import lru_cache
 
 from leakguard.entities import EntityType
 
-# Bare `NAME_1` with no brackets. Off until the dev run on real LLMs shows it is common
-# (design §3: accepted only if it is >= 2% of placeholder mentions on dev).
-ACCEPT_BRACKETLESS = False
+# Bare `NAME_1` with no brackets (strict: uppercase, underscore, word boundaries). The rule
+# set before measuring: accept only if >= 2% of placeholder mentions on the dev run. It was
+# 3.8% (28 of 745, mostly gpt-oss), so it is on: docs/evaluation/restore-tuning.md.
+ACCEPT_BRACKETLESS = True
 
 MAX_DIGITS = 6
 BRACKETS = {"[": "]", "{": "}", "<": ">", "(": ")"}

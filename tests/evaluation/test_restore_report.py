@@ -71,3 +71,8 @@ def test_overhead_keys():
     for timings in overhead.values():
         assert set(timings) == {"ttfb_p50", "ttfb_p95", "total_p50", "total_p95"}
         assert all(v > 0 for v in timings.values())
+
+
+def test_tuning_page_lists_notes():
+    md = render_restore_tuning(_results(_outcome(mentions={"exact": 1})), ["the decision"])
+    assert "## Notes" in md and "- the decision" in md
