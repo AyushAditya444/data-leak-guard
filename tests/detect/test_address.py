@@ -64,13 +64,15 @@ def test_odd_inputs_return_lists(text):
     assert isinstance(detect_address(text), list)
 
 
-def test_stop_spans_break_addresses():
+def test_stop_inside_an_address_splits_it_around_the_stop():
+    # The address is not cut short at the phone: both sides are masked, and no ADDRESS
+    # span overlaps the phone (merging would drop it).
     from leakguard.detect.spans import Span
     text = "Flat 2, Baner 9876543210 Pune"
     phone = Span(14, 24, T.PHONE)
     spans = detect_address(text, stops=[phone])
     assert all(not s.overlaps(phone) for s in spans)
-    assert [s.text(text) for s in spans] == ["Flat 2, Baner"]
+    assert [s.text(text) for s in spans] == ["Flat 2, Baner", "Pune"]
 
 
 def test_leading_place_joined_by_words_is_not_part_of_the_address():

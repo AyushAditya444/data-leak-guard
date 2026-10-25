@@ -82,3 +82,38 @@ def test_name_partly_inside_address_is_absorbed():
     spans = build_detector(fake_ner)(text)
     covered = {i for s in spans for i in range(s.start, s.end)}
     assert set(range(start, len(text))) <= covered  # nothing from "Kavya" on is visible
+
+
+def _hidden(text, spans, value):
+    """Is every character of `value` (inside `text`) covered by some span?"""
+    start = text.index(value)
+    covered = {i for s in spans for i in range(s.start, s.end)}
+    return set(range(start, start + len(value))) <= covered
+
+
+def test_address_glued_to_a_phone_is_not_dropped():
+    # Widening to whole words must not reach into the phone: merging would then keep
+    # the PHONE and drop the whole address.
+    for text, address in [
+        ("Flat 2, Kothrud, Pune 411038ph9876543210", "Flat 2, Kothrud, Pune 411038"),
+        ("Flat 2, Kothrud, Pune 411038Mob9876543210", "Flat 2, Kothrud, Pune 411038"),
+        ("Flat 2, Kothrud, near Hanuman Mandir9876543210", "Flat 2, Kothrud, near Hanuman Mandir"),
+    ]:
+        spans = detect_rules(text)
+        assert T.PHONE in {s.type for s in spans}, text
+        assert _hidden(text, spans, address), text
+
+
+def test_phone_inside_an_address_does_not_split_it():
+    # Both halves of the address stay masked, the phone in between stays a PHONE.
+    for text, parts in [
+        ("Flat 302, Green Valley Society, ph 9876543210, Kothrud, Pune 411038",
+         ["Flat 302, Green Valley Society", "Kothrud, Pune 411038"]),
+        ("Deliver to H.No 45, MG Road, call 9876543210, Kothrud, Pune",
+         ["H.No 45, MG Road", "Kothrud, Pune"]),
+        ("H.No 45, MG Road (9876543210) Baner, Pune", ["H.No 45, MG Road", "Baner, Pune"]),
+    ]:
+        spans = detect_rules(text)
+        assert T.PHONE in {s.type for s in spans}, text
+        assert all(_hidden(text, spans, part) for part in parts), text
+        assert all(s.type in (T.ADDRESS, T.PHONE) for s in spans), text
