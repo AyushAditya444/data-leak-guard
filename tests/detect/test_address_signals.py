@@ -90,3 +90,14 @@ def test_place_inside_a_landmark_is_not_a_place(g):
     # Some post offices are named "Bus Stand" or "Hanuman Mandir".
     kinds = [k for _, k, _ in _signals(g, "I'm near the bus stand")]
     assert kinds == ["landmark"]
+
+
+@pytest.mark.parametrize("text", ["Silver Springs Colony", "Palm Grove Layout", "Shastri Vihar",
+                                  "Rose Garden Extn", "Kalyani Nagar"])
+def test_locality_by_its_ending(g, text):
+    # New layouts and colonies are often not post office names; their ending says "place".
+    assert (text, "place", False) in _signals(g, text)
+
+
+def test_locality_ending_alone_is_not_a_place(g):
+    assert [k for _, k, _ in _signals(g, "the colony")] == []

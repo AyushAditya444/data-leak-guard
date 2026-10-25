@@ -68,3 +68,17 @@ def test_ner_locations_reach_address():
 
     assert _kinds(text, build_detector(name_model=None)(text)) == []
     assert _kinds(text, build_detector(ner=fake_ner)(text)) == [(T.ADDRESS, text)]
+
+
+def test_name_partly_inside_address_is_absorbed():
+    # A surname can also be a village name ("Sharma"), so an address may start inside a
+    # name. Merging would then drop the NAME and leak "Kavya": the address takes it in.
+    text = "customer Kavya Sharma, Flat 302, Kothrud, Pune"
+    start = text.index("Kavya")
+
+    def fake_ner(t):
+        return [Span(start, start + 12, T.NAME, 0.9, "ner")] if t == text else []
+
+    spans = build_detector(fake_ner)(text)
+    covered = {i for s in spans for i in range(s.start, s.end)}
+    assert set(range(start, len(text))) <= covered  # nothing from "Kavya" on is visible

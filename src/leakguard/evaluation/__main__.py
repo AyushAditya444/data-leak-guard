@@ -60,7 +60,7 @@ def load_detector(require_names: bool) -> tuple[Detector, NameModel | None, Sett
     except NameModelError as exc:
         sys.exit(f"The name model could not be loaded ({exc}). "
                  "Run: python -m leakguard.ner.export")
-    return build_detector(model.detect), model, settings
+    return build_detector(ner=model.analyse), model, settings
 
 
 def _memo(detect: Detector) -> Detector:

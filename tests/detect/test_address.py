@@ -71,3 +71,11 @@ def test_stop_spans_break_addresses():
     spans = detect_address(text, stops=[phone])
     assert all(not s.overlaps(phone) for s in spans)
     assert [s.text(text) for s in spans] == ["Flat 2, Baner"]
+
+
+def test_leading_place_joined_by_words_is_not_part_of_the_address():
+    # "Reddy" is also a village name; words between it and the address keep it out
+    text = "Reddy here, my new address is behind Axis Bank, Kothrud, Pune"
+    assert _found(text) == ["behind Axis Bank, Kothrud, Pune"]
+    # places joined by separators only stay in: "Kothrud, Pune 411038"
+    assert _found("Kothrud, Pune 411038") == ["Kothrud, Pune 411038"]

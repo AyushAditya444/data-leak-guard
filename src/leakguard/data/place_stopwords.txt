@@ -22,3 +22,20 @@ mill
 factory
 airport
 cantonment
+# Added from the dev split (Phase 5 tuning): everyday English / Hinglish words and festival
+# names that are also post office names and were matched outside addresses.
+late
+main
+dena
+tak
+khata
+naya
+both
+same
+mango
+bank
+royal
+diwali
+raksha
+bandhan
+guru

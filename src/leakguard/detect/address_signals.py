@@ -7,7 +7,8 @@ Each finder marks one kind of piece:
     street     MG Road, Nehru Marg, gali no 4, Sector 15, 2nd Cross
     landmark   near Hanuman Mandir, opp. SBI ATM, Shiv Mandir ke paas
     pin        411038 (a real PIN, not after "OTP", "order"...)
-    place      Kothrud, Pune, Maharashtra (from the PIN directory) or an NER location
+    place      Kothrud, Pune, Maharashtra (from the PIN directory), Palm Grove Layout
+               (a name with a locality ending), or an NER location
 
 No single piece is an address. address.py groups pieces that sit close together and
 decides which groups are. A "bare" piece (a unit like "12/3", a PIN without "pincode"
@@ -46,6 +47,10 @@ BUILDING_WORDS = ("apartments", "apartment", "apts", "apt", "society", "soc", "r
                   "campus", "residences", "gardens")
 STREET_WORDS = ("road", "rd", "marg", "street", "st", "lane", "path", "salai", "chowk", "bazaar",
                 "galli", "veedhi")
+# Endings of Indian locality names. Many new layouts and colonies are not post offices, so
+# the directory doesn't know them, but "<Name> Layout" or "<Name> Colony" is a place.
+LOCALITY_ENDINGS = ("nagar", "colony", "layout", "vihar", "puram", "bagh", "ganj", "pura",
+                    "wadi", "peth", "palya", "halli", "extension", "extn", "township", "estate")
 NUMBERED_STREETS = ("gali", "galli", "lane", "sector", "phase", "block", "ward")
 LANDMARK_CUES = (r"near", r"nr\.?", r"opp\.?", r"opposite", r"behind", r"beside", r"besides",
                  r"next\s+to", r"in\s+front\s+of", r"close\s+to")
@@ -90,6 +95,9 @@ _BUILDING = re.compile(
     re.IGNORECASE)
 _NAMED_STREET = re.compile(
     rf"(?<![\w.'&])(?:\d{{1,4}} )?(?:{_NAME_WORD} ){{0,3}}(?:{'|'.join(STREET_WORDS)})\b\.?",
+    re.IGNORECASE)
+_LOCALITY = re.compile(
+    rf"(?<![\w.'&])(?:{_NAME_WORD} ){{1,3}}(?:{'|'.join(LOCALITY_ENDINGS)})\b\.?",
     re.IGNORECASE)
 _ORDINAL_STREET = re.compile(r"\b\d{1,2}(?:st|nd|rd|th)\s+(?:cross|main)(?:\s+(?:road|rd))?\b",
                              re.IGNORECASE)
@@ -211,6 +219,7 @@ def find_signals(text: str, gazetteer: Gazetteer,
     or "Hanuman Mandir", and "I'm near the bus stand" must not have a place of its own."""
     landmarks = _landmarks(text, gazetteer)
     places = [Signal(s, e, "place") for s, e, _ in gazetteer.find_places(text)]
+    places += _named(_LOCALITY, text, "place", need_name=True)
     places += [Signal(s, e, "place") for s, e in locations]
     places = [p for p in places
               if not any(lm.start <= p.start and p.end <= lm.end for lm in landmarks)]

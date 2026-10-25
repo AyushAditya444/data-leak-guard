@@ -26,7 +26,7 @@ from leakguard.entities import EntityType
 
 # How many characters of "other text" may sit between two pieces of one address, after
 # separators are ignored. Tuned on the dev split (docs/evaluation/address-tuning.md).
-DEFAULT_GAP = 12
+DEFAULT_GAP = 24
 
 # Separators between the parts of an address; they don't count towards the gap.
 _SEPARATORS = re.compile(r"[\s,;:/.\-&()]+|\band\b", re.IGNORECASE)
@@ -42,9 +42,21 @@ def _chains(text: str, group: list[Signal], end: int, signal: Signal, gap: int) 
     if _BLANK_LINE.search(between):
         return False  # a blank line ends a block of text
     other_text = _SEPARATORS.sub("", between)
-    if other_text and signal.kind == "unit" and not signal.bare             and any(s.kind in PLACE_KINDS for s in group):
+    if (other_text and signal.kind == "unit" and not signal.bare
+            and any(s.kind in PLACE_KINDS for s in group)):
         return False  # "Flat 2, Baner, Pune to H.No. 45, ...": a second address starts
     return len(other_text) <= gap
+
+
+def _drop_leading_places(text: str, group: list[Signal]) -> list[Signal]:
+    """An address starts with a detail or with places listed one after another ("Kothrud,
+    Pune 411038"). A place joined to the rest by ordinary words is not part of it: in
+    "Reddy here, my new address is behind Axis Bank, Kothrud" the surname "Reddy" is also a
+    village name."""
+    while (len(group) > 1 and group[0].kind == "place" and group[0].end < group[1].start
+           and _SEPARATORS.sub("", text[group[0].end:group[1].start])):
+        group = group[1:]
+    return group
 
 
 def _is_address(group: list[Signal]) -> bool:
@@ -82,7 +94,8 @@ def _group(signals: list[Signal], text: str, stops: _Stops, gap: int) -> list[li
     groups: list[list[Signal]] = []
     end = -1
     for signal in signals:
-        if groups and not stops.between(end, signal.start)                 and _chains(text, groups[-1], end, signal, gap):
+        if (groups and not stops.between(end, signal.start)
+                and _chains(text, groups[-1], end, signal, gap)):
             groups[-1].append(signal)
             end = max(end, signal.end)
         else:
@@ -119,6 +132,7 @@ def detect_address(text: str, stops: Sequence[Span] = (),
                if not blocked.overlaps(s.start, s.end)]
     spans = []
     for group in _group(signals, text, blocked, gap):
+        group = _drop_leading_places(text, group)
         if _is_address(group):
             start, end = _trim(text, group[0].start, max(s.end for s in group))
             if start < end:

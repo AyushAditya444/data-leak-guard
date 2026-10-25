@@ -26,12 +26,13 @@ def make_guard(mock_app):
     pass `transport=httpx.MockTransport(...)` to fake specific upstream behaviour."""
     with ExitStack() as stack:
         def make(transport: httpx.AsyncBaseTransport | None = None, policy: Policy | None = None,
-                 name_model=None, **overrides) -> TestClient:
-            # The real NER model is not needed here: tests pass a fake `name_model`.
+                 name_model=None, ner=None, **overrides) -> TestClient:
+            # The real NER model is not needed here: tests pass a fake `name_model` (names
+            # only) or `ner` (names + location tags).
             settings = Settings(**{"upstream_base_url": "http://mock/v1", "ner_enabled": False,
                                    **overrides})
             app = create_app(settings, transport or httpx.ASGITransport(app=mock_app), policy,
-                             name_model)
+                             name_model, ner)
             return stack.enter_context(TestClient(app))  # entering runs the app's lifespan
 
         yield make

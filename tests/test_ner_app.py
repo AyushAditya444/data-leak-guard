@@ -87,3 +87,19 @@ async def test_slow_detection_does_not_block_other_requests():
             elapsed = time.perf_counter() - started
             assert (await chat).status_code == 200
     assert health.status_code == 200 and elapsed < 0.25
+
+
+def test_app_uses_ner_locations(make_guard):
+    # The model's location tags reach the address detector: an invented locality that is
+    # not in the PIN directory still completes "Flat 2, ..." into an address.
+    from leakguard.ner.model import Entities
+
+    def fake_ner(text):
+        start = text.find("Hiranandani Meadows")
+        locations = [] if start == -1 else [(start, start + len("Hiranandani Meadows"))]
+        return Entities(names=[], locations=locations)
+
+    seen = {}
+    guard = make_guard(transport=httpx.MockTransport(_echo(seen)), ner=fake_ner)
+    guard.post(CHAT, json=_req("ship to Flat 2, Hiranandani Meadows"))
+    assert seen["sent"] == "ship to [ADDRESS_1]"
