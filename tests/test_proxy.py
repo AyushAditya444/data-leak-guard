@@ -105,3 +105,36 @@ def test_logs_contain_no_content_or_auth(guard, caplog):
     with guard.stream("POST", CHAT, json=body) as r:
         assert "9876543210" in r.read().decode()
     assert "9876543210" not in caplog.text
+
+
+def test_chunked_body_over_the_limit_is_413_without_reading_it_all(mock_app):
+    # No Content-Length (chunked): the size must be enforced while reading, not after.
+    # Driven through raw ASGI, because TestClient reads the whole body before calling the app.
+    import asyncio
+
+    from leakguard.app import create_app
+    from leakguard.config import Settings
+
+    app = create_app(Settings(upstream_base_url="http://mock/v1", ner_enabled=False,
+                              max_request_bytes=1000), httpx.ASGITransport(app=mock_app))
+    pulled, sent = [], []
+
+    async def receive():
+        pulled.append(1)  # 100 chunks x 100 bytes = 10x the limit
+        return {"type": "http.request", "body": b"x" * 100, "more_body": len(pulled) < 100}
+
+    async def send(message):
+        sent.append(message)
+
+    scope = {"type": "http", "asgi": {"version": "3.0"}, "http_version": "1.1",
+             "method": "POST", "scheme": "http", "path": CHAT, "raw_path": CHAT.encode(),
+             "root_path": "", "query_string": b"", "server": ("t", 80), "client": ("c", 1),
+             "headers": [(b"content-type", b"application/json"),
+                         (b"transfer-encoding", b"chunked")]}
+    async def run():
+        async with app.router.lifespan_context(app):  # creates the upstream client
+            await app(scope, receive, send)
+
+    asyncio.run(run())
+    assert sent[0]["status"] == 413
+    assert len(pulled) <= 11  # stopped just past the limit, not after all 100 chunks

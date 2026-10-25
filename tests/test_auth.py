@@ -91,3 +91,19 @@ def test_api_key_from_env():
     assert Settings.from_env({"LEAKGUARD_API_KEY": KEY}).api_key == KEY
     assert Settings.from_env({"LEAKGUARD_API_KEY": ""}).api_key is None
     assert Settings.from_env({}).api_key is None
+
+
+def test_guard_key_enforced_under_a_root_path(make_guard, mock_app):
+    # Behind a reverse proxy serving the guard under /guard, the request path the app sees
+    # includes the prefix; the key must still be required.
+    from fastapi.testclient import TestClient
+
+    from leakguard.app import create_app
+
+    app = create_app(Settings(upstream_base_url="http://mock/v1", ner_enabled=False,
+                              api_key=KEY), httpx.ASGITransport(app=mock_app))
+    # Like uvicorn --root-path: the ASGI path carries the prefix, and routing strips it.
+    with TestClient(app, root_path="/guard") as client:
+        assert _is_guard_key_error(client.post("/guard" + CHAT, json=_req()))
+        r = client.post("/guard" + CHAT, json=_req(), headers={"X-Leakguard-Key": KEY})
+        assert r.status_code == 200

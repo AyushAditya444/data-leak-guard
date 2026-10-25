@@ -16,5 +16,7 @@ services:
       # Override to use a real provider, e.g. Ollama on your machine:
       #   LEAKGUARD_UPSTREAM_BASE_URL=http://host.docker.internal:11434/v1 docker compose up
       LEAKGUARD_UPSTREAM_BASE_URL: ${LEAKGUARD_UPSTREAM_BASE_URL:-http://mock-llm:9000/v1}
+      # Optional guard key: `LEAKGUARD_API_KEY=... docker compose up`. Empty = off.
+      LEAKGUARD_API_KEY: ${LEAKGUARD_API_KEY:-}
     depends_on:
       - mock-llm
