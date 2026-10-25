@@ -45,6 +45,11 @@ baseline = [
     "preshed==3.0.13",
     "en_core_web_lg @ https://github.com/explosion/spacy-models/releases/download/en_core_web_lg-3.8.0/en_core_web_lg-3.8.0-py3-none-any.whl",
 ]
+# Only for the performance and token-cost measurements (`perf-run`).
+perf = [
+    "tiktoken==0.14.0",
+    "psutil==7.2.2",
+]
 
 [tool.setuptools.packages.find]
 where = ["src"]
