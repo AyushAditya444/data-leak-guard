@@ -167,6 +167,33 @@ def cmd_restore_run(args: argparse.Namespace) -> None:
     print(f"wrote {out}: {len(result['outcomes'])} replies, statuses {statuses}")
 
 
+RESTORE_NOTES = [
+    ("Groq's models and their behaviour change over time, and replies are sampled (provider "
+     "default temperature), so a re-run will not give identical numbers."),
+    ("Placeholders whose number is written as a word (\"Name One\") are neither restored nor "
+     "counted as unrestored: they cannot be told apart from ordinary words."),
+    ("The conversations, instructions and the evaluation messages were written by the same "
+     "author as the guard. Samples from the `hard` category (formats the detector is known to "
+     "miss) and anything containing a secret (blocked, so nothing comes back) are excluded."),
+    ("Which placeholder forms are restored was decided on the dev run only "
+     "([restore-tuning.md](restore-tuning.md)); this test run was made once, after that, and "
+     "changed no code or setting."),
+]
+
+
+def cmd_restore_report(args: argparse.Namespace) -> None:
+    from leakguard.evaluation import restore_report as rep
+
+    results = json.loads((DATA / f"restore-{args.split}.json").read_text(encoding="utf-8"))
+    if args.split == "dev":
+        out, md = Path("docs/evaluation/restore-tuning.md"), rep.render_restore_tuning(results)
+    else:
+        out = Path("docs/evaluation/restore-report.md")
+        md = rep.render_restore_report(results, rep.measure_stream_overhead(), RESTORE_NOTES)
+    out.write_text(md + "\n", encoding="utf-8", newline="\n")
+    print(f"wrote {out}")
+
+
 def main() -> None:
     # Hindi text and symbols like "⏎" must not crash a legacy (cp1252) Windows console:
     # characters the console can't show are replaced instead of raising.
@@ -184,9 +211,12 @@ def main() -> None:
     run.add_argument("--save-streams", type=int, default=0,
                      help="save N raw streamed replies as test fixtures")
     run.add_argument("--out", help="results path (default data/eval/restore-<split>.json)")
+    rep = sub.add_parser("restore-report", help="render the restore tuning page (dev) or "
+                         "report (test) from data/eval/restore-<split>.json")
+    rep.add_argument("--split", required=True, choices=["dev", "test"])
     args = parser.parse_args()
     {"generate": cmd_generate, "report": cmd_report, "errors": cmd_errors,
-     "restore-run": cmd_restore_run}[args.command](args)
+     "restore-run": cmd_restore_run, "restore-report": cmd_restore_report}[args.command](args)
 
 
 if __name__ == "__main__":
