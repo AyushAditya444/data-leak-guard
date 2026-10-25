@@ -9,7 +9,7 @@ import json
 import logging
 import time
 import uuid
-from collections.abc import AsyncIterator
+from collections.abc import AsyncIterator, Callable, Iterable
 from contextlib import aclosing, asynccontextmanager
 from dataclasses import dataclass, field
 
@@ -22,11 +22,17 @@ from leakguard.config import Settings
 from leakguard.detect.engine import Detector, EntityModel, build_detector
 from leakguard.detect.gazetteer import load_gazetteer
 from leakguard.errors import openai_error
-from leakguard.logs import log_detection_failed, log_ner_disabled, log_request
+from leakguard.logs import (
+    log_detection_failed,
+    log_ner_disabled,
+    log_request,
+    log_restore_failed,
+)
 from leakguard.masking import PlaceholderMap, mask_messages
 from leakguard.ner.model import NameModel, NameModelError
 from leakguard.policy import FailureMode, Policy, load_policy
 from leakguard.restore import Restorer, restore_response
+from leakguard.sse import SSEEvent, SSEParser, StreamRestorer
 from leakguard.upstream import UpstreamClient
 
 CHAT_PATH = "/chat/completions"
@@ -43,9 +49,11 @@ class RequestContext:
     detection_ms: float | None = None
     findings: dict[str, int] | None = None  # e.g. {"PHONE:mask": 2} - counts, never values
     blocked: bool = False
+    restorer: Restorer | None = None  # its stats give the restored / unrestored counts
 
     def finish(self, status: int) -> None:
         now = time.perf_counter()
+        stats = self.restorer.stats if self.restorer else None
         upstream_ms = None if self.upstream_started is None else (now - self.upstream_started) * 1000
         log_request(
             request_id=self.request_id,
@@ -56,6 +64,8 @@ class RequestContext:
             findings=self.findings,
             blocked=self.blocked,
             detection_ms=self.detection_ms,
+            restored=stats.restored if stats else 0,
+            unrestored=stats.unrestored if stats else 0,
         )
 
 
@@ -165,25 +175,79 @@ def _relay(resp: httpx.Response, restorer: Restorer | None = None) -> Response:
                     headers=_relayed_headers(resp), media_type=resp.headers.get("content-type"))
 
 
-async def relay_stream(resp: httpx.Response) -> AsyncIterator[bytes]:
-    """Pass streamed bytes through unchanged, and always close the upstream response —
-    on normal end, on error, and when the client disconnects mid-stream.
+async def relay_stream(
+    resp: httpx.Response, restorer: Restorer | None = None,
+    on_restore_failed: Callable[[], None] | None = None,
+) -> AsyncIterator[bytes]:
+    """Relay a streamed reply, restoring placeholders on the way, and always close the
+    upstream response: on normal end, on error, and when the client disconnects mid-stream.
 
+    With nothing to restore (restorer is None) the bytes pass through unchanged.
     Uses aiter_bytes (decoded), not aiter_raw: the guard doesn't forward the
     Content-Encoding header, so compressed raw bytes would reach the client unreadable.
-    Phase 6 replaces this pass-through with an SSE-aware placeholder restorer.
     """
     try:
+        if restorer is None:
+            async for chunk in resp.aiter_bytes():
+                yield chunk
+            return
+        relay = _RestoringRelay(restorer, on_restore_failed)
         async for chunk in resp.aiter_bytes():
-            yield chunk
+            if out := relay.feed(chunk):
+                yield out
+        if out := relay.close():
+            yield out
     finally:
         await resp.aclose()
 
 
-async def _stream_and_log(resp: httpx.Response, ctx: RequestContext) -> AsyncIterator[bytes]:
+class _RestoringRelay:
+    """SSE bytes in, restored SSE bytes out. If restoring ever crashes (a bug), the rest of
+    the stream is sent as it came, still masked: the client sees placeholders, never a leak,
+    and the stream is never dropped. Text held back at that moment (at most one
+    placeholder's length) is lost in that case."""
+
+    def __init__(self, restorer: Restorer, on_failed: Callable[[], None] | None):
+        self._parser = SSEParser()
+        self._stream = StreamRestorer(restorer)
+        self._on_failed = on_failed
+        self._failed = False
+
+    def feed(self, chunk: bytes) -> bytes:
+        return self._restore(self._parser.feed(chunk))
+
+    def close(self) -> bytes:
+        out = self._restore(self._parser.close())
+        if not self._failed:
+            out += self._guarded(self._stream.finish, ()).encode("utf-8")
+        return out
+
+    def _restore(self, events: Iterable[SSEEvent]) -> bytes:
+        return "".join(self._guarded(self._stream.process, (event,), event.raw)
+                       for event in events).encode("utf-8")
+
+    def _guarded(self, step: Callable[..., list[str]], args: tuple, fallback: str = "") -> str:
+        if self._failed:
+            return fallback
+        try:
+            return "".join(step(*args))
+        # Deliberately broad: whatever a restorer bug raises, the reply must keep flowing.
+        except Exception:  # noqa: BLE001
+            self._failed = True
+            if self._on_failed:
+                self._on_failed()
+            return fallback
+
+
+async def _stream_and_log(
+    resp: httpx.Response, ctx: RequestContext, restorer: Restorer | None
+) -> AsyncIterator[bytes]:
+    def failed() -> None:
+        log_restore_failed(request_id=ctx.request_id)
+
     # aclosing() guarantees relay_stream's `finally` runs even if we are closed early.
     try:
-        async with aclosing(relay_stream(resp)) as chunks:
+        async with aclosing(relay_stream(resp, restorer, failed)) as chunks:
             async for chunk in chunks:
                 yield chunk
     finally:
@@ -207,6 +271,7 @@ async def _proxy_chat(
         return applied
     outgoing, mapping = applied
     restorer = Restorer(mapping) if mapping else None
+    ctx.restorer = restorer
 
     ctx.stream = outgoing.get("stream") is True
     sent = await _send_upstream(upstream, outgoing, _forwarded_headers(request), ctx.stream, ctx)
@@ -214,15 +279,16 @@ async def _proxy_chat(
         ctx.finish(sent.status_code)
         return sent
 
-    if ctx.stream and sent.is_success:
-        # The request was masked, so nothing leaks; restoring placeholders inside the
-        # stream arrives in Phase 6 (until then the stream shows [TYPE_N] placeholders).
-        return StreamingResponse(_stream_and_log(sent, ctx), status_code=sent.status_code,
-                                 headers=_relayed_headers(sent), media_type="text/event-stream")
+    is_sse = "text/event-stream" in sent.headers.get("content-type", "")
+    if ctx.stream and sent.is_success and is_sse:
+        return StreamingResponse(_stream_and_log(sent, ctx, restorer),
+                                 status_code=sent.status_code, headers=_relayed_headers(sent),
+                                 media_type="text/event-stream")
 
     if ctx.stream:
-        # An error reply to a stream request (e.g. 429) is plain JSON, not SSE:
-        # read it fully and relay it like any other error.
+        # An error reply to a stream request (e.g. 429) is plain JSON, not SSE, and so is
+        # the reply of a provider that ignored "stream": read it fully and relay it
+        # (restored) like a non-streaming reply.
         await sent.aread()
         await sent.aclose()
     response = _relay(sent, restorer)

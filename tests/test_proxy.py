@@ -100,3 +100,8 @@ def test_logs_contain_no_content_or_auth(guard, caplog):
     assert "secret-value-123" not in caplog.text
     assert "sk-live-xyz" not in caplog.text
     assert "request_id" in caplog.text
+    # a streamed reply with a restored value: the value must not reach the logs either
+    body = {**_req("call 9876543210"), "stream": True}
+    with guard.stream("POST", CHAT, json=body) as r:
+        assert "9876543210" in r.read().decode()
+    assert "9876543210" not in caplog.text
