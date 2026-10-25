@@ -59,6 +59,7 @@ leakguard = ["data/*.txt", "data/*.gz", "data/*.md"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+pythonpath = ["."]  # so tests can import examples.demo
 
 [tool.ruff]
 line-length = 100
