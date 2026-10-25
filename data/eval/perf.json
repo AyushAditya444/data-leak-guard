@@ -1,0 +1,177 @@
+{
+ "meta": {
+  "date": "2026-10-25",
+  "guard_commit": "bdbb8e4",
+  "machine": {
+   "cpu": "11th Gen Intel(R) Core(TM) i7-1165G7 @ 2.80GHz",
+   "logical_cores": 8,
+   "ram_gb": 31.7,
+   "os": "Windows-10-10.0.26200-SP0",
+   "python": "3.11.0",
+   "docker": {
+    "server": "29.7.2",
+    "cpus": 8,
+    "memory_gb": 15.5
+   }
+  }
+ },
+ "overhead": {
+  "ner_on": {
+   "non_streaming": {
+    "n": 300,
+    "p50_ms": 19.229400000767782,
+    "p95_ms": 30.368000007001683
+   },
+   "streaming": {
+    "n": 300,
+    "p50_ms": 19.935699965571985,
+    "p95_ms": 31.816900009289384,
+    "ttft": {
+     "n": 300,
+     "p50_ms": 19.702899997355416,
+     "p95_ms": 31.24089998891577
+    }
+   }
+  },
+  "ner_off": {
+   "non_streaming": {
+    "n": 300,
+    "p50_ms": 1.7121999990195036,
+    "p95_ms": 3.0965999758336693
+   },
+   "streaming": {
+    "n": 300,
+    "p50_ms": 1.5703999961260706,
+    "p95_ms": 2.745600009802729,
+    "ttft": {
+     "n": 300,
+     "p50_ms": 1.52009999146685,
+     "p95_ms": 2.2431999968830496
+    }
+   }
+  }
+ },
+ "containers": {
+  "image_mb": 336.59788036346436,
+  "image_disk": "1.03GB",
+  "model_mb": 283.2844247817993,
+  "memory_source": "cgroup memory.peak",
+  "runs": [
+   {
+    "cpus": 1,
+    "idle_mb": 693.6015625,
+    "loads": [
+     {
+      "concurrency": 1,
+      "seconds": 30.0,
+      "requests": 1288,
+      "errors": 0,
+      "msgs_per_s": 42.91003436469844,
+      "p50_ms": 21.662357001332566,
+      "p95_ms": 37.026124002295546,
+      "cpu_usec": 28037716
+     },
+     {
+      "concurrency": 8,
+      "seconds": 30.0,
+      "requests": 742,
+      "errors": 0,
+      "msgs_per_s": 24.510127988377192,
+      "p50_ms": 301.2637400024687,
+      "p95_ms": 505.28750800003763,
+      "cpu_usec": 30416368
+     }
+    ],
+    "peak_mb": 734.44140625
+   },
+   {
+    "cpus": 2,
+    "idle_mb": 693.5234375,
+    "loads": [
+     {
+      "concurrency": 1,
+      "seconds": 30.0,
+      "requests": 1254,
+      "errors": 0,
+      "msgs_per_s": 41.79069746178817,
+      "p50_ms": 22.462647000793368,
+      "p95_ms": 36.91894900111947,
+      "cpu_usec": 28312936
+     },
+     {
+      "concurrency": 8,
+      "seconds": 30.0,
+      "requests": 1697,
+      "errors": 0,
+      "msgs_per_s": 56.48345637216564,
+      "p50_ms": 116.65884200192522,
+      "p95_ms": 212.2996489997604,
+      "cpu_usec": 60266177
+     }
+    ],
+    "peak_mb": 734.13671875
+   }
+  ]
+ },
+ "tokens": {
+  "messages": 1376,
+  "blocked": 224,
+  "unchanged": 476,
+  "tokens_before": 31139,
+  "tokens_after": 26119,
+  "mean_change": -3.6482558139534884,
+  "by_type": {
+   "AADHAAR": {
+    "values": 97,
+    "value_tokens": 7.010309278350515,
+    "placeholder_tokens": 7.0
+   },
+   "ADDRESS": {
+    "values": 242,
+    "value_tokens": 17.677685950413224,
+    "placeholder_tokens": 5.0
+   },
+   "BANK_ACCOUNT": {
+    "values": 92,
+    "value_tokens": 4.695652173913044,
+    "placeholder_tokens": 6.0
+   },
+   "CARD": {
+    "values": 72,
+    "value_tokens": 9.333333333333334,
+    "placeholder_tokens": 5.0
+   },
+   "EMAIL": {
+    "values": 168,
+    "value_tokens": 7.440476190476191,
+    "placeholder_tokens": 5.0
+   },
+   "IFSC": {
+    "values": 72,
+    "value_tokens": 5.277777777777778,
+    "placeholder_tokens": 6.0
+   },
+   "NAME": {
+    "values": 325,
+    "value_tokens": 4.230769230769231,
+    "placeholder_tokens": 5.0
+   },
+   "PAN": {
+    "values": 172,
+    "value_tokens": 5.97093023255814,
+    "placeholder_tokens": 5.0
+   },
+   "PHONE": {
+    "values": 384,
+    "value_tokens": 5.427083333333333,
+    "placeholder_tokens": 5.0
+   },
+   "UPI": {
+    "values": 44,
+    "value_tokens": 6.681818181818182,
+    "placeholder_tokens": 6.0
+   }
+  }
+ },
+ "encoding": "o200k_base"
+}

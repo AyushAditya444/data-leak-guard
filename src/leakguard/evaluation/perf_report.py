@@ -141,5 +141,9 @@ def render_performance(results: dict) -> str:
         "overhead; that is why overhead is measured on plain processes instead."),
         ("- The mock LLM answers instantly, so these numbers are the guard's own cost; a real "
         "LLM takes hundreds of milliseconds to seconds per reply."),
+        ("- With more concurrent requests than CPUs, throughput can fall instead of levelling "
+         "off: the detection threads compete for the container's CPU quota and spend time "
+         "switching and waiting (compare *CPU per message* across rows). Size the CPUs, or "
+         "the number of guard replicas, to the expected concurrency."),
     ]
     return "\n".join(lines)

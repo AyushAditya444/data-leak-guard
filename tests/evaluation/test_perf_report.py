@@ -54,3 +54,8 @@ def test_cpu_ms_per_message():
 def test_performance_page_shows_compressed_and_disk_image_size():
     md = render_performance(_results())
     assert "1.03GB on disk" in md and "900 MB compressed" in md
+
+
+def test_performance_page_explains_oversubscription():
+    md = render_performance(_results())
+    assert "more concurrent requests than CPUs" in md
