@@ -95,7 +95,8 @@ def _merge_space_separated(found: list[Found], text: str) -> list[Found]:
         prev = merged[-1] if merged else None
         gap = text[prev.end:f.start] if prev else ""
         if prev and prev.entity == f.entity and gap and set(gap) == {" "}:
-            merged[-1] = _merge(prev, f)
+            # as Presidio does: the joined result keeps the second one's end and score
+            merged[-1] = Found(f.entity, prev.start, f.end, f.score)
         else:
             merged.append(f)
     return merged

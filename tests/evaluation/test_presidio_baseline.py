@@ -61,7 +61,8 @@ def test_resolve_space_separated_same_type_merges():
     text = "I am Rahul Sharma"
     kept, n = resolve_conflicts([Found("PERSON", 5, 10, 0.85), Found("PERSON", 11, 17, 0.7)],
                                 text)
-    assert kept == [Found("PERSON", 5, 17, 0.85)] and n == 1
+    # Presidio's anonymiser keeps the second result's score when it joins the two
+    assert kept == [Found("PERSON", 5, 17, 0.7)] and n == 1
     kept, _ = resolve_conflicts([Found("PERSON", 5, 10, 0.85), Found("PERSON", 11, 17, 0.7)],
                                 "I am Rahul,Sharma")
     assert len(kept) == 2  # something other than spaces in between: not merged
@@ -115,3 +116,14 @@ def test_tuning_picks_best_f1_tie_to_higher():
     person = {r.threshold: r for r in rows if r.presidio_type == "PERSON"}
     assert person[0.25].fp == 1 and person[0.3].fp == 0 and person[0.95].tp == 0
     assert set(thresholds) == set(MAPPING)
+
+
+def test_evaluation_pins_math_libraries_to_one_thread():
+    # Latency is reported "on one CPU thread": numpy/BLAS (used by spaCy) must not fan out.
+    import os
+
+    from leakguard import evaluation
+
+    for name in evaluation.THREAD_VARS:
+        assert name in os.environ
+    assert "OMP_NUM_THREADS" in evaluation.THREAD_VARS

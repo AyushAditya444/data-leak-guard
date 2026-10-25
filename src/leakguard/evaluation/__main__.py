@@ -1,4 +1,4 @@
-"""Command line: python -m leakguard.evaluation {generate,report,errors}. Run from repo root."""
+"""Command line: python -m leakguard.evaluation <command>. Run from the repo root."""
 
 import argparse
 import asyncio
@@ -226,6 +226,63 @@ def cmd_restore_report(args: argparse.Namespace) -> None:
     print(f"wrote {out}")
 
 
+PRESIDIO_NOTES = [
+    ("Presidio was run as installed (`AnalyzerEngine()`, its default spaCy model "
+     "`en_core_web_lg`), with `language=\"en\"` for every message, Hinglish included: "
+     "Presidio has no Hinglish support to choose instead."),
+    ("Presidio types outside the mapping (dates, URLs, US and UK identifiers, ...) are not "
+     "counted as false alarms, but they do count for coverage: an anonymiser built on Presidio "
+     "would hide them too. Where one of them wins a conflict (e.g. a 10-digit mobile number "
+     "labelled `UK_NHS` with a higher score than `PHONE_NUMBER`), the value is hidden but "
+     "counts as a missed PHONE."),
+    ("Overlapping results are resolved before scoring the way Presidio's anonymiser does by "
+     "default (`MERGE_SIMILAR_OR_CONTAINED`, then joining same-type results separated only by "
+     "spaces), as read from the pinned presidio-anonymizer source. Scoring raw overlaps would "
+     "count each duplicate as a false alarm."),
+    ("The best-shot thresholds were chosen on dev only. This test run was made once, after "
+     "they were fixed, and changed nothing."),
+    ("The data, its labels and our detectors were written by the same author, so our engine "
+     "has a home advantage: the message styles are the ones it was built for. Presidio was "
+     "not built for Indian identifiers, UPI or Hinglish; this page measures how much that "
+     "matters for this use case, not Presidio's quality in general."),
+]
+
+
+def cmd_presidio_run(args: argparse.Namespace) -> None:
+    from leakguard.evaluation import presidio_run
+
+    if args.split == "dev":
+        result, out = presidio_run.run_dev(), DATA / "presidio-dev.json"
+    else:
+        dev_path = DATA / "presidio-dev.json"
+        if not dev_path.exists():
+            sys.exit("Run `presidio-run --split dev` first: the test run uses its thresholds.")
+        thresholds = json.loads(dev_path.read_text(encoding="utf-8"))["thresholds"]
+        result, out = presidio_run.run_test(thresholds), DATA / "presidio-test.json"
+    out.write_text(json.dumps(result, indent=1) + "\n", encoding="utf-8", newline="\n")
+    print(f"wrote {out}")
+
+
+def cmd_presidio_report(_: argparse.Namespace) -> None:
+    from leakguard.evaluation import presidio_report as rep
+
+    pages = []
+    dev_path, test_path = DATA / "presidio-dev.json", DATA / "presidio-test.json"
+    if dev_path.exists():
+        dev = json.loads(dev_path.read_text(encoding="utf-8"))
+        pages.append((Path("docs/evaluation/presidio-tuning.md"),
+                      rep.render_presidio_tuning(dev)))
+    if test_path.exists():
+        test = json.loads(test_path.read_text(encoding="utf-8"))
+        pages.append((Path("docs/evaluation/presidio-baseline.md"),
+                      rep.render_presidio_baseline(test, PRESIDIO_NOTES)))
+    if not pages:
+        sys.exit("No Presidio results yet: run `presidio-run --split dev` first.")
+    for path, md in pages:
+        path.write_text(md + "\n", encoding="utf-8", newline="\n")
+        print(f"wrote {path}")
+
+
 def main() -> None:
     # Hindi text and symbols like "⏎" must not crash a legacy (cp1252) Windows console:
     # characters the console can't show are replaced instead of raising.
@@ -246,9 +303,15 @@ def main() -> None:
     rep = sub.add_parser("restore-report", help="render the restore tuning page (dev) or "
                          "report (test) from data/eval/restore-<split>.json")
     rep.add_argument("--split", required=True, choices=["dev", "test"])
+    prun = sub.add_parser("presidio-run", help="run Presidio for the baseline (needs the "
+                          "[baseline] extra): dev tunes thresholds, test is run once")
+    prun.add_argument("--split", required=True, choices=["dev", "test"])
+    sub.add_parser("presidio-report", help="render the Presidio pages from data/eval/presidio-*.json")
     args = parser.parse_args()
     {"generate": cmd_generate, "report": cmd_report, "errors": cmd_errors,
-     "restore-run": cmd_restore_run, "restore-report": cmd_restore_report}[args.command](args)
+     "restore-run": cmd_restore_run, "restore-report": cmd_restore_report,
+     "presidio-run": cmd_presidio_run, "presidio-report": cmd_presidio_report,
+     }[args.command](args)
 
 
 if __name__ == "__main__":
