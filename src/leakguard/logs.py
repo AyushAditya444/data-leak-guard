@@ -52,6 +52,11 @@ def log_detection_failed(*, request_id: str, failure_mode: str) -> None:
     ))
 
 
+def log_auth_failed(*, request_id: str, path: str) -> None:
+    """A request without the right guard key. Never the key that was sent."""
+    logger.warning(json.dumps({"event": "auth_failed", "request_id": request_id, "path": path}))
+
+
 def log_restore_failed(*, request_id: str) -> None:
     """Restoring a streamed reply crashed; the rest was sent with placeholders (no leak)."""
     logger.warning(json.dumps({"event": "restore_failed", "request_id": request_id}))

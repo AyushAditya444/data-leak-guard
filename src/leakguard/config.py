@@ -5,6 +5,7 @@ from collections.abc import Mapping
 from dataclasses import dataclass
 
 _ON, _OFF = ("on", "true", "1", "yes"), ("off", "false", "0", "no")
+MIN_API_KEY_LENGTH = 16
 
 
 def _switch(env: Mapping[str, str], name: str, default: bool) -> bool:
@@ -33,6 +34,15 @@ class Settings:
     ner_enabled: bool = True
     ner_model_dir: str = "models/ner"
     ner_threads: int = 1  # CPU threads per inference; requests already run in parallel
+    # Optional guard key (see auth.py). None = off: anyone who can reach the guard may use it.
+    api_key: str | None = None
+
+    def __post_init__(self) -> None:
+        # A short key is a misconfiguration, not a choice: refuse to start rather than run
+        # with a guessable one.
+        if self.api_key is not None and len(self.api_key) < MIN_API_KEY_LENGTH:
+            raise ValueError(f"LEAKGUARD_API_KEY must be at least {MIN_API_KEY_LENGTH} "
+                             "characters")
 
     @classmethod
     def from_env(cls, env: Mapping[str, str] | None = None) -> "Settings":
@@ -48,4 +58,5 @@ class Settings:
             ner_enabled=_switch(env, "LEAKGUARD_NER", defaults.ner_enabled),
             ner_model_dir=env.get("LEAKGUARD_NER_MODEL_DIR", defaults.ner_model_dir),
             ner_threads=int(env.get("LEAKGUARD_NER_THREADS", defaults.ner_threads)),
+            api_key=env.get("LEAKGUARD_API_KEY") or None,
         )
