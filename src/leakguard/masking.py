@@ -17,6 +17,7 @@ from dataclasses import dataclass, field
 from leakguard.detect import detect_rules
 from leakguard.detect.spans import Span
 from leakguard.entities import EntityType
+from leakguard.placeholders import accepted_mentions
 from leakguard.policy import Action, Policy
 
 PLACEHOLDER_RE = re.compile(r"\[([A-Z_]+)_(\d+)\]")
@@ -58,6 +59,14 @@ class PlaceholderMap:
         self._placeholder_by_value[key] = placeholder
         self._value_by_placeholder[placeholder] = value
         return placeholder
+
+    def value_for(self, entity: EntityType, number: int) -> str | None:
+        """The real value behind a placeholder this map created; None for numbers it never
+        handed out (including reserved ones the user typed)."""
+        return self._value_by_placeholder.get(f"[{entity.value}_{number}]")
+
+    def entities(self) -> set[EntityType]:
+        return {entity for entity, _ in self._placeholder_by_value}
 
     def restore(self, text: str) -> str:
         """Replace placeholders this map created; leave every other bracketed text alone."""
@@ -110,9 +119,10 @@ def _reserved_numbers(messages: list[dict]) -> dict[EntityType, set[int]]:
     reserved: dict[EntityType, set[int]] = {}
 
     def collect(text: str) -> str:
-        for m in PLACEHOLDER_RE.finditer(text):
-            if m.group(1) in EntityType.__members__:
-                reserved.setdefault(EntityType(m.group(1)), set()).add(int(m.group(2)))
+        # Every form the restorer accepts ("[phone 1]", "{PHONE-1}", ...), so no accepted
+        # form can be planted by the user.
+        for m in accepted_mentions(text, set(EntityType)):
+            reserved.setdefault(m.entity, set()).add(m.number)
         return text
 
     for message in messages:

@@ -36,6 +36,15 @@ def test_user_typed_placeholder_is_never_restored():
         "[PHONE_1] / 9876543210 / [PHONE_9]"
 
 
+def test_reserved_numbers_cover_every_accepted_form():
+    r = mask_messages(_user("what is [phone 1] and {PHONE-2}? my number is 9876543210"),
+                      DEFAULT_POLICY)
+    assert r.messages[0]["content"].endswith("my number is [PHONE_3]")
+    assert r.mapping.value_for(T.PHONE, 1) is None
+    assert r.mapping.value_for(T.PHONE, 3) == "9876543210"
+    assert r.mapping.entities() == {T.PHONE}
+
+
 def test_secret_blocks_and_log_only_leaves_text():
     pol = Policy(actions={**DEFAULT_POLICY.actions, T.EMAIL: Action.LOG_ONLY})
     r = mask_messages(_user("mail a@b.com key sk-abcdefghijklmnopqrstuvwxyz12"), pol)
