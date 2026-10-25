@@ -121,3 +121,32 @@ def test_report_cli_refuses_without_the_name_model():
     run = subprocess.run([sys.executable, "-m", "leakguard.evaluation", "report"],
                          check=False, capture_output=True, env=env)
     assert run.returncode != 0 and b"name model" in run.stderr
+
+
+def test_report_starts_with_summary():
+    from leakguard.evaluation.report import render_summary
+
+    ev = score(_samples(), detect_rules)
+    md = render_report({"test": ev, "handwritten": ev}, _lat(), {"test": 4, "handwritten": 4})
+    assert render_summary() in md
+    assert md.index(render_summary()) < md.index("## What was measured")
+
+
+def test_committed_report_has_current_summary():
+    # report.md is regenerated only with measurements; the summary was inserted as rendered.
+    from pathlib import Path
+
+    from leakguard.evaluation.report import render_summary
+
+    assert render_summary() in Path("docs/evaluation/report.md").read_text(encoding="utf-8")
+
+
+def test_summary_links_exist():
+    import re
+    from pathlib import Path
+
+    from leakguard.evaluation.report import render_summary
+
+    links = re.findall(r"\]\(([^)#]+)\)", render_summary())
+    assert len(links) >= 7
+    assert all((Path("docs/evaluation") / link).is_file() for link in links), links
