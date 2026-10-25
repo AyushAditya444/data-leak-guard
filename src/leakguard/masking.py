@@ -9,7 +9,6 @@ appearance), so the same history always produces the same placeholders: nothing 
 be stored between requests.
 """
 
-import re
 from collections import Counter
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass, field
@@ -17,9 +16,8 @@ from dataclasses import dataclass, field
 from leakguard.detect import detect_rules
 from leakguard.detect.spans import Span
 from leakguard.entities import EntityType
+from leakguard.placeholders import loose_mentions
 from leakguard.policy import Action, Policy
-
-PLACEHOLDER_RE = re.compile(r"\[([A-Z_]+)_(\d+)\]")
 
 # For these types, formatting is noise: "98765 43210" and "+91-9876543210" are one person.
 _DIGIT_TYPES = {EntityType.AADHAAR, EntityType.PHONE, EntityType.CARD, EntityType.BANK_ACCOUNT}
@@ -59,10 +57,17 @@ class PlaceholderMap:
         self._value_by_placeholder[placeholder] = value
         return placeholder
 
-    def restore(self, text: str) -> str:
-        """Replace placeholders this map created; leave every other bracketed text alone."""
-        return PLACEHOLDER_RE.sub(
-            lambda m: self._value_by_placeholder.get(m.group(0), m.group(0)), text)
+    def value_for(self, entity: EntityType, number: int) -> str | None:
+        """The real value behind a placeholder this map created; None for numbers it never
+        handed out (including reserved ones the user typed)."""
+        return self._value_by_placeholder.get(f"[{entity.value}_{number}]")
+
+    def placeholders(self) -> dict[str, str]:
+        """Placeholder -> real value, in the order they were handed out."""
+        return dict(self._value_by_placeholder)
+
+    def entities(self) -> set[EntityType]:
+        return {entity for entity, _ in self._placeholder_by_value}
 
     def __len__(self) -> int:
         return len(self._value_by_placeholder)
@@ -110,9 +115,12 @@ def _reserved_numbers(messages: list[dict]) -> dict[EntityType, set[int]]:
     reserved: dict[EntityType, set[int]] = {}
 
     def collect(text: str) -> str:
-        for m in PLACEHOLDER_RE.finditer(text):
-            if m.group(1) in EntityType.__members__:
-                reserved.setdefault(EntityType(m.group(1)), set()).add(int(m.group(2)))
+        # Anything that looks like a placeholder ("[phone 1]", "{PHONE-1}", "phone 1",
+        # "[phone 1" ...): every form the restorer accepts, plus near-forms an LLM might
+        # "tidy" into one, so no form can be planted by the user. Harmless side effect:
+        # "phone 1 and phone 2" in ordinary text skips numbers 1 and 2.
+        for m in loose_mentions(text, set(EntityType)):
+            reserved.setdefault(m.entity, set()).add(m.number)
         return text
 
     for message in messages:
@@ -147,15 +155,3 @@ def mask_messages(
     masked = [_map_message(message, mask_text) for message in messages]
     return MaskResult(masked, mapping, counts, sorted(blocked))
 
-
-def restore_response(body: dict, mapping: PlaceholderMap) -> dict:
-    """Restore placeholders in a non-streaming chat completion (content + tool calls)."""
-    choices = body.get("choices")
-    if not isinstance(choices, list) or len(mapping) == 0:
-        return body
-    restored = []
-    for choice in choices:
-        if isinstance(choice, dict) and isinstance(choice.get("message"), dict):
-            choice = {**choice, "message": _map_message(choice["message"], mapping.restore)}
-        restored.append(choice)
-    return {**body, "choices": restored}

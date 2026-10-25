@@ -1,23 +1,25 @@
 """Command line: python -m leakguard.evaluation {generate,report,errors}. Run from repo root."""
 
 import argparse
+import asyncio
 import json
 import sys
 from pathlib import Path
 
 from leakguard.config import Settings
-from leakguard.detect import build_detector, detect_rules
+from leakguard.detect import detect_rules
 from leakguard.detect.address import detect_address
 from leakguard.detect.engine import Detector
 from leakguard.entities import EntityType
 from leakguard.evaluation.generate import SPLIT_SEEDS, address_style, build_split, name_form
+from leakguard.evaluation.loading import DATA, load_detector, load_split
 from leakguard.evaluation.metrics import score
 from leakguard.evaluation.report import measure_latency, render_errors, render_report
-from leakguard.evaluation.samples import Sample, read_jsonl, write_jsonl
-from leakguard.ner.model import NameModel, NameModelError
+from leakguard.evaluation.samples import write_jsonl
+from leakguard.ner.model import NameModel
 
-DATA = Path("data/eval")
 REPORT = Path("docs/evaluation/report.md")
+FIXTURES = Path("tests/fixtures/groq_streams")
 
 # Anything that affects how far the test numbers can be trusted is disclosed here.
 NOTES = [
@@ -74,30 +76,6 @@ NOTES = [
     "addresses but are not addresses by the detector's definition, so they are counted as "
     "misses on purpose; see *Addresses by style*."),
 ]
-
-
-def load_split(split: str) -> list[Sample]:
-    """dev/test are rebuilt from the seeded generator, not read from disk: they are not
-    committed, because their (fake) API keys look real to GitHub's secret scanning."""
-    if split in SPLIT_SEEDS:
-        return build_split(split, SPLIT_SEEDS[split])
-    return read_jsonl(DATA / f"{split}.jsonl")
-
-
-def load_detector(require_names: bool) -> tuple[Detector, NameModel | None, Settings]:
-    """The full detector, configured like the guard (LEAKGUARD_NER, ..._MODEL_DIR)."""
-    settings = Settings.from_env()
-    if not settings.ner_enabled:
-        if require_names:
-            sys.exit("The report needs the name model, but LEAKGUARD_NER=off is set.")
-        print("note: LEAKGUARD_NER=off, so names are not detected", file=sys.stderr)
-        return detect_rules, None, settings
-    try:
-        model = NameModel.load(settings.ner_model_dir, settings.ner_threads)
-    except NameModelError as exc:
-        sys.exit(f"The name model could not be loaded ({exc}). "
-                 "Run: python -m leakguard.ner.export")
-    return build_detector(model.detect), model, settings  # as deployed: names only
 
 
 def _memo(detect: Detector) -> Detector:
@@ -160,6 +138,94 @@ def cmd_errors(args: argparse.Namespace) -> None:
     print(render_errors(score(load_split(args.split), detect), limit=args.limit))
 
 
+def cmd_restore_run(args: argparse.Namespace) -> None:
+    import httpx
+
+    from leakguard.evaluation import restore_run as rr
+
+    key = rr.api_key_from_env()
+    conversations = rr.build_conversations(args.split, rr.SIZES[args.split], rr.SEEDS[args.split])
+    conversations = conversations[:args.limit] if args.limit else conversations
+    _, model, _ = load_detector(require_names=False)  # the guard as shipped: names on
+    print(f"{len(conversations)} conversations x {len(rr.MODELS)} models x 2 modes",
+          file=sys.stderr)
+    result = asyncio.run(rr.run_conversations(
+        conversations, rr.MODELS, httpx.AsyncHTTPTransport(), key, rr.MAX_TOKENS,
+        args.save_streams, model.detect if model else None))
+    result["meta"]["split"] = args.split
+    for i, fixture in enumerate(result.pop("fixtures", []), 1):
+        FIXTURES.mkdir(parents=True, exist_ok=True)
+        path = FIXTURES / f"{args.split}-{i:02d}.json"
+        path.write_text(json.dumps(fixture, ensure_ascii=False, indent=1) + "\n",
+                        encoding="utf-8", newline="\n")
+        print(f"wrote {path}")
+    out = Path(args.out) if args.out else DATA / f"restore-{args.split}.json"
+    out.write_text(json.dumps(result, indent=1) + "\n", encoding="utf-8", newline="\n")
+    statuses: dict[int, int] = {}
+    for outcome in result["outcomes"]:
+        statuses[outcome["status"]] = statuses.get(outcome["status"], 0) + 1
+    print(f"wrote {out}: {len(result['outcomes'])} replies, statuses {statuses}")
+
+
+RESTORE_NOTES = [
+    ("Groq's models and their behaviour change over time, and replies are sampled (provider "
+     "default temperature), so a re-run will not give identical numbers."),
+    ("Placeholders whose number is written as a word (\"Name One\") are neither restored nor "
+     "counted as unrestored: they cannot be told apart from ordinary words."),
+    ("The conversations, instructions and the evaluation messages were written by the same "
+     "author as the guard. Samples from the `hard` category (formats the detector is known to "
+     "miss) and anything containing a secret (blocked, so nothing comes back) are excluded."),
+    ("Which placeholder forms are restored was decided on the dev run only "
+     "([restore-tuning.md](restore-tuning.md)); this test run was made once, after that, and "
+     "changed no code or setting."),
+    ("A strict bare `PHONE_1` is restored even inside an unclosed `[PHONE_1`, which shows the "
+     "value with a stray bracket; such mentions are still listed as `unclosed` in the forms "
+     "table, which is read from the raw replies."),
+    ("Errors were returned by Groq, not the guard (the guard's own errors are 400 for a "
+     "blocked request or bad input, 413, 500, 502 and 504; no request here was blocked). "
+     "HTTP 400 errors all came from gpt-oss-120b on forced tool calls, the same pattern as on "
+     "dev, where a re-sent one was `tool_use_failed`: the provider rejected the model's "
+     "malformed tool call. HTTP 503 errors are Groq being temporarily unavailable. Failed "
+     "requests were not retried beyond 429s and are excluded from the rates."),
+    ("After this run, a final code review led to fixes: placeholder matching became ASCII-only "
+     "(Unicode look-alikes such as a Turkish dotted İ could crash it), overlap checks became "
+     "linear, a restore failure in a non-streamed reply now falls back to the masked reply, "
+     "and numbers are reserved for any placeholder-like text a user types (e.g. `phone 1`), "
+     "not only accepted forms. Re-masking all 400 dev and test conversations with the new "
+     "code gives exactly the same requests, so the run was not repeated."),
+]
+
+DEV_NOTES = [
+    ("Decision: bracketless placeholders accepted (`ACCEPT_BRACKETLESS = True` in "
+     "`src/leakguard/placeholders.py`), strictly: uppercase type, underscore, word boundaries "
+     "on both sides. Users typing that form get those numbers reserved, as for every accepted "
+     "form."),
+    ("The forms table counts every bracketless-looking mention (any case, any separator). "
+     "On dev, 28 of the 29 unrestored placeholders were bracketless (the other was the unclosed "
+     "one); how many of them the strict form restores is visible in the test run's "
+     "`unrestored` column."),
+    ("No other mutation reached 2%: one unclosed `[PHONE_1` (0.1%), so nothing else was added. "
+     "Case, separator and bracket variants were accepted from the start and are rare."),
+    ("The 3 errors are HTTP 400 `tool_use_failed` from Groq (gpt-oss-120b, non-streaming, "
+     "forced tool call): the provider rejected the model's malformed tool call. The guard "
+     "blocked nothing: one was re-sent directly (no blocked types, same error)."),
+]
+
+
+def cmd_restore_report(args: argparse.Namespace) -> None:
+    from leakguard.evaluation import restore_report as rep
+
+    results = json.loads((DATA / f"restore-{args.split}.json").read_text(encoding="utf-8"))
+    if args.split == "dev":
+        out = Path("docs/evaluation/restore-tuning.md")
+        md = rep.render_restore_tuning(results, DEV_NOTES)
+    else:
+        out = Path("docs/evaluation/restore-report.md")
+        md = rep.render_restore_report(results, rep.measure_stream_overhead(), RESTORE_NOTES)
+    out.write_text(md + "\n", encoding="utf-8", newline="\n")
+    print(f"wrote {out}")
+
+
 def main() -> None:
     # Hindi text and symbols like "⏎" must not crash a legacy (cp1252) Windows console:
     # characters the console can't show are replaced instead of raising.
@@ -171,8 +237,18 @@ def main() -> None:
     errors = sub.add_parser("errors", help="print false positives/negatives for one split")
     errors.add_argument("--split", default="dev", choices=["dev", "test", "handwritten"])
     errors.add_argument("--limit", type=int, default=40)
+    run = sub.add_parser("restore-run", help="measure restoring on Groq (needs GROQ_API_KEY)")
+    run.add_argument("--split", required=True, choices=["dev", "test"])
+    run.add_argument("--limit", type=int, default=0, help="only the first N conversations")
+    run.add_argument("--save-streams", type=int, default=0,
+                     help="save N raw streamed replies as test fixtures")
+    run.add_argument("--out", help="results path (default data/eval/restore-<split>.json)")
+    rep = sub.add_parser("restore-report", help="render the restore tuning page (dev) or "
+                         "report (test) from data/eval/restore-<split>.json")
+    rep.add_argument("--split", required=True, choices=["dev", "test"])
     args = parser.parse_args()
-    {"generate": cmd_generate, "report": cmd_report, "errors": cmd_errors}[args.command](args)
+    {"generate": cmd_generate, "report": cmd_report, "errors": cmd_errors,
+     "restore-run": cmd_restore_run, "restore-report": cmd_restore_report}[args.command](args)
 
 
 if __name__ == "__main__":

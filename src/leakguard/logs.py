@@ -22,6 +22,8 @@ def log_request(
     findings: Mapping[str, int] | None = None,  # e.g. {"PHONE:mask": 2}
     blocked: bool = False,
     detection_ms: float | None = None,
+    restored: int = 0,  # placeholders swapped back for real values in the reply
+    unrestored: int = 0,  # placeholder-looking leftovers of ours that could not be restored
 ) -> None:
     record = {
         "event": "request",
@@ -30,6 +32,8 @@ def log_request(
         "stream": stream,
         "blocked": blocked,
         "findings": dict(findings or {}),
+        "restored": restored,
+        "unrestored": unrestored,
         "detection_ms": None if detection_ms is None else round(detection_ms, 2),
         "upstream_ms": None if upstream_ms is None else round(upstream_ms, 1),
         "total_ms": round(total_ms, 1),
@@ -46,3 +50,8 @@ def log_detection_failed(*, request_id: str, failure_mode: str) -> None:
     logger.warning(json.dumps(
         {"event": "detection_failed", "request_id": request_id, "failure_mode": str(failure_mode)}
     ))
+
+
+def log_restore_failed(*, request_id: str) -> None:
+    """Restoring a streamed reply crashed; the rest was sent with placeholders (no leak)."""
+    logger.warning(json.dumps({"event": "restore_failed", "request_id": request_id}))

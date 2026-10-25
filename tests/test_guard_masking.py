@@ -82,3 +82,22 @@ def test_logs_counts_but_never_values(guard, caplog):
     guard.post(CHAT, json=_req("phone 9876543210 pan ABCPS1234K"))
     assert "9876543210" not in caplog.text and "ABCPS1234K" not in caplog.text
     assert '"PHONE:mask": 1' in caplog.text and '"PAN:mask": 1' in caplog.text
+
+
+def test_non_streaming_restore_failure_is_fail_safe(make_guard, monkeypatch, caplog):
+    # final review I4: a restorer bug must not turn a good reply into a bare 500
+    def crash(body, restorer):
+        raise RuntimeError("bug")
+
+    def handler(request):
+        sent = json.loads(request.content)["messages"][0]["content"]
+        return httpx.Response(200, json={"choices": [{"index": 0, "message": {
+            "role": "assistant", "content": "Got " + sent.split()[-1]}}]})
+
+    monkeypatch.setattr(app_module, "restore_response", crash)
+    caplog.set_level("INFO", logger="leakguard")
+    r = make_guard(transport=httpx.MockTransport(handler)).post(CHAT, json=_req("call 9876543210"))
+    assert r.status_code == 200
+    assert r.json()["choices"][0]["message"]["content"] == "Got [PHONE_1]"
+    assert '"event": "restore_failed"' in caplog.text and '"event": "request"' in caplog.text
+    assert "9876543210" not in caplog.text

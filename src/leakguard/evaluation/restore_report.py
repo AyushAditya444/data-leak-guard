@@ -1,0 +1,210 @@
+"""Turn a restore run's results file into Markdown: the dev tuning page and the test report.
+
+Both are rendered from the committed results file, so they can be regenerated without a
+Groq key. The streaming-overhead numbers are measured fresh against a synthetic stream.
+"""
+
+import asyncio
+import json
+import time
+from collections import Counter
+from dataclasses import dataclass, field
+
+import httpx
+
+from leakguard.app import relay_stream
+from leakguard.entities import EntityType
+from leakguard.evaluation.report import _pct, _percentile
+from leakguard.masking import PlaceholderMap
+from leakguard.placeholders import ACCEPT_BRACKETLESS
+from leakguard.restore import Restorer
+
+BRACKETLESS_RULE = 0.02  # design §3: accept bare NAME_1 only if >= 2% of mentions on dev
+FORMS = ("exact", "case", "separator", "brackets", "bracketless", "unclosed")
+# Is each form restored? "bracketless" counts any bare form; only the strict one is restored.
+RESTORED = {"exact": "yes", "case": "yes", "separator": "yes", "brackets": "yes",
+            "bracketless": "yes (strict `PHONE_1` only)" if ACCEPT_BRACKETLESS else "no",
+            "unclosed": "its bare part, if strict" if ACCEPT_BRACKETLESS else "no"}
+
+
+@dataclass
+class Summary:
+    replies: int = 0
+    mentioned: int = 0  # 200 replies that mention at least one of our placeholders
+    fully_restored: int = 0  # ... and have nothing left unrestored
+    no_mention: int = 0  # 200 replies that mention none (refusals, generic answers)
+    errors: int = 0  # non-200 (rate limits after retries, provider errors)
+    restored: int = 0
+    unrestored: int = 0
+    forms: Counter = field(default_factory=Counter)
+
+
+def summarize(results: dict) -> dict[tuple[str, bool], Summary]:
+    """Per (model, streaming?)."""
+    summaries: dict[tuple[str, bool], Summary] = {}
+    for o in results["outcomes"]:
+        s = summaries.setdefault((o["model"], o["stream"]), Summary())
+        s.replies += 1
+        if o["status"] != 200:
+            s.errors += 1
+            continue
+        s.restored += o["restored"]
+        s.unrestored += o["unrestored"]
+        s.forms.update(o["mentions"])
+        if o["mentioned"]:
+            s.mentioned += 1
+            s.fully_restored += o["unrestored"] == 0
+        else:
+            s.no_mention += 1
+    return summaries
+
+
+def _all_forms(results: dict) -> Counter:
+    forms: Counter = Counter()
+    for o in results["outcomes"]:
+        forms.update(o["mentions"])
+    return forms
+
+
+def bracketless_share(results: dict) -> float:
+    forms = _all_forms(results)
+    total = sum(forms.values())
+    return forms["bracketless"] / total if total else 0.0
+
+
+def _rate(part: int, whole: int) -> str:
+    return _pct(part / whole) if whole else "–"
+
+
+def _summary_table(results: dict) -> list[str]:
+    lines = [("| Model | Mode | Replies | Mention a placeholder | Fully restored | "
+             "Mutated mentions | Restored | Unrestored | No mention | Errors |"),
+             "|---|---|---:|---:|---:|---:|---:|---:|---:|---:|"]
+    for (model, stream), s in sorted(summarize(results).items()):
+        mentions = sum(s.forms.values())
+        mutated = mentions - s.forms["exact"]
+        lines.append(
+            f"| {model} | {'streaming' if stream else 'non-streaming'} | {s.replies} | "
+            f"{s.mentioned} | {_rate(s.fully_restored, s.mentioned)} | {_rate(mutated, mentions)} | "
+            f"{s.restored} | {s.unrestored} | {s.no_mention} | {s.errors} |")
+    return lines
+
+
+def _forms_table(results: dict) -> list[str]:
+    by_model: dict[str, Counter] = {}
+    for o in results["outcomes"]:
+        by_model.setdefault(o["model"], Counter()).update(o["mentions"])
+    lines = ["| Form | Example | Restored? | " + " | ".join(sorted(by_model)) + " |",
+             "|---|---|---|" + "---:|" * len(by_model)]
+    examples = {"exact": "`[PHONE_1]`", "case": "`[Phone_1]`", "separator": "`[PHONE 1]`",
+                "brackets": "`{PHONE_1}`", "bracketless": "`PHONE_1`", "unclosed": "`[PHONE_1`"}
+    for form in FORMS:
+        cells = []
+        for model in sorted(by_model):
+            total = sum(by_model[model].values())
+            cells.append(f"{by_model[model][form]} ({_rate(by_model[model][form], total)})")
+        lines.append(f"| {form} | {examples[form]} | {RESTORED[form]} | "
+                     + " | ".join(cells) + " |")
+    return lines
+
+
+def _meta_lines(results: dict) -> list[str]:
+    m = results["meta"]
+    return [(f"Run: {m['date']}, split `{m.get('split', '?')}`, {m['conversations']} "
+            f"conversations, models {', '.join(f'`{x}`' for x in m['models'])}, "
+            f"`max_tokens` {m['max_tokens']}, temperature {m['temperature']}, "
+            f"guard commit `{m['guard_commit']}`.")]
+
+
+def render_restore_tuning(results: dict, notes: list[str] | tuple[str, ...] = ()) -> str:
+    share = bracketless_share(results)
+    verdict = "accept" if share >= BRACKETLESS_RULE else "keep off"
+    forms = _all_forms(results)
+    total = sum(forms.values())
+    lines = ["# Restore tuning (dev)", "",
+             ("Generated by `python -m leakguard.evaluation restore-report --split dev` from "
+             "`data/eval/restore-dev.json`. Decisions about placeholder forms are made here, on "
+             "dev only (design §3); the test run is reported once, in "
+             "[restore-report.md](restore-report.md)."), "", *_meta_lines(results), "",
+             "## Replies", "", *_summary_table(results), "",
+             "## How the models wrote our placeholders", "", *_forms_table(results), "",
+             "## Bracketless placeholders", "",
+             (f"Bracketless mentions: {forms['bracketless']} of {total} "
+              f"({_rate(forms['bracketless'], total)}). Rule set before the run: accept bare "
+              f"`NAME_1` only if this is at least {_pct(BRACKETLESS_RULE)}."), "",
+             f"**Verdict: {verdict}.**", ""]
+    unclosed = forms["unclosed"]
+    if total and unclosed / total >= BRACKETLESS_RULE:
+        lines += [(f"Unclosed placeholders are {_rate(unclosed, total)} of mentions: at or above "
+                  "the same threshold, see the notes."), ""]
+    if notes:
+        lines += ["## Notes", ""] + [f"- {note}" for note in notes] + [""]
+    return "\n".join(lines)
+
+
+REPLY = ("Thank you for reaching out. I have noted your phone number [PHONE_1] and will call "
+         "you on [PHONE_1] tomorrow between 10 am and 1 pm. If [PHONE_1] is busy, we will send "
+         "an SMS instead. Please keep your order number ready when we call. ") * 3
+
+
+def _events(reply: str, size: int = 3) -> list[bytes]:
+    return [("data: " + json.dumps({"choices": [{"index": 0, "delta": {
+        "content": reply[i:i + size]}}]}) + "\n\n").encode() for i in range(0, len(reply), size)
+    ] + [b"data: [DONE]\n\n"]
+
+
+async def _time_relay(events: list[bytes], restorer: Restorer | None) -> tuple[float, float]:
+    async def body():
+        for event in events:
+            yield event
+
+    started, first = time.perf_counter(), None
+    async for _ in relay_stream(httpx.Response(200, content=body()), restorer):
+        first = first or time.perf_counter()
+    done = time.perf_counter()
+    return ((first or done) - started) * 1000, (done - started) * 1000
+
+
+def measure_stream_overhead(n: int = 200) -> dict[str, dict[str, float]]:
+    """What restoring costs the guard per streamed reply, without network or LLM time:
+    the same ~650-character reply in 3-character events, relayed as-is vs restored."""
+    events = _events(REPLY)
+    mapping = PlaceholderMap()
+    mapping.placeholder_for(EntityType.PHONE, "9876543210")
+
+    async def run() -> dict[str, dict[str, float]]:
+        out = {}
+        for name, make in (("pass-through", lambda: None), ("restoring", lambda: Restorer(mapping))):
+            ttfb, total = zip(*[await _time_relay(events, make()) for _ in range(n)], strict=True)
+            out[name] = {"ttfb_p50": _percentile(list(ttfb), 0.5),
+                         "ttfb_p95": _percentile(list(ttfb), 0.95),
+                         "total_p50": _percentile(list(total), 0.5),
+                         "total_p95": _percentile(list(total), 0.95)}
+        return out
+
+    return asyncio.run(run())
+
+
+def render_restore_report(results: dict, overhead: dict, notes: list[str]) -> str:
+    lines = ["# Restoring replies on real LLMs (test)", "",
+             ("Generated by `python -m leakguard.evaluation restore-report --split test` from "
+             "`data/eval/restore-test.json`. Every conversation was sent through the guard to "
+             "each model twice (non-streaming and streaming). Each asks the model to repeat the "
+             "customer's details back; about a fifth force a tool call. **Fully restored** = "
+             "the reply mentions at least one of our placeholders and nothing of ours was left "
+             "unrestored. Replies that mention none (refusals, generic answers) are counted "
+             "separately, not in the rate."), "", *_meta_lines(results), "",
+             "## Replies", "", *_summary_table(results), "",
+             "## How the models wrote our placeholders", "",
+             "Read from the raw upstream replies, before restoring.", "", *_forms_table(results),
+             "", "## What restoring costs a stream", "",
+             (f"The same {len(REPLY)}-character reply in 3-character events, relayed by the "
+             "guard as-is vs with restoring (no network, no LLM): time to the first chunk out "
+             "and to the end, in ms."), "",
+             "| Relay | First chunk p50 | First chunk p95 | Whole reply p50 | Whole reply p95 |",
+             "|---|---:|---:|---:|---:|"]
+    for name, t in overhead.items():
+        lines.append(f"| {name} | {t['ttfb_p50']:.2f} | {t['ttfb_p95']:.2f} | "
+                     f"{t['total_p50']:.2f} | {t['total_p95']:.2f} |")
+    lines += ["", "## Notes", ""] + [f"- {note}" for note in notes] + [""]
+    return "\n".join(lines)

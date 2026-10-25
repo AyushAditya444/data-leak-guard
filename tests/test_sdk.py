@@ -18,3 +18,10 @@ def test_openai_sdk_stream(guard):
     stream = _client(guard).chat.completions.create(
         model="m", messages=[{"role": "user", "content": "hi"}], stream=True)
     assert "".join(c.choices[0].delta.content or "" for c in stream if c.choices) == "You said: hi"
+
+
+def test_openai_sdk_stream_restored(guard):
+    stream = _client(guard).chat.completions.create(
+        model="m", messages=[{"role": "user", "content": "call 9876543210"}], stream=True)
+    text = "".join(c.choices[0].delta.content or "" for c in stream if c.choices)
+    assert text == "You said: call 9876543210"
