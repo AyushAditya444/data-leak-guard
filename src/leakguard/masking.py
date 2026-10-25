@@ -62,6 +62,10 @@ class PlaceholderMap:
         handed out (including reserved ones the user typed)."""
         return self._value_by_placeholder.get(f"[{entity.value}_{number}]")
 
+    def placeholders(self) -> dict[str, str]:
+        """Placeholder -> real value, in the order they were handed out."""
+        return dict(self._value_by_placeholder)
+
     def entities(self) -> set[EntityType]:
         return {entity for entity, _ in self._placeholder_by_value}
 
