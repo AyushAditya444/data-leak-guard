@@ -34,8 +34,7 @@ def _event(raw: str) -> SSEEvent:
     data = []
     for line in raw.splitlines():
         if line.startswith("data:"):
-            value = line[5:]
-            data.append(value[1:] if value.startswith(" ") else value)
+            data.append(line[5:].removeprefix(" "))  # one optional space after "data:"
     return SSEEvent(raw, "\n".join(data) if data else None)
 
 
