@@ -59,3 +59,12 @@ def test_performance_page_shows_compressed_and_disk_image_size():
 def test_performance_page_explains_oversubscription():
     md = render_performance(_results())
     assert "more concurrent requests than CPUs" in md
+
+
+def test_windows_11_label():
+    # Python's platform module still calls Windows 11 "Windows-10"; the build number decides.
+    results = _results()
+    results["meta"]["machine"]["os"] = "Windows-10-10.0.26200-SP0"
+    assert "- OS: Windows 11 (build 26200), Python 3.11.0" in render_performance(results)
+    results["meta"]["machine"]["os"] = "Windows-10-10.0.19045-SP0"
+    assert "- OS: Windows-10-10.0.19045-SP0, Python 3.11.0" in render_performance(results)

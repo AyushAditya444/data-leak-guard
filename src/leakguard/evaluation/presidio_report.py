@@ -72,7 +72,9 @@ def _detail(results: dict, engine: str, split: str) -> list[str]:
         if st is None or (st.support == 0 and st.fp == 0):
             continue
         if _supported(engine, entity):
-            cells = [_pct(st.precision), _pct(st.recall), _pct(st.f1)]
+            # Nothing predicted: precision is 0/0, undefined rather than 0%.
+            precision = "–" if st.tp + st.fp == 0 else _pct(st.precision)
+            cells = [precision, _pct(st.recall), _pct(st.f1)]
         else:
             cells = [NOT_SUPPORTED] * 3
         lines.append(f"| {_label(entity)} | {st.support} | " + " | ".join(cells)

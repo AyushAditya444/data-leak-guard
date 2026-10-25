@@ -60,8 +60,8 @@ Negative messages with at least one false alarm: 5 of 350.
 
 | Type | Support | Precision | Recall | F1 | Coverage |
 |---|---:|---:|---:|---:|---:|
-| AADHAAR | 95 | 0.0% | 0.0% | 0.0% | 30.9% |
-| PAN | 197 | 0.0% | 0.0% | 0.0% | 3.4% |
+| AADHAAR | 95 | – | 0.0% | 0.0% | 30.9% |
+| PAN | 197 | – | 0.0% | 0.0% | 3.4% |
 | PHONE | 397 | 80.4% | 75.3% | 77.8% | 100.0% |
 | UPI | 92 | not supported | not supported | not supported | 32.9% |
 | EMAIL | 168 | 88.4% | 100.0% | 93.9% | 100.0% |
@@ -114,8 +114,8 @@ Negative messages with at least one false alarm: 0 of 23.
 
 | Type | Support | Precision | Recall | F1 | Coverage |
 |---|---:|---:|---:|---:|---:|
-| AADHAAR | 5 | 0.0% | 0.0% | 0.0% | 38.2% |
-| PAN | 4 | 0.0% | 0.0% | 0.0% | 0.0% |
+| AADHAAR | 5 | – | 0.0% | 0.0% | 38.2% |
+| PAN | 4 | – | 0.0% | 0.0% | 0.0% |
 | PHONE | 13 | 83.3% | 76.9% | 80.0% | 85.8% |
 | UPI | 5 | not supported | not supported | not supported | 25.7% |
 | EMAIL | 3 | 75.0% | 100.0% | 85.7% | 100.0% |

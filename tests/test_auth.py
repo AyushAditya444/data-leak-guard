@@ -107,3 +107,13 @@ def test_guard_key_enforced_under_a_root_path(make_guard, mock_app):
         assert _is_guard_key_error(client.post("/guard" + CHAT, json=_req()))
         r = client.post("/guard" + CHAT, json=_req(), headers={"X-Leakguard-Key": KEY})
         assert r.status_code == 200
+
+
+def test_auth_failed_path_is_capped(caplog):
+    # The path is the caller's input: an unauthenticated client must not fill the logs.
+    from leakguard.logs import log_auth_failed
+
+    with caplog.at_level(logging.INFO, logger="leakguard"):
+        log_auth_failed(request_id="r1", path="/v1/" + "a" * 5000)
+    [record] = caplog.records
+    assert len(json.loads(record.getMessage())["path"]) <= 200

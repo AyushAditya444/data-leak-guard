@@ -125,3 +125,12 @@ def test_both_support_summary_matches_committed_page():
     assert [s["false_alarms"] for s in summary.values()] == [4, 67, 68]
     assert {s["negatives"] for s in summary.values()} == {350}
     assert summary["presidio_best_shot"]["label"] == "Presidio, best shot"
+
+
+def test_zero_over_zero_precision_shows_dash():
+    # Nothing predicted: precision is undefined (0/0), not 0%. Recall and F1 are 0% for real.
+    results = _results()
+    results["engines"]["presidio_out_of_box"]["test"]["by_type"]["AADHAAR"].update(
+        tp=0, fp=0, fn=10)
+    md = render_presidio_baseline(results, [])
+    assert "| AADHAAR | 10 | – | 0.0% | 0.0% |" in md
