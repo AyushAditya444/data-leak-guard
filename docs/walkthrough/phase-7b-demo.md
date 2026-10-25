@@ -79,7 +79,8 @@ Every claim the narration makes is a check on the recorded session:
 
 | Narration says | `verify_session` checks |
 |---|---|
-| every value is now a placeholder | no highlighted value appears in anything sent upstream |
+| every value is now a placeholder | no highlighted value, and no word of one (half a name is a leak too), appears in anything sent upstream |
+| this was recorded live against a real model on Groq | the session's upstream is Groq (checked for the committed video; `build.py` refuses otherwise, before any Docker step) |
 | the reply comes back with the real values put back | at least one real value is in the reply, and no placeholder is left |
 | the placeholder arrives split across chunks | some placeholder spans two or more streamed chunks |
 | nothing is sent to the model | HTTP 400 and no upstream request at all |
@@ -132,7 +133,20 @@ The narration is plain text: a `## <scene>` heading per scene, one sentence per 
 
 ---
 
-## 5. Interview Q&A
+## 5. The final review
+
+A fresh reviewer read the whole branch. It found no critical problems and four real ones. Each was fixed with a test that failed first:
+
+- **The shell command was filmed.** VHS started filming before the player had cleared the screen, so the first few frames of every scene, and frame 0 of the README GIF, showed `> python3 examples/demo/player.py core ...`. My frame checks had all been mid-scene. Each tape now waits 1 s out of shot after starting the player; later beats and the hold shift by the same second. After the rebuild, frame 0 of every clip and of the GIF was checked.
+- **`verify_session` could crash** with an `IndexError` when the stream scene never reached the LLM, instead of naming the failed claim.
+- **Two claims were under-checked.** Nothing checked "recorded live on Groq" (a mock session would have passed), and a partly masked value (`Priya [NAME_1]`) passed "every value is now a placeholder". Both are checked now (see the table in 3.4).
+- **`--voice-dir` crashed for a folder outside the repo**, the very thing the README invites. The files are now copied into `build/demo/own-voice/` first; files that match no scene are listed, and a folder with no matching files is a clear error.
+
+Nine smaller findings were left for later and listed in the PR, e.g. boxes that don't wrap very long log lines, and Hindi characters that would throw off the box borders.
+
+---
+
+## 6. Interview Q&A
 
 **"Isn't a replayed demo faked?"**
 It is a replay of a real run, labelled as one on screen, and the run is committed: `examples/demo/session.json` holds exactly what the app sent, what the tap saw leave the machine, what the model streamed back, and what the app got. Anyone can rerun `python -m examples.demo.record --upstream groq` and compare. Filming live would get a different reply every render, put the API key inside the recording tool, and leave nothing to check against.
