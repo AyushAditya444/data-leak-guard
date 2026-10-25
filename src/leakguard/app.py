@@ -23,9 +23,10 @@ from leakguard.detect.engine import Detector, EntityModel, build_detector
 from leakguard.detect.gazetteer import load_gazetteer
 from leakguard.errors import openai_error
 from leakguard.logs import log_detection_failed, log_ner_disabled, log_request
-from leakguard.masking import PlaceholderMap, mask_messages, restore_response
+from leakguard.masking import PlaceholderMap, mask_messages
 from leakguard.ner.model import NameModel, NameModelError
 from leakguard.policy import FailureMode, Policy, load_policy
+from leakguard.restore import Restorer, restore_response
 from leakguard.upstream import UpstreamClient
 
 CHAT_PATH = "/chat/completions"
@@ -145,10 +146,10 @@ def _relayed_headers(resp: httpx.Response) -> dict[str, str]:
     }
 
 
-def _restored_content(resp: httpx.Response, mapping: PlaceholderMap | None) -> bytes:
+def _restored_content(resp: httpx.Response, restorer: Restorer | None) -> bytes:
     """The reply body with placeholders swapped back for real values (JSON replies only)."""
     is_json = "application/json" in resp.headers.get("content-type", "")
-    if not mapping or not resp.is_success or not is_json:
+    if restorer is None or not resp.is_success or not is_json:
         return resp.content
     try:
         data = resp.json()
@@ -156,11 +157,11 @@ def _restored_content(resp: httpx.Response, mapping: PlaceholderMap | None) -> b
         return resp.content
     if not isinstance(data, dict):
         return resp.content
-    return json.dumps(restore_response(data, mapping), ensure_ascii=False).encode("utf-8")
+    return json.dumps(restore_response(data, restorer), ensure_ascii=False).encode("utf-8")
 
 
-def _relay(resp: httpx.Response, mapping: PlaceholderMap | None = None) -> Response:
-    return Response(content=_restored_content(resp, mapping), status_code=resp.status_code,
+def _relay(resp: httpx.Response, restorer: Restorer | None = None) -> Response:
+    return Response(content=_restored_content(resp, restorer), status_code=resp.status_code,
                     headers=_relayed_headers(resp), media_type=resp.headers.get("content-type"))
 
 
@@ -205,6 +206,7 @@ async def _proxy_chat(
         ctx.finish(applied.status_code)
         return applied
     outgoing, mapping = applied
+    restorer = Restorer(mapping) if mapping else None
 
     ctx.stream = outgoing.get("stream") is True
     sent = await _send_upstream(upstream, outgoing, _forwarded_headers(request), ctx.stream, ctx)
@@ -223,7 +225,7 @@ async def _proxy_chat(
         # read it fully and relay it like any other error.
         await sent.aread()
         await sent.aclose()
-    response = _relay(sent, mapping)
+    response = _relay(sent, restorer)
     ctx.finish(response.status_code)
     return response
 

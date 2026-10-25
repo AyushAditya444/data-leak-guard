@@ -9,7 +9,6 @@ appearance), so the same history always produces the same placeholders: nothing 
 be stored between requests.
 """
 
-import re
 from collections import Counter
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass, field
@@ -19,8 +18,6 @@ from leakguard.detect.spans import Span
 from leakguard.entities import EntityType
 from leakguard.placeholders import accepted_mentions
 from leakguard.policy import Action, Policy
-
-PLACEHOLDER_RE = re.compile(r"\[([A-Z_]+)_(\d+)\]")
 
 # For these types, formatting is noise: "98765 43210" and "+91-9876543210" are one person.
 _DIGIT_TYPES = {EntityType.AADHAAR, EntityType.PHONE, EntityType.CARD, EntityType.BANK_ACCOUNT}
@@ -67,11 +64,6 @@ class PlaceholderMap:
 
     def entities(self) -> set[EntityType]:
         return {entity for entity, _ in self._placeholder_by_value}
-
-    def restore(self, text: str) -> str:
-        """Replace placeholders this map created; leave every other bracketed text alone."""
-        return PLACEHOLDER_RE.sub(
-            lambda m: self._value_by_placeholder.get(m.group(0), m.group(0)), text)
 
     def __len__(self) -> int:
         return len(self._value_by_placeholder)
@@ -157,15 +149,3 @@ def mask_messages(
     masked = [_map_message(message, mask_text) for message in messages]
     return MaskResult(masked, mapping, counts, sorted(blocked))
 
-
-def restore_response(body: dict, mapping: PlaceholderMap) -> dict:
-    """Restore placeholders in a non-streaming chat completion (content + tool calls)."""
-    choices = body.get("choices")
-    if not isinstance(choices, list) or len(mapping) == 0:
-        return body
-    restored = []
-    for choice in choices:
-        if isinstance(choice, dict) and isinstance(choice.get("message"), dict):
-            choice = {**choice, "message": _map_message(choice["message"], mapping.restore)}
-        restored.append(choice)
-    return {**body, "choices": restored}
