@@ -81,3 +81,14 @@ def test_leading_place_joined_by_words_is_not_part_of_the_address():
     assert _found(text) == ["behind Axis Bank, Kothrud, Pune"]
     # places joined by separators only stay in: "Kothrud, Pune 411038"
     assert _found("Kothrud, Pune 411038") == ["Kothrud, Pune 411038"]
+
+
+@pytest.mark.parametrize("text", ["Flat 1 12/3 " * 10_000,
+                                  "near Hanuman Mandir Pune. " * 6_000],
+                         ids=["many-units", "many-landmarks"])
+def test_long_repetitive_messages_stay_fast(text):
+    # Bare units were checked against every unit, and places against every landmark:
+    # quadratic, 8.5 s for the first input (120 KB).
+    started = time.perf_counter()
+    detect_address(text)
+    assert time.perf_counter() - started < 2.0

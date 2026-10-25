@@ -10,7 +10,7 @@ from leakguard.detect.contact import detect_bank_account, detect_email, detect_p
 from leakguard.detect.ids import detect_aadhaar, detect_card, detect_ifsc, detect_pan
 from leakguard.detect.name_cues import detect_name_cues
 from leakguard.detect.secrets import detect_secrets
-from leakguard.detect.spans import Span, merge_spans
+from leakguard.detect.spans import Intervals, Span, merge_spans
 from leakguard.entities import EntityType
 
 if TYPE_CHECKING:  # the NER package needs onnxruntime; rules alone must not
@@ -45,7 +45,8 @@ def _merge(spans: Iterable[Span]) -> list[Span]:
     """
     spans = list(spans)
     names = sorted((s for s in spans if s.type is EntityType.NAME), key=lambda s: s.start)
-    others = [s for s in spans if s.type not in (EntityType.NAME, EntityType.ADDRESS)]
+    others = Intervals((s.start, s.end) for s in spans
+                       if s.type not in (EntityType.NAME, EntityType.ADDRESS))
     if not names or len(names) == len(spans):
         return merge_spans(spans)
     starts = [n.start for n in names]
@@ -55,7 +56,7 @@ def _merge(spans: Iterable[Span]) -> list[Span]:
         if span.type is EntityType.ADDRESS:
             lo, hi = bisect_left(starts, span.start - longest), bisect_left(starts, span.end)
             for name in names[lo:hi]:
-                if name.overlaps(span) and not any(name.overlaps(o) for o in others):
+                if name.overlaps(span) and not others.overlaps(name.start, name.end):
                     span = replace(span, start=min(span.start, name.start),
                                    end=max(span.end, name.end))
         out.append(span)

@@ -117,3 +117,22 @@ def test_phone_inside_an_address_does_not_split_it():
         assert T.PHONE in {s.type for s in spans}, text
         assert all(_hidden(text, spans, part) for part in parts), text
         assert all(s.type in (T.ADDRESS, T.PHONE) for s in spans), text
+
+
+def test_absorbing_names_stays_fast():
+    # Each name was checked against every other span: 24 s for ~670 KB of records.
+    import time
+    record = "Kavya Sharma, Flat 302, Kothrud, Pune, 9876543210 9876543211 9876543212 9876543213\n"
+    text = record * 4_000
+
+    def fake_ner(t):
+        out, i = [], t.find("Kavya Sharma")
+        while i != -1:
+            out.append(Span(i, i + 12, T.NAME, 0.9, "ner"))
+            i = t.find("Kavya Sharma", i + 1)
+        return out
+
+    detect = build_detector(fake_ner)
+    started = time.perf_counter()
+    detect(text)
+    assert time.perf_counter() - started < 5.0

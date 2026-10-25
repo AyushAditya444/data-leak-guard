@@ -21,6 +21,7 @@ from dataclasses import dataclass
 from typing import Literal
 
 from leakguard.detect.gazetteer import Gazetteer
+from leakguard.detect.spans import Intervals
 
 SignalKind = Literal["pin", "unit", "building", "street", "landmark", "place"]
 DETAIL_KINDS: frozenset[str] = frozenset({"pin", "unit", "building", "street", "landmark"})
@@ -141,9 +142,9 @@ def _named(pattern: re.Pattern, text: str, kind: SignalKind, need_name: bool) ->
 def _units(text: str) -> list[Signal]:
     found = [Signal(m.start(), m.end(), "unit") for m in _UNIT.finditer(text)]
     found += [Signal(m.start(), m.end(), "unit") for m in _FLOOR.finditer(text)]
-    taken = [(s.start, s.end) for s in found]
+    taken = Intervals((s.start, s.end) for s in found)
     for m in _BARE_UNIT.finditer(text):
-        if not any(a < m.end() and m.start() < b for a, b in taken):
+        if not taken.overlaps(m.start(), m.end()):
             found.append(Signal(m.start(), m.end(), "unit", bare=True))
     return found
 
@@ -221,8 +222,8 @@ def find_signals(text: str, gazetteer: Gazetteer,
     places = [Signal(s, e, "place") for s, e, _ in gazetteer.find_places(text)]
     places += _named(_LOCALITY, text, "place", need_name=True)
     places += [Signal(s, e, "place") for s, e in locations]
-    places = [p for p in places
-              if not any(lm.start <= p.start and p.end <= lm.end for lm in landmarks)]
+    in_landmark = Intervals((lm.start, lm.end) for lm in landmarks)
+    places = [p for p in places if not in_landmark.contains(p.start, p.end)]
     signals = [
         *_pins(text, gazetteer),
         *_units(text),
