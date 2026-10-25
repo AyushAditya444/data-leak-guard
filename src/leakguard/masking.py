@@ -16,7 +16,7 @@ from dataclasses import dataclass, field
 from leakguard.detect import detect_rules
 from leakguard.detect.spans import Span
 from leakguard.entities import EntityType
-from leakguard.placeholders import accepted_mentions
+from leakguard.placeholders import loose_mentions
 from leakguard.policy import Action, Policy
 
 # For these types, formatting is noise: "98765 43210" and "+91-9876543210" are one person.
@@ -115,9 +115,11 @@ def _reserved_numbers(messages: list[dict]) -> dict[EntityType, set[int]]:
     reserved: dict[EntityType, set[int]] = {}
 
     def collect(text: str) -> str:
-        # Every form the restorer accepts ("[phone 1]", "{PHONE-1}", ...), so no accepted
-        # form can be planted by the user.
-        for m in accepted_mentions(text, set(EntityType)):
+        # Anything that looks like a placeholder ("[phone 1]", "{PHONE-1}", "phone 1",
+        # "[phone 1" ...): every form the restorer accepts, plus near-forms an LLM might
+        # "tidy" into one, so no form can be planted by the user. Harmless side effect:
+        # "phone 1 and phone 2" in ordinary text skips numbers 1 and 2.
+        for m in loose_mentions(text, set(EntityType)):
             reserved.setdefault(m.entity, set()).add(m.number)
         return text
 

@@ -52,7 +52,7 @@ Only types that appear in **this request's mapping** are matched. If nothing was
 
 ### Why not accept everything?
 
-Every accepted form is a form a **user could plant**. Phase 2 already blocked the classic attack: a user types `[PHONE_1]` in their message hoping the guard will "restore" someone else's number into the reply. The guard reserves that number (`PHONE_1` is skipped; the real phone becomes `[PHONE_2]`). Phase 6 had to **extend that protection to every accepted form**: `masking._reserved_numbers` now asks `accepted_mentions()`, so typing `[phone 1]` or `{PHONE-2}` reserves those numbers too. Test: `test_reserved_numbers_cover_every_accepted_form`.
+Every accepted form is a form a **user could plant**. Phase 2 already blocked the classic attack: a user types `[PHONE_1]` in their message hoping the guard will "restore" someone else's number into the reply. The guard reserves that number (`PHONE_1` is skipped; the real phone becomes `[PHONE_2]`). Phase 6 had to **extend that protection beyond the exact form**: `masking._reserved_numbers` now asks `loose_mentions()`, so typing `[phone 1]`, `{PHONE-2}`, a bare `phone 1` or an unclosed `[phone 1` reserves those numbers too. Loose, not just accepted, because the LLM may "tidy" a near-form the user typed (`phone 1`) into one the restorer accepts (`PHONE_1`); the final review caught that gap (§9). Harmless side effect: "phone 1 and phone 2" in ordinary text skips numbers 1 and 2. Tests: `test_reserved_numbers_cover_every_accepted_form`, `test_near_forms_a_user_types_are_reserved`.
 
 Bare `PHONE_1` is the easiest to plant ("phone 1 and phone 2" in normal prose), which is why it is only accepted if real data says it's common, and then strictly (uppercase, underscore, word boundaries).
 
@@ -175,7 +175,7 @@ A few dev streams were saved as test fixtures (`tests/fixtures/groq_streams/`), 
 
 Both are rendered from the committed results files, so anyone can regenerate them without a Groq key.
 
-**What restoring costs:** measured on the relay itself (same ~650-character reply in 3-character events, relayed as-is vs restored): about 3 ms extra per whole reply, ~15 µs per event. Network and the LLM are hundreds of milliseconds, so the hold-back is invisible in practice.
+**What restoring costs:** measured on the relay itself (same ~700-character reply in 3-character events, relayed as-is vs restored): about 4 ms per whole reply (~17 µs per event) against about 0.25 ms as-is. It varies a little between runs. Network and the LLM are hundreds of milliseconds, so the hold-back is invisible in practice.
 
 ---
 
@@ -223,11 +223,29 @@ Full report: [restore-report.md](../evaluation/restore-report.md). 300 test conv
 
 **Honest caveats** (also in the report's notes): real models drift and sampling varies, so a re-run gives similar, not identical, numbers; number-as-word placeholders aren't counted; the conversations were written by the same author as the guard, and they *ask* the model to repeat details, which is the hardest case for restoring but not what every app does; `hard` samples and secrets are excluded.
 
-**Cost of restoring:** ~3.5 ms per ~700-character streamed reply, against 0.25 ms for plain pass-through.
+**Cost of restoring:** about 4 ms per ~700-character streamed reply, against about 0.25 ms for plain pass-through.
 
 ---
 
-## 9. Interview Q&A
+## 9. The final review: a one-character crash and three gaps
+
+A fresh reviewer read the whole branch and attacked it with its own inputs (80,000 fuzzed chunkings among them). It found:
+
+| Finding | What it was | Fix (each with a test that failed first) |
+|---|---|---|
+| **Crash from one Unicode character** (critical) | Python's `re.IGNORECASE` is Unicode-aware: the Turkish `İ` matches `i`, the Kelvin sign `K` matches `k`. So `[EMAİL 1]` matched the pattern, then `EntityType("EMAİL")` raised. In a request: detection failed (a 500, or in fail-open mode the whole request sent **unmasked**). In a reply: a bare 500 and a lost reply. | `re.ASCII` on every pattern (placeholders are ASCII), and unknown names are skipped instead of raising |
+| **Streaming ≠ whole text next to non-ASCII letters** | The hold-back's "starts a word" check used Unicode `isalnum()`, the bare pattern ASCII `[A-Za-z0-9_]`: `éPHONE_1` restored or not depending on where the chunk was cut | One rule, ASCII, in both places; non-ASCII strings added to the property test |
+| **Quadratic overlap checks** | "Does this mention overlap an earlier one?" was checked against *all* earlier ones: 10,000 placeholders took seconds, blocking the event loop | One forward sweep over two sorted lists (`drop_overlapping`): linear |
+| **Reservation too narrow** | Only accepted forms were reserved, so a user's `phone 1` could be echoed by the LLM as `PHONE_1` and filled with the real number | Reserve every placeholder-*looking* text (§1) |
+| **Non-streaming restore not fail-safe** | A restorer bug turned a good reply into a bare 500 with no log line | Same rule as streaming: log `restore_failed`, relay the masked reply |
+
+Did the fixes change the measured numbers? Re-masking all 400 dev and test conversations with the fixed code gives exactly the same requests, so no; the report's notes say so. Six minor findings (rare Unicode line separators in SSE, bare placeholders right after a JSON `\n` escape in tool arguments, parser copying on multi-megabyte single reads, and others) are listed in the PR for later.
+
+**Lesson worth telling in an interview:** case-insensitive regexes in Python are Unicode-aware by default. For anything that matches a fixed ASCII vocabulary, especially in security code, say `re.ASCII`.
+
+---
+
+## 10. Interview Q&A
 
 **Q: How do you restore placeholders in a streamed response when a placeholder can be split across chunks?**
 A: A per-field hold-back buffer. Text is released immediately except the shortest tail that could still become a placeholder: a `[` followed by a prefix of a known type name, a separator and up to 6 digits. That tail is held until it completes (restored) or can't (released as-is). The hold is bounded by the longest possible placeholder, ~20 characters, so the user never notices. And I prove it with a property test: for every way of cutting a text into chunks, the streamed result equals restoring the whole text at once.

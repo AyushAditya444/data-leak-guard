@@ -32,8 +32,8 @@ The same 702-character reply in 3-character events, relayed by the guard as-is v
 
 | Relay | First chunk p50 | First chunk p95 | Whole reply p50 | Whole reply p95 |
 |---|---:|---:|---:|---:|
-| pass-through | 0.02 | 0.03 | 0.25 | 0.38 |
-| restoring | 0.04 | 0.06 | 3.51 | 3.88 |
+| pass-through | 0.01 | 0.04 | 0.24 | 0.44 |
+| restoring | 0.05 | 0.07 | 3.88 | 4.17 |
 
 ## Notes
 
@@ -43,4 +43,5 @@ The same 702-character reply in 3-character events, relayed by the guard as-is v
 - Which placeholder forms are restored was decided on the dev run only ([restore-tuning.md](restore-tuning.md)); this test run was made once, after that, and changed no code or setting.
 - A strict bare `PHONE_1` is restored even inside an unclosed `[PHONE_1`, which shows the value with a stray bracket; such mentions are still listed as `unclosed` in the forms table, which is read from the raw replies.
 - Errors were returned by Groq, not the guard (the guard's own errors are 400 for a blocked request or bad input, 413, 500, 502 and 504; no request here was blocked). HTTP 400 errors all came from gpt-oss-120b on forced tool calls, the same pattern as on dev, where a re-sent one was `tool_use_failed`: the provider rejected the model's malformed tool call. HTTP 503 errors are Groq being temporarily unavailable. Failed requests were not retried beyond 429s and are excluded from the rates.
+- After this run, a final code review led to fixes: placeholder matching became ASCII-only (Unicode look-alikes such as a Turkish dotted İ could crash it), overlap checks became linear, a restore failure in a non-streamed reply now falls back to the masked reply, and numbers are reserved for any placeholder-like text a user types (e.g. `phone 1`), not only accepted forms. Re-masking all 400 dev and test conversations with the new code gives exactly the same requests, so the run was not repeated.
 

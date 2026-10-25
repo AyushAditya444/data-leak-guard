@@ -183,3 +183,28 @@ def test_unclosed_placeholder_gets_its_bare_part_restored():
     r = Restorer(m)
     assert r.restore_text("call [PHONE_1 now") == "call [9876543210 now"
     assert (r.stats.restored, r.stats.unrestored) == (1, 0)
+
+
+def test_unicode_lookalike_in_reply_still_restores():  # final review C1
+    r = _restorer((T.EMAIL, "a@b.in"), (T.PHONE, "9876543210"))
+    assert r.restore_text("Kay\u0131tl\u0131 EMA\u0130L 1 ve [PHONE_1]") == \
+        "Kay\u0131tl\u0131 EMA\u0130L 1 ve 9876543210"
+
+
+def test_restoring_many_placeholders_is_fast():  # final review I1
+    import time
+    r = _restorer((T.PHONE, "9876543210"), bracketless=True)
+    started = time.perf_counter()
+    r.restore_text("[PHONE_1] PHONE_1 phone 1 " * 10_000)
+    assert time.perf_counter() - started < 2.0
+    assert (r.stats.restored, r.stats.unrestored) == (20_000, 10_000)
+
+
+NON_ASCII_TEXTS = ["\u00e9PHONE_1 ok", "\u8bf7\u8054\u7cfbPHONE_1", "{\u00e9PHONE_1PHONE",
+                   "\u00dcnal NAME_1 \u00e9[PHONE_1]", "\u0130[NAME_1] \u212aPHONE_1"]
+
+
+@pytest.mark.parametrize("bracketless", [False, True])
+@pytest.mark.parametrize("text", NON_ASCII_TEXTS)
+def test_streaming_equals_whole_text_next_to_non_ascii(text, bracketless):  # final review I2
+    test_streaming_equals_whole_text_for_every_cut(text, bracketless)

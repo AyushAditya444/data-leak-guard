@@ -71,7 +71,7 @@ Measured on a **held-out test set** of 1,600 synthetic messages (English, Hingli
 | qwen/qwen3.8-27b | streaming | 259 | 99.6% | 3.5% | 1 |
 
 - The most common rewrite was dropping the brackets (`PHONE_1`): 10% of gpt-oss mentions. Accepting that form was decided on a separate dev run before this test ([restore-tuning.md](docs/evaluation/restore-tuning.md)).
-- Restoring costs the guard about 3.5 ms per streamed reply (~700 characters in 3-character chunks), against 0.25 ms for plain pass-through.
+- Restoring costs the guard about 4 ms per streamed reply (~700 characters in 3-character chunks), against about 0.25 ms for plain pass-through.
 - 9 of 1,200 requests failed at the provider (Groq rejecting a malformed tool call, or temporarily unavailable) and are not in the rates. Real models change over time, so a re-run gives similar, not identical, numbers.
 - Reproduce: `python -m leakguard.evaluation restore-run --split test` (needs a free `GROQ_API_KEY`), then `restore-report --split test`, which renders from the committed results without a key.
 

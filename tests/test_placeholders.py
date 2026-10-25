@@ -76,3 +76,11 @@ def test_bare_prefix_held_only_when_bracketless():
 def test_max_placeholder_len():
     # "[" + "BANK_ACCOUNT" + "_" + 6 digits + "]"
     assert max_placeholder_len({EntityType.NAME, EntityType.BANK_ACCOUNT}) == 1 + 12 + 1 + 6 + 1
+
+
+@pytest.mark.parametrize("text", ["[EMA\u0130L 1]", "<UP\u0130 1>", "[BAN\u212a_ACCOUNT_1]",
+                                  "EMA\u0130L_1", "[PHONE_\u0661]"])
+def test_unicode_lookalikes_never_match_or_crash(text):  # final review C1
+    assert accepted_mentions(text, ALL, bracketless=True) == []
+    assert loose_mentions(text, ALL) == []
+    assert not could_become_placeholder(text[:-1], ALL, bracketless=True)

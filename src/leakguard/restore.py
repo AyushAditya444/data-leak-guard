@@ -21,6 +21,7 @@ from leakguard.placeholders import (
     BRACKETS,
     accepted_mentions,
     could_become_placeholder,
+    drop_overlapping,
     loose_mentions,
     max_placeholder_len,
 )
@@ -40,6 +41,10 @@ def _json_escaped(value: str) -> str:
     # Tool-call arguments are a JSON document inside a string: a value with a quote or a
     # newline (multi-line addresses) must be escaped, or the arguments stop being valid JSON.
     return json.dumps(value, ensure_ascii=False)[1:-1]
+
+
+def _is_word_char(ch: str) -> bool:
+    return ch.isascii() and (ch.isalnum() or ch == "_")
 
 
 class Restorer:
@@ -82,10 +87,9 @@ class Restorer:
 
     def _count_unrestored(self, text: str, restored: list[tuple[int, int]]) -> int:
         """Placeholder-looking leftovers that point at one of our placeholders."""
-        return sum(
-            1 for m in loose_mentions(text, self.entities)
-            if self._mapping.value_for(m.entity, m.number) is not None
-            and not any(s < m.end and m.start < e for s, e in restored))
+        leftovers = drop_overlapping(loose_mentions(text, self.entities), restored)
+        return sum(1 for m in leftovers
+                   if self._mapping.value_for(m.entity, m.number) is not None)
 
 
 class FieldRestorer:
@@ -131,8 +135,8 @@ class FieldRestorer:
         entities, bracketless = self._restorer.entities, self._restorer._bracketless
         for i in range(max(offset, len(work) - self._bound), len(work)):
             ch = work[i]
-            starts_word = ch.isupper() and (i == 0 or not (work[i - 1].isalnum()
-                                                           or work[i - 1] == "_"))
+            # ASCII word characters only, exactly like the bare pattern's lookbehind
+            starts_word = "A" <= ch <= "Z" and (i == 0 or not _is_word_char(work[i - 1]))
             if (ch in BRACKETS or (bracketless and starts_word)) \
                     and could_become_placeholder(work[i:], entities, bracketless):
                 return i

@@ -187,6 +187,12 @@ RESTORE_NOTES = [
      "dev, where a re-sent one was `tool_use_failed`: the provider rejected the model's "
      "malformed tool call. HTTP 503 errors are Groq being temporarily unavailable. Failed "
      "requests were not retried beyond 429s and are excluded from the rates."),
+    ("After this run, a final code review led to fixes: placeholder matching became ASCII-only "
+     "(Unicode look-alikes such as a Turkish dotted İ could crash it), overlap checks became "
+     "linear, a restore failure in a non-streamed reply now falls back to the masked reply, "
+     "and numbers are reserved for any placeholder-like text a user types (e.g. `phone 1`), "
+     "not only accepted forms. Re-masking all 400 dev and test conversations with the new "
+     "code gives exactly the same requests, so the run was not repeated."),
 ]
 
 DEV_NOTES = [

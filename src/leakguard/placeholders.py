@@ -14,7 +14,7 @@ Only types in the current request's mapping are matched, so ordinary text such a
 """
 
 import re
-from collections.abc import Collection
+from collections.abc import Collection, Iterable
 from dataclasses import dataclass
 from functools import lru_cache
 
@@ -47,23 +47,34 @@ def _type_alternatives(entities: Collection[EntityType], strict: bool) -> str:
     return "|".join(inner.join(map(re.escape, name.split("_"))) for name in names)
 
 
+# re.ASCII everywhere: with Unicode matching, re.IGNORECASE folds "İ" to "i" and "K" (Kelvin)
+# to "k", and \d matches Arabic-Indic digits, so look-alike text would match a type name it
+# isn't. Placeholders are plain ASCII, so the patterns and hand-written checks are too.
+_FLAGS = re.IGNORECASE | re.ASCII
+
+
 @lru_cache(maxsize=256)
 def _patterns(entities: frozenset[EntityType]) -> tuple[re.Pattern, re.Pattern, re.Pattern]:
     loose_types = _type_alternatives(entities, strict=False)
     bracketed = re.compile(
         rf"(?P<open>[\[{{<(])(?P<type>{loose_types})(?P<sep>[_ -])(?P<num>\d{{1,{MAX_DIGITS}}})"
-        r"(?P<close>[\]}>)])", re.IGNORECASE)
+        r"(?P<close>[\]}>)])", _FLAGS)
     bare = re.compile(
         rf"(?<![A-Za-z0-9_])(?P<type>{_type_alternatives(entities, strict=True)})_"
-        rf"(?P<num>\d{{1,{MAX_DIGITS}}})(?![A-Za-z0-9_])")
+        rf"(?P<num>\d{{1,{MAX_DIGITS}}})(?![A-Za-z0-9_])", re.ASCII)
     loose = re.compile(
         rf"(?P<open>[\[{{<(])?(?<![A-Za-z0-9])(?P<type>{loose_types})(?P<sep>[_ -])"
-        rf"(?P<num>\d{{1,{MAX_DIGITS}}})(?!\d)(?P<close>[\]}}>)])?", re.IGNORECASE)
+        rf"(?P<num>\d{{1,{MAX_DIGITS}}})(?!\d)(?P<close>[\]}}>)])?", _FLAGS)
     return bracketed, bare, loose
 
 
-def _entity(type_text: str) -> EntityType:
-    return EntityType(re.sub("[ -]", "_", type_text.upper()))
+def _canonical(type_text: str) -> str:
+    return re.sub("[ -]", "_", type_text.upper())
+
+
+def _entity(type_text: str) -> EntityType | None:
+    """The type a matched name refers to; None if it isn't one (never raise on odd text)."""
+    return EntityType.__members__.get(_canonical(type_text))
 
 
 def _form(m: re.Match) -> str:
@@ -75,15 +86,35 @@ def _form(m: re.Match) -> str:
         return "unclosed"
     if opener != "[":
         return "brackets"
-    if m.group("sep") != "_" or m.group("type").upper() != _entity(m.group("type")).value:
+    if m.group("sep") != "_" or m.group("type").upper() != _canonical(m.group("type")):
         return "separator"
     if m.group("type") != m.group("type").upper():
         return "case"
     return "exact"
 
 
-def _mention(m: re.Match, form: str) -> Mention:
-    return Mention(m.start(), m.end(), _entity(m.group("type")), int(m.group("num")), form)
+def _mentions(matches: Iterable[re.Match], form: str | None = None) -> list[Mention]:
+    """Mentions for these matches (form computed per match unless given)."""
+    out = []
+    for m in matches:
+        entity = _entity(m.group("type"))
+        if entity is not None:
+            out.append(Mention(m.start(), m.end(), entity, int(m.group("num")),
+                               form or _form(m)))
+    return out
+
+
+def drop_overlapping(mentions: list[Mention], spans: list[tuple[int, int]]) -> list[Mention]:
+    """The mentions that overlap none of `spans`. Both are sorted by start and the spans
+    don't overlap each other, so one forward sweep is enough: linear, however many."""
+    kept, j = [], 0
+    for m in mentions:
+        while j < len(spans) and spans[j][1] <= m.start:
+            j += 1
+        if j < len(spans) and spans[j][0] < m.end:
+            continue
+        kept.append(m)
+    return kept
 
 
 def accepted_mentions(
@@ -93,13 +124,12 @@ def accepted_mentions(
     if not entities:
         return []
     bracketed, bare, _ = _patterns(frozenset(entities))
-    found = [_mention(m, _form(m)) for m in bracketed.finditer(text)
-             if m.group("close") == BRACKETS[m.group("open")]]
+    found = _mentions(m for m in bracketed.finditer(text)
+                      if m.group("close") == BRACKETS[m.group("open")])
     if bracketless:
         # A bracketed match wins over the bare name inside it: "[NAME_1]" is one mention.
         taken = [(m.start, m.end) for m in found]
-        found += [_mention(m, "bracketless") for m in bare.finditer(text)
-                  if not any(s < m.end() and m.start() < e for s, e in taken)]
+        found += drop_overlapping(_mentions(bare.finditer(text), "bracketless"), taken)
     return sorted(found, key=lambda m: m.start)
 
 
@@ -109,7 +139,7 @@ def loose_mentions(text: str, entities: Collection[EntityType]) -> list[Mention]
     if not entities:
         return []
     _, _, loose = _patterns(frozenset(entities))
-    return [_mention(m, _form(m)) for m in loose.finditer(text)]
+    return _mentions(loose.finditer(text))
 
 
 def _continues_type(body: str, name: str, case_sensitive: bool) -> int | None:
@@ -118,6 +148,8 @@ def _continues_type(body: str, name: str, case_sensitive: bool) -> int | None:
     for i, expected in enumerate(name):
         if i == len(body):
             return i
+        if not body[i].isascii():  # same rule as the patterns' re.ASCII
+            return None
         got = body[i] if case_sensitive else body[i].upper()
         if expected == "_" and not case_sensitive:
             if got not in _SEPARATORS:
@@ -138,8 +170,9 @@ def _could_continue(body: str, names: list[str], case_sensitive: bool) -> bool:
         if not rest:
             return True
         digits = rest[1:]
-        # isdecimal() is what the regexes' \d matches
-        if rest[0] in separators and (digits == "" or digits.isdecimal()) \
+        # ASCII digits only: what \d matches under re.ASCII
+        ascii_digits = digits.isascii() and digits.isdigit()
+        if rest[0] in separators and (digits == "" or ascii_digits) \
                 and len(digits) <= MAX_DIGITS:
             return True
     return False
@@ -156,7 +189,7 @@ def could_become_placeholder(
     names = [e.value for e in entities]
     if tail[0] in BRACKETS:
         return _could_continue(tail[1:], names, case_sensitive=False)
-    if bracketless and tail[0].isupper():
+    if bracketless and "A" <= tail[0] <= "Z":
         return _could_continue(tail, names, case_sensitive=True)
     return False
 

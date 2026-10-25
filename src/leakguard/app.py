@@ -156,8 +156,13 @@ def _relayed_headers(resp: httpx.Response) -> dict[str, str]:
     }
 
 
-def _restored_content(resp: httpx.Response, restorer: Restorer | None) -> bytes:
-    """The reply body with placeholders swapped back for real values (JSON replies only)."""
+def _restored_content(
+    resp: httpx.Response, restorer: Restorer | None,
+    on_restore_failed: Callable[[], None] | None = None,
+) -> bytes:
+    """The reply body with placeholders swapped back for real values (JSON replies only).
+    If restoring crashes (a bug), the reply is relayed as it came, still masked: the client
+    sees placeholders, never a leak, and never loses a reply it was already sent."""
     is_json = "application/json" in resp.headers.get("content-type", "")
     if restorer is None or not resp.is_success or not is_json:
         return resp.content
@@ -167,12 +172,23 @@ def _restored_content(resp: httpx.Response, restorer: Restorer | None) -> bytes:
         return resp.content
     if not isinstance(data, dict):
         return resp.content
-    return json.dumps(restore_response(data, restorer), ensure_ascii=False).encode("utf-8")
+    try:
+        restored = restore_response(data, restorer)
+    # Deliberately broad, as in the streaming relay: the reply must still reach the client.
+    except Exception:  # noqa: BLE001
+        if on_restore_failed:
+            on_restore_failed()
+        return resp.content
+    return json.dumps(restored, ensure_ascii=False).encode("utf-8")
 
 
-def _relay(resp: httpx.Response, restorer: Restorer | None = None) -> Response:
-    return Response(content=_restored_content(resp, restorer), status_code=resp.status_code,
-                    headers=_relayed_headers(resp), media_type=resp.headers.get("content-type"))
+def _relay(
+    resp: httpx.Response, restorer: Restorer | None = None,
+    on_restore_failed: Callable[[], None] | None = None,
+) -> Response:
+    return Response(content=_restored_content(resp, restorer, on_restore_failed),
+                    status_code=resp.status_code, headers=_relayed_headers(resp),
+                    media_type=resp.headers.get("content-type"))
 
 
 async def relay_stream(
@@ -291,7 +307,7 @@ async def _proxy_chat(
         # (restored) like a non-streaming reply.
         await sent.aread()
         await sent.aclose()
-    response = _relay(sent, restorer)
+    response = _relay(sent, restorer, lambda: log_restore_failed(request_id=ctx.request_id))
     ctx.finish(response.status_code)
     return response
 
