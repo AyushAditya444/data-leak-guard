@@ -25,7 +25,7 @@ Your app gets:    "Refund to rahul.s@okicici is on its way."
 | Bank account | 9–18 digits **with** account context ("a/c", "account", IFSC nearby) | mask |
 | Secrets | known key prefixes, `password=…`, `Bearer …`, high-entropy tokens | **block** (HTTP 400) |
 | Person name | NER model ([`xlm-roberta-base-ner-hrl`](https://huggingface.co/Davlan/xlm-roberta-base-ner-hrl), ONNX int8 on CPU, chosen from 5 candidates on dev: [comparison](docs/evaluation/ner-comparison.md)) + cue phrases for lowercase/all-caps names (`mera naam … hai`, `Name: …`) | mask |
-| Postal address | pieces (flat/house no., building, street, landmark, PIN code) + places from India Post's PIN directory and the name model's location tags, grouped into **one** span | mask |
+| Postal address | pieces (flat/house no., building, street, landmark, PIN code) + places from India Post's PIN directory and locality endings (Nagar, Colony, Layout…), grouped into **one** span; tuned on dev: [address tuning](docs/evaluation/address-tuning.md) | mask |
 
 **What counts as an address:** at least one specific detail (flat or house number, building, street, landmark like "near Hanuman Mandir", PIN code) **and** at least one place (locality, city, PIN), close together. So `Flat 302, Sai Krupa Apts, Kothrud, Pune 411038` and `near Hanuman Mandir, Kothrud` are masked as one `[ADDRESS_1]` each, while `I live in Pune`, `I live in Kothrud, Pune`, `stuck near Kothrud`, `near the metro station` and `OTP 411038` are not. A 6-digit number counts as a PIN only if it is a real PIN code and is not after words like "OTP" or "order".
 
@@ -39,21 +39,21 @@ Measured on a **held-out test set** of 1,600 synthetic messages (English, Hingli
 |---|---:|---:|---:|---:|---:|---:|
 | AADHAAR | 95 | 97.9% | 100.0% | 99.0% | 100.0% | 100.0% |
 | PAN | 197 | 100.0% | 87.3% | 93.2% | 85.1% | 100.0% |
-| PHONE | 397 | 97.4% | 93.7% | 95.5% | 94.2% | 100.0% |
-| UPI | 92 | 100.0% | 47.8% | 64.7% | 55.4% | 100.0% |
+| PHONE | 397 | 96.9% | 93.7% | 95.3% | 94.2% | 100.0% |
+| UPI | 92 | 100.0% | 47.8% | 64.7% | 56.6% | 100.0% |
 | EMAIL | 168 | 100.0% | 100.0% | 100.0% | 100.0% | 100.0% |
 | CARD | 72 | 100.0% | 100.0% | 100.0% | 100.0% | 100.0% |
 | IFSC | 72 | 100.0% | 100.0% | 100.0% | 100.0% | 100.0% |
 | BANK_ACCOUNT | 94 | 100.0% | 97.9% | 98.9% | 100.0% | 100.0% |
-| SECRET | 248 | 100.0% | 90.3% | 94.9% | 96.7% | 66.1% |
-| NAME | 364 | 97.6% | 89.3% | 93.3% | 89.8% | 95.4% |
-| ADDRESS | 271 | 99.6% | 89.7% | 94.4% | 94.3% | 81.9% |
-| **All built types** | **2070** | **98.9%** | **90.8%** | **94.7%** | **93.8%** | **92.8%** |
+| SECRET | 248 | 100.0% | 90.3% | 94.9% | 96.7% | 66.5% |
+| NAME | 364 | 97.8% | 87.4% | 92.3% | 88.2% | 95.9% |
+| ADDRESS | 271 | 99.6% | 88.9% | 94.0% | 93.7% | 89.2% |
+| **All built types** | **2070** | **98.8%** | **90.3%** | **94.4%** | **93.5%** | **93.9%** |
 
-- Negative messages (nothing sensitive) with at least one false alarm: 6 of 350 (1.7%).
-- UPI and PAN recall are pulled down by the known-hard formats (unknown UPI handles, spaced PANs); ADDRESS recall by `landmark_only` addresses ("near the metro station", no place), which are not addresses by the detector's definition. Both are broken down in the report.
-- Detection latency per message, one CPU thread: rules (including addresses) **0.167 ms** (p50); address detector alone **0.107 ms**; rules + name model p50 **17.003 ms**, p95 **40.905 ms**.
-- Hand-written set (93 messy real-style messages): **97.9%** precision, **93.0%** recall over built types.
+- Negative messages (nothing sensitive) with at least one false alarm: 5 of 350 (1.4%).
+- UPI and PAN recall are pulled down by the known-hard formats (unknown UPI handles, spaced PANs); ADDRESS recall by `landmark_only` addresses ("near the metro station", no place), which are not addresses by the detector's definition. A name absorbed into an address is still hidden but counts as a missed NAME. All broken down in the report.
+- Detection latency per message, one CPU thread: rules (including addresses) **0.175 ms** (p50); address detector alone **0.116 ms**; rules + name model p50 **17.340 ms**, p95 **41.144 ms**.
+- Hand-written set (93 messy real-style messages): **98.9%** precision, **92.0%** recall over built types.
 - *Matching rule:* same type and overlapping. *Coverage* = share of the sensitive characters actually hidden from the LLM.
 - Reproduce: `python -m leakguard.evaluation report`.
 

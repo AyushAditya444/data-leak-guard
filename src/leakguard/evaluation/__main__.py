@@ -46,7 +46,7 @@ NOTES = [
     "category holds more of their known-hard formats (unknown UPI handles, spaced PANs, "
     "numbers as words). On dev, adding the address detector changed no other type's "
     "recall."),
-    ("Every address setting (gap 24, the name model's location tags on, the place stop "
+    ("Every address setting (gap 24, the name model's location tags off, the place stop "
     "list) and every address detector fix (locality endings such as Layout/Colony as "
     "places, dropping a leading place joined only by ordinary words, absorbing a name that "
     "overlaps an address) was chosen from the dev split; see "
@@ -59,6 +59,17 @@ NOTES = [
     "PINs in generated addresses come from the same PIN directory the detector uses "
     "(snapshot downloaded 2026-10-25), so directory places are found by construction; "
     "about a quarter of generated addresses use an invented locality instead."),
+    ("A final code review of Phase 5 (a fresh reviewer probing the detector with its own "
+    "inputs) found address leaks around phone numbers and false addresses in everyday "
+    "prose (\"The ratio is 3/4, are you sure?\"). The fixes, a stop list of everyday words "
+    "built from a hand-written common-word list, and six everyday-prose negatives were "
+    "added; the dev tuning was re-run and this report regenerated. The test split was "
+    "not inspected for these fixes. The negatives still cover only a few kinds of everyday "
+    "prose, so precision on arbitrary chat may be lower than measured here."),
+    ("A name right next to an address can be absorbed into the ADDRESS span (surnames like "
+    "Sharma are also village names, and an address must never cut a name in half). The "
+    "name is still hidden, but the typed metrics count it as a missed NAME. On dev, the "
+    "address detector lowers NAME recall by 1.4 points while NAME coverage rises slightly."),
     ("`landmark_only` addresses (\"near the metro station\", no place) are labelled as "
     "addresses but are not addresses by the detector's definition, so they are counted as "
     "misses on purpose; see *Addresses by style*."),
@@ -86,7 +97,7 @@ def load_detector(require_names: bool) -> tuple[Detector, NameModel | None, Sett
     except NameModelError as exc:
         sys.exit(f"The name model could not be loaded ({exc}). "
                  "Run: python -m leakguard.ner.export")
-    return build_detector(ner=model.analyse), model, settings
+    return build_detector(model.detect), model, settings  # as deployed: names only
 
 
 def _memo(detect: Detector) -> Detector:
@@ -134,7 +145,7 @@ def cmd_report(_: argparse.Namespace) -> None:
     address_styles = {style: score([s for s in test if address_style(s.template) == style],
                                    cached).by_type[EntityType.ADDRESS] for style in styles}
     latencies = {"rules only": measure_latency(test, detect_rules),
-                 "rules + name model (names and location tags)": measure_latency(test, detect),
+                 "rules + name model": measure_latency(test, detect),
                  "address detector alone": measure_latency(test, detect_address)}
     md = render_report(results, latencies,
                        {"test": len(test), "handwritten": len(handwritten)}, hard_cases,

@@ -228,15 +228,15 @@ async def _proxy_chat(
     return response
 
 
-def _load_ner(settings: Settings) -> EntityModel | None:
-    """The model's analyse(): names, plus location tags that help the address detector
-    (kept because they improved address F1 and coverage on dev without costing precision;
-    see docs/evaluation/address-tuning.md)."""
+def _load_name_model(settings: Settings) -> Detector | None:
+    """The name model's detect(): names only. Its location tags are not used by the
+    address detector: on dev they raised recall and coverage but lowered precision, so the
+    pre-stated rule rejected them (docs/evaluation/address-tuning.md)."""
     if not settings.ner_enabled:
         log_ner_disabled()
         return None
     try:
-        return NameModel.load(settings.ner_model_dir, settings.ner_threads).analyse
+        return NameModel.load(settings.ner_model_dir, settings.ner_threads).detect
     except NameModelError as exc:
         raise NameModelError(
             f"NER model not found or invalid at {settings.ner_model_dir}: {exc}. "
@@ -256,10 +256,10 @@ def create_app(
     missing model stops the guard at startup."""
     policy = policy or load_policy(settings.policy_path)
     load_gazetteer()  # the PIN directory (~1 MB): load now, not on the first request
-    if name_model is not None:
-        detect = build_detector(name_model)
+    if ner is not None:
+        detect = build_detector(ner=ner)
     else:
-        detect = build_detector(ner=ner or _load_ner(settings))
+        detect = build_detector(name_model or _load_name_model(settings))
 
     @asynccontextmanager
     async def lifespan(app: FastAPI):

@@ -28,7 +28,7 @@ So the first decision was **not technical: what counts as an address?** Without 
 
 | Detail | Place |
 |---|---|
-| flat/house/plot no. (`Flat 302`, `H.No. 45`, `12/3`, `B-204`), building (`Sai Krupa Apts`), street (`MG Road`, `gali no 4`, `Sector 15`), landmark (`near Hanuman Mandir`, `Shiv Mandir ke paas`), PIN code | locality, city, district, state (from the PIN directory), a name with a locality ending (`Palm Grove Layout`), an NER location tag, PIN code |
+| flat/house/plot no. (`Flat 302`, `H.No. 45`, `12/3`, `B-204`), building (`Sai Krupa Apts`), street (`MG Road`, `gali no 4`, `Sector 15`), landmark (`near Hanuman Mandir`, `Shiv Mandir ke paas`), PIN code | locality, city, district, state (from the PIN directory), a name with a locality ending (`Palm Grove Layout`), PIN code |
 
 **Deliberately not masked:**
 
@@ -87,9 +87,9 @@ Each finder marks one kind of piece as a `Signal(start, end, kind, bare)`:
 | buildings | 1–3 name words + Apts/Society/Residency/Niwas/CHS/… | "the society meeting" is rejected (leading "the", no name left) |
 | `_streets` | `MG Road`, `Nehru Marg`, `45 Anna Salai`, `2nd Cross`, `gali no 4`, `Sector 15` | |
 | `_landmarks` | `near/opp./behind/next to` + a named thing; `X ke paas/saamne/peeche` | `near Kothrud` is **not** a landmark (the thing is just a place) |
-| places | gazetteer, locality endings (`Palm Grove Layout`), NER location tags | a place *inside* a landmark is dropped |
+| places | gazetteer, locality endings (`Palm Grove Layout`), NER location tags (if enabled; off by default, see §6) | a place *inside* a landmark is dropped |
 
-**Bare pieces.** A bare unit (`12/3`) or an uncued PIN (`411038`) is too common in other text (scores, dates, OTPs) to count on its own. A group needs at least one non-bare piece to become an address. That is what makes a pasted table of 20,000 six-digit codes produce **no** addresses (test `test_many_six_digit_numbers_is_fast`).
+**Bare pieces.** A bare unit (`12/3`) or an uncued PIN (`411038`) is too common in other text (scores, dates, OTPs) to count on its own. Two rules keep them in check: a group needs at least one non-bare piece, and a bare piece may join an address **only through separators**, never through words ("B-204, Baner" yes; "meeting on 12/3 in Pune" no). That is what makes a pasted table of 20,000 six-digit codes produce **no** addresses (test `test_many_six_digit_numbers_is_fast`).
 
 **"Bus Stand" is a post office.** So is "Hanuman Mandir". Two consequences, both found by tests:
 - a landmark whose name contains a landmark noun (mandir, stand, station…) stays a landmark even if it's also an office name;
@@ -105,13 +105,14 @@ The building and street patterns start with "up to 3 words, then a suffix". On `
 `detect_address(text, stops, locations, gap)`:
 
 1. find all signals; drop those overlapping a **stop** (spans other detectors already found);
-2. walk them left to right and chain neighbours into groups while the text between them, ignoring separators (`, ; : / . - & ( )` whitespace, "and"), has at most **gap** characters;
-3. never chain across a stop or a blank line; a house/flat number that follows a place with words in between starts a **new** address ("from Flat 2, Baner, Pune **to** H.No. 45, …" is two);
+2. walk them left to right and chain neighbours into groups while the text between them, ignoring separators (`, ; : / . - & ( )` whitespace, "and") **and stops**, has at most **gap** characters;
+3. never chain across a blank line; a bare piece joins only through separators; a house/flat number that follows a place with words in between starts a **new** address ("from Flat 2, Baner, Pune **to** H.No. 45, …" is two);
 4. drop a leading place joined to the rest only by ordinary words ("**Reddy** here, my new address is behind Axis Bank, …": Reddy is also a village);
-5. keep groups with a detail, a place and a non-bare piece; the span runs from the first piece to the last, trimmed and widened to whole words.
+5. keep groups with a detail, a place and a non-bare piece;
+6. emit one span per stretch between stops: "Flat 302, Green Valley Society, ph 9876543210, Kothrud, Pune" becomes ADDRESS + PHONE + ADDRESS. Each span is trimmed and widened to whole words, but never into a stop.
 
 ### Why the address detector runs *after* the other rules (`detect/engine.py`)
-Merging keeps the higher-priority span when two overlap. ADDRESS has low priority, so an address span that swallowed a phone number ("Pune 411038 9876543210") would lose to the PHONE and be **dropped whole**, leaking the address. So `detect_rules` runs every other detector first and passes their spans as `stops`: the address stops before the phone. Test: `test_address_stops_at_phone`.
+Merging keeps the higher-priority span when two overlap. ADDRESS has low priority, so an address span that swallowed a phone number ("Pune 411038 9876543210") would lose to the PHONE and be **dropped whole**, leaking the address. So `detect_rules` runs every other detector first and passes their spans as `stops`: no ADDRESS span overlaps them. Tests: `test_address_stops_at_phone`, `test_address_glued_to_a_phone_is_not_dropped`, `test_phone_inside_an_address_does_not_split_it`.
 
 ### Names inside addresses
 The spec says a name inside an address ("Sai Krupa Apts" tagged as a person) is absorbed. Dev showed a harder case: the surname *Sharma* is also a village, so in "customer Kavya Sharma, Flat 302, Kothrud" the address started **inside** the name; merging then dropped the NAME and "Kavya" leaked. `engine._merge` now widens an address over any name it overlaps (unless that name also overlaps something else, like an email). Test: `test_name_partly_inside_address_is_absorbed`.
@@ -137,7 +138,9 @@ One command, dev only, writes [address-tuning.md](../evaluation/address-tuning.m
 
 **Rule (written before running):** highest ADDRESS F1; within 1 F1 point, highest coverage, then the smaller gap. Location tags are kept only if they beat "off" on F1 or coverage *without* lowering precision.
 
-**Result:** gap **24**, location tags **on**: 100.0% precision, 91.1% recall, 95.3 F1, 95.1% coverage on dev, and **no** negative message flagged. Recall can't go much higher on dev: the 24 `landmark_only` addresses (8% of the dev addresses) are misses by definition.
+**Result (final run, after the review fixes in §7):** gap **24**, location tags **off**: 99.7% precision, 89.9% recall, 94.5 F1, 94.1% coverage on dev, 1 negative message flagged. Recall can't go much higher on dev: the 24 `landmark_only` addresses (8% of the dev addresses) are misses by definition.
+
+**Location tags were kept, then dropped, by the same rule.** On the first runs they won (95.3 vs 94.8 F1, no precision cost). After the review added everyday-prose negatives, they still raised recall and coverage but **lowered precision** (99.0% vs 99.7%): with them, "I live in Sunshine Enclave" became an address. The rule said "only if precision doesn't drop", so they are off. They remain available (`build_detector(ner=model.analyse)`) and the tuning still tries them. The interview point is to follow the rule you wrote down, even when it reverses an earlier result.
 
 Why a gap as wide as 24? Invented localities ("Green Glen Layout", 16 characters) sit *between* the known pieces; with a small gap the address split in two and part of it leaked.
 
@@ -147,49 +150,70 @@ Why a gap as wide as 24? Invented localities ("Green Glen Layout", 16 characters
 - leading places joined by ordinary words are dropped (§4);
 - the stop list gained 15 everyday/festival words seen matching outside addresses: `late`, `main`, `dena`, `tak`, `khata`, `naya`, `both`, `same`, `mango`, `bank`, `royal`, `diwali`, `raksha`, `bandhan`, `guru`. Surnames were deliberately **not** added (a list of names would be both endless and circular); the merge fix handles them.
 
-**Location tags.** `NameModel.analyse()` returns names *and* location ranges from the **same** model run, so they cost nothing extra. The model finds "Powai, Mumbai" but not lowercase Hinglish, which is why they're an extra signal, never the only one. The address detector works with NER off.
+**Location tags.** `NameModel.analyse()` returns names *and* location ranges from the **same** model run, so they cost nothing extra. The model finds "Powai, Mumbai" but not lowercase Hinglish, which is why they could only ever be an extra signal. The address detector works with NER off.
 
 ---
 
-## 7. Results on the test split
+## 7. The final review: two leaks, a slowdown and a blind spot
 
-From [report.md](../evaluation/report.md) (test split, 1,600 messages, run once):
+A fresh reviewer read the whole branch and probed the detector with its own inputs. It found four real problems, each fixed with a test that failed first:
+
+| Problem | Example | Fix |
+|---|---|---|
+| **Leak:** widening to whole words reached into a glued phone, so merging dropped the whole address | `Pune 411038ph9876543210` | widening stops at other detectors' values |
+| **Leak:** a phone *inside* an address split it, and the half with only details wasn't an address | `Flat 302, Green Valley Society, ph 9876543210, Kothrud, Pune` | chain across the phone, emit an ADDRESS on each side |
+| **Slow:** three "compare with every other span" loops | 120 KB of `Flat 1 12/3` took 8.5 s; 670 KB of records 24 s | `spans.Intervals`: sorted ranges + binary search |
+| **Blind spot:** everyday words are village names ("are", "her", "bad", "ghar"), and fractions joined them through words | `The ratio is 3/4, are you sure?` was an "address" | bare pieces join only through separators; common English/Hinglish words that are post offices go on the stop list (from a hand-written word list, **not** the evaluation data); six everyday-prose negatives added to the generator |
+
+The last one matters for honesty: my dev stop list had only been fitted to my own templates' words, so "0 negatives flagged" said little about real chat. After the fixes the dev tuning was re-run and the report regenerated. The test split was not looked at for any of this.
+
+Deferred (minor, listed in the PR): dotted place names like "Y.S.R." never match; a name bridging two addresses can drop one; a blank line inside an address splits it; trailing words after the last known piece leak ("Kumar Pebble Park" leaves "Pebble Park"); the directory's 165k office records stay in memory (~73 MB) though only the evaluation needs them.
+
+---
+
+## 8. Results on the test split
+
+From [report.md](../evaluation/report.md) (test split, 1,600 messages):
 
 | | Precision | Recall | F1 | Coverage | Exact |
 |---|---:|---:|---:|---:|---:|
-| ADDRESS (271 addresses) | 99.6% | 89.7% | 94.4% | 94.3% | 81.9% |
+| ADDRESS (271 addresses) | 99.6% | 88.9% | 94.0% | 93.7% | 89.2% |
 
-By style: every style except `landmark_only` has **93–100% recall**; `landmark_only` is 0%, as defined. Hand-written set: 96.4% precision and recall on 28 addresses. The address detector alone takes **0.11 ms** per message (p50); the whole pipeline is dominated by the name model (~17 ms).
+By style: every style except `landmark_only` has **92–100% recall**; `landmark_only` is 0%, as defined. Hand-written set: **100% precision**, 92.9% recall on 28 addresses, and no hand-written negative flagged. The address detector alone takes about **0.12 ms** per message (p50); the whole pipeline is dominated by the name model (~17 ms).
 
 ### What it gets wrong (and why)
 - **Landmark-only addresses** ("near the old post office"): by definition. A follow-up could mask them when the message says it's an address ("my address is near…").
 - **Partial addresses with an unknown locality** ("H.No. 41, Sunshine Enclave"): no place piece, so no address. "Enclave" is a building word, and the locality isn't in the directory.
 - **Spaced PINs** ("pincode-411 038"): known-hard, in the hand-written set.
-- **Boundaries in lowercase Hinglish:** "**bhai** shivaji park ke paas, …" also masks "bhai", and "the Gurudwara ke paas" loses "the". That's one filler word too many or too few: harmless for leaks, but it's why Exact is 0% for the `hinglish` and `abbrev` styles. Noticed while reading the test report, so it was **not** fixed in this phase (fixing it from test would make the test numbers optimistic).
+- **Trailing unknown words** ("Plot 116, Kumar Pebble Park" leaves "Pebble Park" visible): the span ends at the last recognised piece. Coverage counts this.
+- **Boundaries:** Exact is 0% for the `abbrev` style. The span covers the whole address but differs by a word or so at an edge. It was noticed while reading a test report, so it was **not** tuned away.
+- **Names next to addresses** can be absorbed into the ADDRESS span: still hidden, but counted as a missed NAME. On dev that costs 1.4 points of NAME recall while NAME coverage rises slightly.
 
 ### Honest caveats (also in the report's notes)
 - The same author wrote the keyword lists, the generator's vocabulary and the hand-written addresses.
 - The generator's invented localities in *both* splits often end in Layout/Colony/Extn, which the detector recognises, so recall on those may be optimistic.
-- Directory places are found by construction, because generator and detector use the same directory. Real users' localities that aren't post offices depend on the endings and the NER tags.
+- Directory places are found by construction, because generator and detector use the same directory. Real users' localities that aren't post offices depend on the endings.
+- The negatives cover only a few kinds of everyday prose, so precision on arbitrary chat may be lower than measured.
 - Other types' rows moved from the Phase 4 report because the `hard` category grew (170 messages per split, so every address style reaches 20 samples). On dev, adding the address detector changed no other type's recall.
 
 ---
 
-## 8. Wiring and Docker
+## 9. Wiring and Docker
 
-- `app.create_app` builds the detector with `build_detector(ner=model.analyse)`: names and location tags from one model run. With `LEAKGUARD_NER=off` it's rules only, addresses included.
+- `app.create_app` builds the detector with `build_detector(model.detect)`: rules (addresses included) plus names. Location tags are off (§6). With `LEAKGUARD_NER=off` it's rules only, addresses still included.
 - It also calls `load_gazetteer()` **at startup**. Found while testing the Docker image: the first request after a restart spent **754 ms** in detection loading the 1 MB directory lazily; now it's 42 ms. It also means missing data stops the guard at boot, not mid-request.
 - The bundled files ship inside the package (`pyproject.toml` package-data: `data/*.gz`). The image grew by about 10 MB (1.02 → 1.03 GB) and still has no PyTorch.
 - In Docker, "Deliver to Flat 302, Sai Krupa Apts, Kothrud, Pune 411038, call 9820031476" logs `{"ADDRESS:mask": 1, "PHONE:mask": 1}` and the reply comes back with both restored. "Your OTP is 411038, I live in Pune" logs no findings.
 
 ---
 
-## 9. Interview Q&A
+## 10. Interview Q&A
 
-- **How do you detect addresses?** Small rules for each piece (units, buildings, streets, landmarks, PINs), places from India Post's directory and the NER model, then an assembler that groups nearby pieces and keeps groups with a detail and a place. One knob, the gap, tuned on dev.
+- **How do you detect addresses?** Small rules for each piece (units, buildings, streets, landmarks, PINs), places from India Post's directory, then an assembler that groups nearby pieces and keeps groups with a detail and a place. One knob, the gap, tuned on dev.
 - **Why not train a model?** I'd have to train it on my own generated data, so it would learn my generator and the test would grade itself. Rules make every miss explainable, run in 0.1 ms, and need no GPU.
 - **How do you avoid flagging OTPs?** A 6-digit number counts only if it's a real PIN, isn't after OTP/order/ticket…, and sits next to another address piece (or after "pincode"). The negatives include real PINs used as OTPs and order numbers: 0 of them flagged on dev.
 - **What's coverage and why report it?** The share of the address's characters actually hidden. A detector that masks "Kothrud, Pune 411038" but leaves "Flat 302, Sai Krupa Apts" visible "overlaps" the gold span, and still leaked the flat.
-- **What was the nastiest bug?** Two. A regex that was quadratic on one long word (108 s → <0.4 s, caught by an old adversarial test). And a privacy bug only real data showed: surnames that are also village names made an address start inside a name, so merging dropped the name and leaked the first name.
+- **What was the nastiest bug?** Three. A regex that was quadratic on one long word (108 s → <0.4 s, caught by an old adversarial test). A privacy bug only realistic data showed: surnames that are also village names made an address start inside a name, so merging dropped the name and leaked the first name. And one the final review found: a phone number *inside* an address split it, and the half without a city leaked.
+- **Your location-tag feature: kept or dropped?** Dropped, by my own pre-stated rule: once the negatives included everyday prose, the tags cost precision. I followed the rule even though it reversed an earlier result.
 - **Why does the address detector run after the other rules?** Because merging keeps the higher-priority span: an address that overlapped a phone would be dropped whole. Running last, with the other spans as stops, means it ends before the phone.
 - **What would you do next?** Mask landmark-only addresses when the text says "my address is…"; tighten the Hinglish landmark boundaries; add a small city/locality alias list for spellings people type (Bombay → Mumbai is done; Gurgaon sectors, "Blr").
