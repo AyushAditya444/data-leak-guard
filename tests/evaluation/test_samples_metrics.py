@@ -94,3 +94,16 @@ def test_evaluation_json_round_trip():
     back = evaluation_from_json(data)
     assert back.by_type == ev.by_type
     assert (back.negatives_total, back.negatives_with_fp) == (1, 0)
+
+
+def test_negative_false_alarm_types_are_recorded():
+    neg = _sample("call me at 5pm", "negative", "n1")
+    ev = score([neg], lambda text: [Span(0, 4, T.PHONE), Span(11, 14, T.NAME),
+                                    Span(5, 7, T.PHONE)])
+    assert ev.negative_fp_types == [("NAME", "PHONE")]
+    back = evaluation_from_json(json.loads(json.dumps(evaluation_to_json(ev))))
+    assert back.negative_fp_types == [("NAME", "PHONE")]
+    # results written before this field existed still load
+    old = evaluation_to_json(ev)
+    del old["negative_fp_types"]
+    assert evaluation_from_json(old).negative_fp_types == []

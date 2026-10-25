@@ -74,6 +74,9 @@ class Evaluation:
     by_category_type: dict[tuple[str, EntityType], TypeScores] = field(default_factory=dict)
     negatives_total: int = 0
     negatives_with_fp: int = 0
+    # per negative message with a false alarm: the types it was flagged as (no text), so a
+    # report can count false alarms within any set of types
+    negative_fp_types: list[tuple[str, ...]] = field(default_factory=list)
     errors: list[ErrorCase] = field(default_factory=list)
 
 
@@ -145,6 +148,8 @@ def score(samples: Iterable[Sample], detect: Callable[[str], list[Span]],
         if sample.category == NEGATIVE:
             ev.negatives_total += 1
             ev.negatives_with_fp += bool(unmatched)
+            if unmatched:
+                ev.negative_fp_types.append(tuple(sorted({str(p.type) for p in unmatched})))
 
     ev.by_type = dict(by_type)
     ev.by_category = dict(by_category)
@@ -156,10 +161,12 @@ def evaluation_to_json(ev: Evaluation) -> dict:
     """Per-type counts only (no error examples, so no message text): safe to commit."""
     return {"by_type": {str(entity): asdict(st) for entity, st in ev.by_type.items()},
             "negatives_total": ev.negatives_total,
-            "negatives_with_fp": ev.negatives_with_fp}
+            "negatives_with_fp": ev.negatives_with_fp,
+            "negative_fp_types": [list(types) for types in ev.negative_fp_types]}
 
 
 def evaluation_from_json(data: dict) -> Evaluation:
     return Evaluation(
         by_type={EntityType(entity): TypeScores(**st) for entity, st in data["by_type"].items()},
-        negatives_total=data["negatives_total"], negatives_with_fp=data["negatives_with_fp"])
+        negatives_total=data["negatives_total"], negatives_with_fp=data["negatives_with_fp"],
+        negative_fp_types=[tuple(t) for t in data.get("negative_fp_types", [])])

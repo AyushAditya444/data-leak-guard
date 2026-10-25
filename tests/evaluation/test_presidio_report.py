@@ -73,3 +73,38 @@ def test_tuning_page_lists_chosen_thresholds():
                        "fn": 1, "f1": 0.5 + t / 100} for t in range(20)]}
     md = render_presidio_tuning(dev)
     assert _row(md, "| PERSON")[1] == "0.35"
+
+
+def test_baseline_page_scopes_false_alarms():
+    results = _results()
+    for engine in ("presidio_out_of_box", "presidio_best_shot"):
+        results["engines"][engine]["test"] = {
+            **results["engines"][engine]["test"], "negatives_with_fp": 3,
+            "negative_fp_types": [["ADDRESS"], ["NAME"], ["ADDRESS", "PHONE"]]}
+    results["engines"]["ours"]["test"]["negative_fp_types"] = [["PHONE"]]
+    md = render_presidio_baseline(results, [])
+    row = _row(md, "| Presidio, best shot |")
+    assert row[1] == "3 of 10" and row[2] == "2 of 10"  # ADDRESS-only alarms leave scope
+    assert _row(md, "| Ours |")[1:3] == ["1 of 10", "1 of 10"]
+
+
+def test_presidio_run_reexecs_with_a_fixed_hash_seed(monkeypatch):
+    # Presidio returns equal-score results in an order that depends on Python's hash seed;
+    # the run re-starts itself with PYTHONHASHSEED=0 so it can be reproduced exactly.
+    import argparse
+    import subprocess
+
+    import pytest
+
+    from leakguard.evaluation import __main__ as cli
+
+    calls = []
+    monkeypatch.delenv("PYTHONHASHSEED", raising=False)
+    monkeypatch.setattr(subprocess, "run", lambda cmd, env, check: calls.append((cmd, env))
+                        or subprocess.CompletedProcess(cmd, 0))
+    with pytest.raises(SystemExit) as exit_info:
+        cli.cmd_presidio_run(argparse.Namespace(split="test"))
+    assert exit_info.value.code == 0
+    cmd, env = calls[0]
+    assert env["PYTHONHASHSEED"] == "0"
+    assert cmd[-3:] == ["presidio-run", "--split", "test"]

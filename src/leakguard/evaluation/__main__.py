@@ -3,6 +3,8 @@
 import argparse
 import asyncio
 import json
+import os
+import subprocess
 import sys
 from pathlib import Path
 
@@ -239,8 +241,15 @@ PRESIDIO_NOTES = [
      "default (`MERGE_SIMILAR_OR_CONTAINED`, then joining same-type results separated only by "
      "spaces), as read from the pinned presidio-anonymizer source. Scoring raw overlaps would "
      "count each duplicate as a false alarm."),
-    ("The best-shot thresholds were chosen on dev only. This test run was made once, after "
+    ("The best-shot thresholds were chosen on dev only. The test comparison was run after "
      "they were fixed, and changed nothing."),
+    ("The test comparison was run a second time after the final code review, with no setting "
+     "changed, for two reasons: to record which types each false alarm had (so false alarms "
+     "can be counted on the types both engines support, above), and with Python's hash seed "
+     "fixed (`PYTHONHASHSEED=0`). Presidio returns some equal-score results in an order that "
+     "depends on that seed, so the tie-break between them, and a few counts, moved between "
+     "runs. `presidio-run` now fixes the seed itself. The dev tuning reproduced exactly and "
+     "was not re-run."),
     ("The data, its labels and our detectors were written by the same author, so our engine "
      "has a home advantage: the message styles are the ones it was built for. Presidio was "
      "not built for Indian identifiers, UPI or Hinglish; this page measures how much that "
@@ -249,6 +258,14 @@ PRESIDIO_NOTES = [
 
 
 def cmd_presidio_run(args: argparse.Namespace) -> None:
+    # Presidio returns some equal-score results in an order that depends on Python's hash
+    # seed, which changes the tie-break between them. Re-run this command with a fixed seed
+    # so the committed numbers can be reproduced exactly.
+    if os.environ.get("PYTHONHASHSEED") != "0":
+        done = subprocess.run([sys.executable, "-m", "leakguard.evaluation", "presidio-run",
+                               "--split", args.split],
+                              env={**os.environ, "PYTHONHASHSEED": "0"}, check=False)
+        sys.exit(done.returncode)
     from leakguard.evaluation import presidio_run
 
     if args.split == "dev":

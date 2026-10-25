@@ -82,6 +82,19 @@ def _detail(results: dict, engine: str, split: str) -> list[str]:
     return lines
 
 
+def _false_alarms(results: dict) -> list[str]:
+    """Clean messages flagged at all, and flagged on a type both engines support. The
+    second column leaves out ADDRESS, where Presidio flags place names by design."""
+    both = {str(entity) for entity in BOTH_SUPPORT}
+    lines = ["| Engine | Any type | Types both support |", "|---|---:|---:|"]
+    for engine, label in ENGINES:
+        test = results["engines"][engine]["test"]
+        total = test["negatives_total"]
+        scoped = sum(1 for types in test.get("negative_fp_types", []) if both & set(types))
+        lines.append(f"| {label} | {test['negatives_with_fp']} of {total} | {scoped} of {total} |")
+    return lines
+
+
 def _indian_sentence(meta: dict) -> str:
     defaults = meta["indian_defaults"]
     version = meta["versions"].get("presidio-analyzer", "?")
@@ -129,6 +142,10 @@ def render_presidio_baseline(results: dict, notes: Sequence[str]) -> str:
         "ADDRESS precision and recall are not like for like; coverage is the fairer measure. "
         "*Types both support* adds up AADHAAR, PAN, PHONE, EMAIL, CARD and NAME the same way "
         "for every engine."),
+        "",
+        "## False alarms on messages with nothing sensitive (test split)",
+        "",
+        *_false_alarms(results),
         "",
     ]
     for split, title in (("test", "Test split"), ("handwritten", "Hand-written set")):
