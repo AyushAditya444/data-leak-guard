@@ -7,7 +7,7 @@ from leakguard.ner.model import NameModel, NameModelError
 ID2LABEL = {"0": "O", "1": "B-MISC", "2": "I-MISC", "3": "B-PER", "4": "I-PER", "5": "B-ORG",
             "6": "I-ORG", "7": "B-LOC", "8": "I-LOC"}
 VOCAB = {"[PAD]": 0, "[UNK]": 1, "[CLS]": 2, "[SEP]": 3, "rahul": 4, "sharma": 5, "word": 6,
-         "hi": 7, "i": 8, "am": 9}
+         "hi": 7, "i": 8, "am": 9, "kothrud": 10}
 RAHUL, SHARMA = VOCAB["rahul"], VOCAB["sharma"]
 
 
@@ -21,7 +21,8 @@ def _tokenizer(truncate_at: int | None = None) -> Tokenizer:
 
 
 class FakeSession:
-    """Stands in for onnxruntime.InferenceSession: "rahul" -> B-PER, "sharma" -> I-PER."""
+    """Stands in for onnxruntime.InferenceSession: "rahul" -> B-PER, "sharma" -> I-PER,
+    "kothrud" -> B-LOC."""
 
     def __init__(self):
         self.calls = []
@@ -32,7 +33,7 @@ class FakeSession:
         self.calls.append(ids.shape)
         logits = np.full((*ids.shape, len(ID2LABEL)), -5.0, dtype=np.float32)
         logits[..., 0] = 5.0
-        for label, token in ((3, RAHUL), (4, SHARMA)):
+        for label, token in ((3, RAHUL), (4, SHARMA), (7, VOCAB["kothrud"])):
             hit = ids == token
             logits[hit, 0], logits[hit, label] = -5.0, 5.0
         return [logits]
@@ -117,3 +118,14 @@ def test_load_can_use_another_model_file(tmp_path):
         (tmp_path / name).write_bytes(b"")
     with pytest.raises(NameModelError, match="model.fp32.onnx"):
         NameModel.load(tmp_path, model_file="model.fp32.onnx")
+
+
+def test_analyse_returns_names_and_locations_in_one_run():
+    session = FakeSession()
+    model = _model(session=session)
+    text = "I am Rahul Sharma from Kothrud"
+    entities = model.analyse(text)
+    assert [s.text(text) for s in entities.names] == ["Rahul Sharma"]
+    assert [text[a:b] for a, b in entities.locations] == ["Kothrud"]
+    assert len(session.calls) == 1
+    assert model.detect(text) == entities.names

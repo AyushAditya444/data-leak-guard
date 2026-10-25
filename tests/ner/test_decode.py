@@ -1,7 +1,12 @@
 import pytest
 
 from leakguard.entities import EntityType as T
-from leakguard.ner.decode import decode_names, person_label_ids
+from leakguard.ner.decode import (
+    decode_locations,
+    decode_names,
+    location_label_ids,
+    person_label_ids,
+)
 
 # dslim/bert-base-NER's label set
 ID2LABEL = {0: "O", 1: "B-MISC", 2: "I-MISC", 3: "B-PER", 4: "I-PER", 5: "B-ORG", 6: "I-ORG",
@@ -93,3 +98,25 @@ def test_name_inside_email_stays_inside_the_word_part():
     text = "mail rahul.sharma@gmail.com"
     pieces = ["mail", "rahul", ".", "sharma", "@", "gmail", ".", "com"]
     assert _texts(text, _decode(text, pieces, [O, B, O, O, O, O, O, O])) == ["rahul"]
+
+
+# --- Phase 5: location tags, used only as address signals --------------------------------
+
+def test_location_labels_found():
+    assert location_label_ids(ID2LABEL) == (frozenset({7}), frozenset({8}))
+    assert location_label_ids({0: "O", 1: "location", 2: "person"}) == (
+        frozenset({1}), frozenset({1}))
+
+
+def test_no_location_labels_is_empty():
+    assert location_label_ids({0: "O", 1: "B-PER", 2: "I-PER"}) == (frozenset(), frozenset())
+
+
+def test_decode_locations_whole_words():
+    text = "Flat 2, Kothrud, Pune"
+    begin, inside = location_label_ids(ID2LABEL)
+    pieces = ["Flat", "2", ",", "Koth", "rud", ",", "Pu", "ne"]
+    labels = [O, O, O, 7, 8, O, 7, O]  # "ne" missed: the range still covers "Pune"
+    found = decode_locations(text, _offsets(text, pieces), labels, [0.99] * 8, begin, inside,
+                             0.5)
+    assert [text[s:e] for s, e in found] == ["Kothrud", "Pune"]

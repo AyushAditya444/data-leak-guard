@@ -56,3 +56,15 @@ def test_address_next_to_email_kept_separate():
     text = "B-204, Baner, Pune, email a@b.com"
     assert _kinds(text, detect_rules(text)) == [
         (T.ADDRESS, "B-204, Baner, Pune"), (T.EMAIL, "a@b.com")]
+
+
+def test_ner_locations_reach_address():
+    from leakguard.ner.model import Entities
+    text = "Flat 2, Hiranandani Meadows"  # an invented locality: not in the PIN directory
+    start = text.index("Hiranandani")
+
+    def fake_ner(t):
+        return Entities(names=[], locations=[(start, len(t))] if t == text else [])
+
+    assert _kinds(text, build_detector(name_model=None)(text)) == []
+    assert _kinds(text, build_detector(ner=fake_ner)(text)) == [(T.ADDRESS, text)]
