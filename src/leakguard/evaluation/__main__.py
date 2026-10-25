@@ -283,6 +283,23 @@ def cmd_presidio_report(_: argparse.Namespace) -> None:
         print(f"wrote {path}")
 
 
+def cmd_perf_run(_: argparse.Namespace) -> None:
+    from leakguard.evaluation import perf_run
+
+    out = DATA / "perf.json"
+    out.write_text(json.dumps(perf_run.run(), indent=1) + "\n", encoding="utf-8", newline="\n")
+    print(f"wrote {out}")
+
+
+def cmd_perf_report(_: argparse.Namespace) -> None:
+    from leakguard.evaluation.perf_report import render_performance
+
+    results = json.loads((DATA / "perf.json").read_text(encoding="utf-8"))
+    out = Path("docs/evaluation/performance.md")
+    out.write_text(render_performance(results) + "\n", encoding="utf-8", newline="\n")
+    print(f"wrote {out}")
+
+
 def main() -> None:
     # Hindi text and symbols like "⏎" must not crash a legacy (cp1252) Windows console:
     # characters the console can't show are replaced instead of raising.
@@ -307,10 +324,15 @@ def main() -> None:
                           "[baseline] extra): dev tunes thresholds, test is run once")
     prun.add_argument("--split", required=True, choices=["dev", "test"])
     sub.add_parser("presidio-report", help="render the Presidio pages from data/eval/presidio-*.json")
+    sub.add_parser("perf-run", help="measure speed, memory and token cost (needs Docker, the "
+                   "name model and the [perf] extra)")
+    sub.add_parser("perf-report", help="render docs/evaluation/performance.md from "
+                   "data/eval/perf.json")
     args = parser.parse_args()
     {"generate": cmd_generate, "report": cmd_report, "errors": cmd_errors,
      "restore-run": cmd_restore_run, "restore-report": cmd_restore_report,
      "presidio-run": cmd_presidio_run, "presidio-report": cmd_presidio_report,
+     "perf-run": cmd_perf_run, "perf-report": cmd_perf_report,
      }[args.command](args)
 
 
