@@ -78,6 +78,8 @@ def _chains(text: str, group: list[Signal], end: int, signal: Signal, gap: int,
     if _BLANK_LINE.search(text, end, signal.start):
         return False  # a blank line ends a block of text
     other_text = _other_text(text, end, signal.start, stops)
+    if other_text and (signal.bare or group[-1].bare):
+        return False  # "12/3" or "#45" joins an address only directly: "meeting on 12/3 in Pune"
     if (other_text and signal.kind == "unit" and not signal.bare
             and any(s.kind in PLACE_KINDS for s in group)):
         return False  # "Flat 2, Baner, Pune to H.No. 45, ...": a second address starts

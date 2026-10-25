@@ -92,3 +92,30 @@ def test_long_repetitive_messages_stay_fast(text):
     started = time.perf_counter()
     detect_address(text)
     assert time.perf_counter() - started < 2.0
+
+
+@pytest.mark.parametrize("text", [
+    "The ratio is 3/4, are you sure?",
+    "Order #45 was late and the man said wait",
+    "Please summarise chapter 3/4 for her",
+    "meeting on 12/3 in Pune",
+    "India scored 245/6 against Australia in Mumbai",
+    "rating 4/5 for the Jaipur hotel",
+    "I need 1/2 kg rice in Delhi",
+    "Bangalore traffic on MG Road is bad",
+    "Ticket #4521 is still open, are you sure it was fixed?",
+    "mera ghar wala kab aayega, paisa diya tha",
+])
+def test_everyday_chat_is_not_an_address(text):
+    # Fractions, scores and "#N" are bare pieces; everyday words like "are", "her" and
+    # "bad" are also village names in the PIN directory.
+    assert _found(text) == []
+
+
+@pytest.mark.parametrize("text, address", [
+    ("Send it to B-204, Baner, Pune please", "B-204, Baner, Pune"),
+    ("I'm at #45, Kothrud, Pune 411038", "#45, Kothrud, Pune 411038"),
+    ("deliver at 12/3, Laxmi Nagar, Delhi", "12/3, Laxmi Nagar, Delhi"),
+])
+def test_bare_units_still_start_real_addresses(text, address):
+    assert _found(text) == [address]

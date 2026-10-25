@@ -160,6 +160,14 @@ TEMPLATES: dict[str, list[str]] = {
         "Meet me near the station after work.",
         "Is cash on delivery available in {~PLACE}?",
         "Use code {~PIN_LIKE} at checkout for 10% off.",
+        # Added after the final review: everyday prose with fractions, scores, "#N" and city
+        # names, which the address detector must leave alone.
+        "Rating 4/5 for the {~PLACE} hotel, would book again.",
+        "India scored 245/6 against Australia in {~CITY}, what a match!",
+        "I need 1/2 kg rice delivered in {~PLACE} by evening, is that possible?",
+        "Order #45 was late and the man said wait, are you sure it is coming?",
+        "The ratio is 3/4 in {~CITY}, are you sure about these numbers?",
+        "Ticket #4521 is still open for my {~CITY} order, please check.",
     ],
     # Real formats the rules are known not to handle. Expected misses, measured honestly.
     "hard": [
