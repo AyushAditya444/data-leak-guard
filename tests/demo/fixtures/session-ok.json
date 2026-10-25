@@ -1,0 +1,324 @@
+{
+ "meta": {
+  "recorded": "2026-10-25",
+  "upstream": "mock",
+  "model": "mock",
+  "guard_commit": "abc1234"
+ },
+ "scenes": {
+  "title": {
+   "show": {
+    "title": "Data Leak Guard",
+    "highlight": [],
+    "beats": 1,
+    "expect": "none"
+   }
+  },
+  "one_line": {
+   "show": {
+    "title": "The one line you change",
+    "highlight": [],
+    "beats": 1,
+    "expect": "none"
+   }
+  },
+  "core": {
+   "show": {
+    "title": "A support message",
+    "highlight": [
+     "Priya Sharma",
+     "9876543210",
+     "2345 6789 0124"
+    ],
+    "beats": 3,
+    "expect": "masked"
+   },
+   "app_sent": [
+    {
+     "role": "system",
+     "content": "Be brief."
+    },
+    {
+     "role": "user",
+     "content": "I'm Priya Sharma, phone 9876543210, Aadhaar 2345 6789 0124."
+    }
+   ],
+   "stream": false,
+   "wire": [
+    {
+     "messages": [
+      {
+       "role": "system",
+       "content": "Be brief."
+      },
+      {
+       "role": "user",
+       "content": "I'm [NAME_1], phone [PHONE_1], Aadhaar [AADHAAR_1]."
+      }
+     ],
+     "status": 200,
+     "chunks": [
+      [
+       0.61,
+       "Thanks [NAME_1], I have [PHONE_1] and [AADHAAR_1]."
+      ]
+     ]
+    }
+   ],
+   "app_got": {
+    "status": 200,
+    "text": "Thanks Priya Sharma, I have 9876543210 and 2345 6789 0124.",
+    "chunks": []
+   },
+   "log": {
+    "event": "request",
+    "request_id": "abc",
+    "status": 200,
+    "stream": false,
+    "blocked": false,
+    "findings": {
+     "AADHAAR:mask": 1,
+     "NAME:mask": 1,
+     "PHONE:mask": 1
+    },
+    "restored": 2,
+    "unrestored": 0,
+    "detection_ms": 18.2,
+    "upstream_ms": 640.1,
+    "total_ms": 660.0
+   }
+  },
+  "stream": {
+   "show": {
+    "title": "Streaming",
+    "highlight": [
+     "9123456780"
+    ],
+    "beats": 3,
+    "expect": "masked"
+   },
+   "app_sent": [
+    {
+     "role": "system",
+     "content": "Be brief."
+    },
+    {
+     "role": "user",
+     "content": "Call me on 9123456780."
+    }
+   ],
+   "stream": true,
+   "wire": [
+    {
+     "messages": [
+      {
+       "role": "system",
+       "content": "Be brief."
+      },
+      {
+       "role": "user",
+       "content": "Call me on [PHONE_1]."
+      }
+     ],
+     "status": 200,
+     "chunks": [
+      [
+       0.2,
+       "I'll call "
+      ],
+      [
+       0.25,
+       "[PHO"
+      ],
+      [
+       0.3,
+       "NE_1]"
+      ],
+      [
+       0.35,
+       " soon."
+      ]
+     ]
+    }
+   ],
+   "app_got": {
+    "status": 200,
+    "text": "I'll call 9123456780 soon.",
+    "chunks": [
+     [
+      0.21,
+      "I'll call "
+     ],
+     [
+      0.31,
+      "9123456780"
+     ],
+     [
+      0.36,
+      " soon."
+     ]
+    ]
+   },
+   "log": {
+    "event": "request",
+    "request_id": "abc",
+    "status": 200,
+    "stream": true,
+    "blocked": false,
+    "findings": {
+     "PHONE:mask": 1
+    },
+    "restored": 1,
+    "unrestored": 0,
+    "detection_ms": 18.2,
+    "upstream_ms": 640.1,
+    "total_ms": 660.0
+   }
+  },
+  "secret": {
+   "show": {
+    "title": "A pasted secret",
+    "highlight": [],
+    "beats": 2,
+    "expect": "blocked"
+   },
+   "app_sent": [
+    {
+     "role": "system",
+     "content": "Be brief."
+    },
+    {
+     "role": "user",
+     "content": "DB_PASSWORD=Monsoon@2026!pune"
+    }
+   ],
+   "stream": false,
+   "wire": [],
+   "app_got": {
+    "status": 400,
+    "text": "Request blocked: it contains sensitive data (SECRET).",
+    "chunks": []
+   },
+   "log": {
+    "event": "request",
+    "request_id": "abc",
+    "status": 400,
+    "stream": false,
+    "blocked": true,
+    "findings": {
+     "SECRET:block": 1
+    },
+    "restored": 0,
+    "unrestored": 0,
+    "detection_ms": 18.2,
+    "upstream_ms": 640.1,
+    "total_ms": 660.0
+   }
+  },
+  "lookalike": {
+   "show": {
+    "title": "Look-alikes",
+    "highlight": [],
+    "beats": 2,
+    "expect": "unchanged"
+   },
+   "app_sent": [
+    {
+     "role": "system",
+     "content": "Be brief."
+    },
+    {
+     "role": "user",
+     "content": "My OTP is 411038."
+    }
+   ],
+   "stream": false,
+   "wire": [
+    {
+     "messages": [
+      {
+       "role": "system",
+       "content": "Be brief."
+      },
+      {
+       "role": "user",
+       "content": "My OTP is 411038."
+      }
+     ],
+     "status": 200,
+     "chunks": [
+      [
+       0.5,
+       "Your order ships soon."
+      ]
+     ]
+    }
+   ],
+   "app_got": {
+    "status": 200,
+    "text": "Your order ships soon.",
+    "chunks": []
+   },
+   "log": {
+    "event": "request",
+    "request_id": "abc",
+    "status": 200,
+    "stream": false,
+    "blocked": false,
+    "findings": {},
+    "restored": 0,
+    "unrestored": 0,
+    "detection_ms": 18.2,
+    "upstream_ms": 640.1,
+    "total_ms": 660.0
+   }
+  },
+  "log": {
+   "show": {
+    "title": "What the guard logs",
+    "highlight": [],
+    "beats": 1,
+    "expect": "none"
+   }
+  },
+  "results": {
+   "show": {
+    "title": "Compared with Presidio",
+    "highlight": [],
+    "beats": 2,
+    "expect": "none"
+   }
+  },
+  "outro": {
+   "show": {
+    "title": "Try it",
+    "highlight": [],
+    "beats": 1,
+    "expect": "none"
+   }
+  }
+ },
+ "results": {
+  "ours": {
+   "label": "Ours",
+   "f1": 0.953,
+   "coverage": 0.939,
+   "false_alarms": 4,
+   "negatives": 350
+  },
+  "presidio_out_of_box": {
+   "label": "Presidio, out of the box",
+   "f1": 0.626,
+   "coverage": 0.796,
+   "false_alarms": 67,
+   "negatives": 350
+  },
+  "presidio_best_shot": {
+   "label": "Presidio, best shot",
+   "f1": 0.745,
+   "coverage": 0.943,
+   "false_alarms": 68,
+   "negatives": 350
+  }
+ }
+}

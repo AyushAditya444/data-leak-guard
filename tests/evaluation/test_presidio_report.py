@@ -108,3 +108,20 @@ def test_presidio_run_reexecs_with_a_fixed_hash_seed(monkeypatch):
     cmd, env = calls[0]
     assert env["PYTHONHASHSEED"] == "0"
     assert cmd[-3:] == ["presidio-run", "--split", "test"]
+
+
+def test_both_support_summary_matches_committed_page():
+    # The demo's results scene shows these; they must equal the committed Presidio page.
+    import json
+    from pathlib import Path
+
+    from leakguard.evaluation.presidio_report import both_support_summary
+
+    results = json.loads(Path("data/eval/presidio-test.json").read_text(encoding="utf-8"))
+    summary = both_support_summary(results)
+    assert list(summary) == ["ours", "presidio_out_of_box", "presidio_best_shot"]
+    assert [round(100 * s["f1"], 1) for s in summary.values()] == [95.3, 62.6, 74.5]
+    assert [round(100 * s["coverage"], 1) for s in summary.values()] == [93.9, 79.6, 94.3]
+    assert [s["false_alarms"] for s in summary.values()] == [4, 67, 68]
+    assert {s["negatives"] for s in summary.values()} == {350}
+    assert summary["presidio_best_shot"]["label"] == "Presidio, best shot"
