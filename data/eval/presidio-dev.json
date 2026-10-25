@@ -1,0 +1,1158 @@
+{
+ "meta": {
+  "date": "2026-10-25",
+  "guard_commit": "59cdd49",
+  "versions": {
+   "presidio-analyzer": "2.2.364",
+   "spacy": "3.8.16",
+   "en_core_web_lg": "3.8.0"
+  },
+  "indian_defaults": {
+   "IN_AADHAAR": false,
+   "IN_PAN": false,
+   "IN_PASSPORT": false,
+   "IN_VEHICLE_REGISTRATION": false,
+   "IN_VOTER": false,
+   "IN_GSTIN": false
+  },
+  "threads": {
+   "OMP_NUM_THREADS": "1",
+   "OPENBLAS_NUM_THREADS": "1",
+   "MKL_NUM_THREADS": "1"
+  },
+  "sizes": {
+   "dev": 1600
+  }
+ },
+ "thresholds": {
+  "IN_AADHAAR": 0.95,
+  "IN_PAN": 0.85,
+  "PHONE_NUMBER": 0.4,
+  "EMAIL_ADDRESS": 0.95,
+  "CREDIT_CARD": 0.95,
+  "PERSON": 0.85,
+  "LOCATION": 0.85
+ },
+ "tuning": [
+  {
+   "presidio_type": "IN_AADHAAR",
+   "threshold": 0.0,
+   "tp": 71,
+   "fp": 19,
+   "fn": 4,
+   "f1": 0.8606060606060606
+  },
+  {
+   "presidio_type": "IN_AADHAAR",
+   "threshold": 0.05,
+   "tp": 71,
+   "fp": 19,
+   "fn": 4,
+   "f1": 0.8606060606060606
+  },
+  {
+   "presidio_type": "IN_AADHAAR",
+   "threshold": 0.1,
+   "tp": 71,
+   "fp": 19,
+   "fn": 4,
+   "f1": 0.8606060606060606
+  },
+  {
+   "presidio_type": "IN_AADHAAR",
+   "threshold": 0.15,
+   "tp": 71,
+   "fp": 19,
+   "fn": 4,
+   "f1": 0.8606060606060606
+  },
+  {
+   "presidio_type": "IN_AADHAAR",
+   "threshold": 0.2,
+   "tp": 71,
+   "fp": 19,
+   "fn": 4,
+   "f1": 0.8606060606060606
+  },
+  {
+   "presidio_type": "IN_AADHAAR",
+   "threshold": 0.25,
+   "tp": 71,
+   "fp": 19,
+   "fn": 4,
+   "f1": 0.8606060606060606
+  },
+  {
+   "presidio_type": "IN_AADHAAR",
+   "threshold": 0.3,
+   "tp": 71,
+   "fp": 19,
+   "fn": 4,
+   "f1": 0.8606060606060606
+  },
+  {
+   "presidio_type": "IN_AADHAAR",
+   "threshold": 0.35,
+   "tp": 71,
+   "fp": 19,
+   "fn": 4,
+   "f1": 0.8606060606060606
+  },
+  {
+   "presidio_type": "IN_AADHAAR",
+   "threshold": 0.4,
+   "tp": 71,
+   "fp": 19,
+   "fn": 4,
+   "f1": 0.8606060606060606
+  },
+  {
+   "presidio_type": "IN_AADHAAR",
+   "threshold": 0.45,
+   "tp": 71,
+   "fp": 19,
+   "fn": 4,
+   "f1": 0.8606060606060606
+  },
+  {
+   "presidio_type": "IN_AADHAAR",
+   "threshold": 0.5,
+   "tp": 71,
+   "fp": 19,
+   "fn": 4,
+   "f1": 0.8606060606060606
+  },
+  {
+   "presidio_type": "IN_AADHAAR",
+   "threshold": 0.55,
+   "tp": 71,
+   "fp": 19,
+   "fn": 4,
+   "f1": 0.8606060606060606
+  },
+  {
+   "presidio_type": "IN_AADHAAR",
+   "threshold": 0.6,
+   "tp": 71,
+   "fp": 19,
+   "fn": 4,
+   "f1": 0.8606060606060606
+  },
+  {
+   "presidio_type": "IN_AADHAAR",
+   "threshold": 0.65,
+   "tp": 71,
+   "fp": 19,
+   "fn": 4,
+   "f1": 0.8606060606060606
+  },
+  {
+   "presidio_type": "IN_AADHAAR",
+   "threshold": 0.7,
+   "tp": 71,
+   "fp": 19,
+   "fn": 4,
+   "f1": 0.8606060606060606
+  },
+  {
+   "presidio_type": "IN_AADHAAR",
+   "threshold": 0.75,
+   "tp": 71,
+   "fp": 19,
+   "fn": 4,
+   "f1": 0.8606060606060606
+  },
+  {
+   "presidio_type": "IN_AADHAAR",
+   "threshold": 0.8,
+   "tp": 71,
+   "fp": 19,
+   "fn": 4,
+   "f1": 0.8606060606060606
+  },
+  {
+   "presidio_type": "IN_AADHAAR",
+   "threshold": 0.85,
+   "tp": 71,
+   "fp": 19,
+   "fn": 4,
+   "f1": 0.8606060606060606
+  },
+  {
+   "presidio_type": "IN_AADHAAR",
+   "threshold": 0.9,
+   "tp": 71,
+   "fp": 19,
+   "fn": 4,
+   "f1": 0.8606060606060606
+  },
+  {
+   "presidio_type": "IN_AADHAAR",
+   "threshold": 0.95,
+   "tp": 71,
+   "fp": 19,
+   "fn": 4,
+   "f1": 0.8606060606060606
+  },
+  {
+   "presidio_type": "IN_PAN",
+   "threshold": 0.0,
+   "tp": 72,
+   "fp": 98,
+   "fn": 1,
+   "f1": 0.5925925925925926
+  },
+  {
+   "presidio_type": "IN_PAN",
+   "threshold": 0.05,
+   "tp": 72,
+   "fp": 8,
+   "fn": 1,
+   "f1": 0.9411764705882354
+  },
+  {
+   "presidio_type": "IN_PAN",
+   "threshold": 0.1,
+   "tp": 72,
+   "fp": 8,
+   "fn": 1,
+   "f1": 0.9411764705882354
+  },
+  {
+   "presidio_type": "IN_PAN",
+   "threshold": 0.15,
+   "tp": 72,
+   "fp": 8,
+   "fn": 1,
+   "f1": 0.9411764705882354
+  },
+  {
+   "presidio_type": "IN_PAN",
+   "threshold": 0.2,
+   "tp": 72,
+   "fp": 8,
+   "fn": 1,
+   "f1": 0.9411764705882354
+  },
+  {
+   "presidio_type": "IN_PAN",
+   "threshold": 0.25,
+   "tp": 72,
+   "fp": 8,
+   "fn": 1,
+   "f1": 0.9411764705882354
+  },
+  {
+   "presidio_type": "IN_PAN",
+   "threshold": 0.3,
+   "tp": 72,
+   "fp": 8,
+   "fn": 1,
+   "f1": 0.9411764705882354
+  },
+  {
+   "presidio_type": "IN_PAN",
+   "threshold": 0.35,
+   "tp": 72,
+   "fp": 8,
+   "fn": 1,
+   "f1": 0.9411764705882354
+  },
+  {
+   "presidio_type": "IN_PAN",
+   "threshold": 0.4,
+   "tp": 72,
+   "fp": 8,
+   "fn": 1,
+   "f1": 0.9411764705882354
+  },
+  {
+   "presidio_type": "IN_PAN",
+   "threshold": 0.45,
+   "tp": 72,
+   "fp": 0,
+   "fn": 1,
+   "f1": 0.993103448275862
+  },
+  {
+   "presidio_type": "IN_PAN",
+   "threshold": 0.5,
+   "tp": 72,
+   "fp": 0,
+   "fn": 1,
+   "f1": 0.993103448275862
+  },
+  {
+   "presidio_type": "IN_PAN",
+   "threshold": 0.55,
+   "tp": 72,
+   "fp": 0,
+   "fn": 1,
+   "f1": 0.993103448275862
+  },
+  {
+   "presidio_type": "IN_PAN",
+   "threshold": 0.6,
+   "tp": 72,
+   "fp": 0,
+   "fn": 1,
+   "f1": 0.993103448275862
+  },
+  {
+   "presidio_type": "IN_PAN",
+   "threshold": 0.65,
+   "tp": 72,
+   "fp": 0,
+   "fn": 1,
+   "f1": 0.993103448275862
+  },
+  {
+   "presidio_type": "IN_PAN",
+   "threshold": 0.7,
+   "tp": 72,
+   "fp": 0,
+   "fn": 1,
+   "f1": 0.993103448275862
+  },
+  {
+   "presidio_type": "IN_PAN",
+   "threshold": 0.75,
+   "tp": 72,
+   "fp": 0,
+   "fn": 1,
+   "f1": 0.993103448275862
+  },
+  {
+   "presidio_type": "IN_PAN",
+   "threshold": 0.8,
+   "tp": 72,
+   "fp": 0,
+   "fn": 1,
+   "f1": 0.993103448275862
+  },
+  {
+   "presidio_type": "IN_PAN",
+   "threshold": 0.85,
+   "tp": 72,
+   "fp": 0,
+   "fn": 1,
+   "f1": 0.993103448275862
+  },
+  {
+   "presidio_type": "IN_PAN",
+   "threshold": 0.9,
+   "tp": 0,
+   "fp": 0,
+   "fn": 73,
+   "f1": 0.0
+  },
+  {
+   "presidio_type": "IN_PAN",
+   "threshold": 0.95,
+   "tp": 0,
+   "fp": 0,
+   "fn": 73,
+   "f1": 0.0
+  },
+  {
+   "presidio_type": "PHONE_NUMBER",
+   "threshold": 0.0,
+   "tp": 225,
+   "fp": 63,
+   "fn": 119,
+   "f1": 0.7120253164556962
+  },
+  {
+   "presidio_type": "PHONE_NUMBER",
+   "threshold": 0.05,
+   "tp": 225,
+   "fp": 63,
+   "fn": 119,
+   "f1": 0.7120253164556962
+  },
+  {
+   "presidio_type": "PHONE_NUMBER",
+   "threshold": 0.1,
+   "tp": 225,
+   "fp": 63,
+   "fn": 119,
+   "f1": 0.7120253164556962
+  },
+  {
+   "presidio_type": "PHONE_NUMBER",
+   "threshold": 0.15,
+   "tp": 225,
+   "fp": 63,
+   "fn": 119,
+   "f1": 0.7120253164556962
+  },
+  {
+   "presidio_type": "PHONE_NUMBER",
+   "threshold": 0.2,
+   "tp": 225,
+   "fp": 63,
+   "fn": 119,
+   "f1": 0.7120253164556962
+  },
+  {
+   "presidio_type": "PHONE_NUMBER",
+   "threshold": 0.25,
+   "tp": 225,
+   "fp": 63,
+   "fn": 119,
+   "f1": 0.7120253164556962
+  },
+  {
+   "presidio_type": "PHONE_NUMBER",
+   "threshold": 0.3,
+   "tp": 225,
+   "fp": 63,
+   "fn": 119,
+   "f1": 0.7120253164556962
+  },
+  {
+   "presidio_type": "PHONE_NUMBER",
+   "threshold": 0.35,
+   "tp": 225,
+   "fp": 63,
+   "fn": 119,
+   "f1": 0.7120253164556962
+  },
+  {
+   "presidio_type": "PHONE_NUMBER",
+   "threshold": 0.4,
+   "tp": 225,
+   "fp": 63,
+   "fn": 119,
+   "f1": 0.7120253164556962
+  },
+  {
+   "presidio_type": "PHONE_NUMBER",
+   "threshold": 0.45,
+   "tp": 112,
+   "fp": 27,
+   "fn": 232,
+   "f1": 0.463768115942029
+  },
+  {
+   "presidio_type": "PHONE_NUMBER",
+   "threshold": 0.5,
+   "tp": 112,
+   "fp": 27,
+   "fn": 232,
+   "f1": 0.463768115942029
+  },
+  {
+   "presidio_type": "PHONE_NUMBER",
+   "threshold": 0.55,
+   "tp": 112,
+   "fp": 27,
+   "fn": 232,
+   "f1": 0.463768115942029
+  },
+  {
+   "presidio_type": "PHONE_NUMBER",
+   "threshold": 0.6,
+   "tp": 112,
+   "fp": 27,
+   "fn": 232,
+   "f1": 0.463768115942029
+  },
+  {
+   "presidio_type": "PHONE_NUMBER",
+   "threshold": 0.65,
+   "tp": 112,
+   "fp": 27,
+   "fn": 232,
+   "f1": 0.463768115942029
+  },
+  {
+   "presidio_type": "PHONE_NUMBER",
+   "threshold": 0.7,
+   "tp": 112,
+   "fp": 27,
+   "fn": 232,
+   "f1": 0.463768115942029
+  },
+  {
+   "presidio_type": "PHONE_NUMBER",
+   "threshold": 0.75,
+   "tp": 112,
+   "fp": 27,
+   "fn": 232,
+   "f1": 0.463768115942029
+  },
+  {
+   "presidio_type": "PHONE_NUMBER",
+   "threshold": 0.8,
+   "tp": 0,
+   "fp": 0,
+   "fn": 344,
+   "f1": 0.0
+  },
+  {
+   "presidio_type": "PHONE_NUMBER",
+   "threshold": 0.85,
+   "tp": 0,
+   "fp": 0,
+   "fn": 344,
+   "f1": 0.0
+  },
+  {
+   "presidio_type": "PHONE_NUMBER",
+   "threshold": 0.9,
+   "tp": 0,
+   "fp": 0,
+   "fn": 344,
+   "f1": 0.0
+  },
+  {
+   "presidio_type": "PHONE_NUMBER",
+   "threshold": 0.95,
+   "tp": 0,
+   "fp": 0,
+   "fn": 344,
+   "f1": 0.0
+  },
+  {
+   "presidio_type": "EMAIL_ADDRESS",
+   "threshold": 0.0,
+   "tp": 151,
+   "fp": 0,
+   "fn": 7,
+   "f1": 0.9773462783171522
+  },
+  {
+   "presidio_type": "EMAIL_ADDRESS",
+   "threshold": 0.05,
+   "tp": 151,
+   "fp": 0,
+   "fn": 7,
+   "f1": 0.9773462783171522
+  },
+  {
+   "presidio_type": "EMAIL_ADDRESS",
+   "threshold": 0.1,
+   "tp": 151,
+   "fp": 0,
+   "fn": 7,
+   "f1": 0.9773462783171522
+  },
+  {
+   "presidio_type": "EMAIL_ADDRESS",
+   "threshold": 0.15,
+   "tp": 151,
+   "fp": 0,
+   "fn": 7,
+   "f1": 0.9773462783171522
+  },
+  {
+   "presidio_type": "EMAIL_ADDRESS",
+   "threshold": 0.2,
+   "tp": 151,
+   "fp": 0,
+   "fn": 7,
+   "f1": 0.9773462783171522
+  },
+  {
+   "presidio_type": "EMAIL_ADDRESS",
+   "threshold": 0.25,
+   "tp": 151,
+   "fp": 0,
+   "fn": 7,
+   "f1": 0.9773462783171522
+  },
+  {
+   "presidio_type": "EMAIL_ADDRESS",
+   "threshold": 0.3,
+   "tp": 151,
+   "fp": 0,
+   "fn": 7,
+   "f1": 0.9773462783171522
+  },
+  {
+   "presidio_type": "EMAIL_ADDRESS",
+   "threshold": 0.35,
+   "tp": 151,
+   "fp": 0,
+   "fn": 7,
+   "f1": 0.9773462783171522
+  },
+  {
+   "presidio_type": "EMAIL_ADDRESS",
+   "threshold": 0.4,
+   "tp": 151,
+   "fp": 0,
+   "fn": 7,
+   "f1": 0.9773462783171522
+  },
+  {
+   "presidio_type": "EMAIL_ADDRESS",
+   "threshold": 0.45,
+   "tp": 151,
+   "fp": 0,
+   "fn": 7,
+   "f1": 0.9773462783171522
+  },
+  {
+   "presidio_type": "EMAIL_ADDRESS",
+   "threshold": 0.5,
+   "tp": 151,
+   "fp": 0,
+   "fn": 7,
+   "f1": 0.9773462783171522
+  },
+  {
+   "presidio_type": "EMAIL_ADDRESS",
+   "threshold": 0.55,
+   "tp": 151,
+   "fp": 0,
+   "fn": 7,
+   "f1": 0.9773462783171522
+  },
+  {
+   "presidio_type": "EMAIL_ADDRESS",
+   "threshold": 0.6,
+   "tp": 151,
+   "fp": 0,
+   "fn": 7,
+   "f1": 0.9773462783171522
+  },
+  {
+   "presidio_type": "EMAIL_ADDRESS",
+   "threshold": 0.65,
+   "tp": 151,
+   "fp": 0,
+   "fn": 7,
+   "f1": 0.9773462783171522
+  },
+  {
+   "presidio_type": "EMAIL_ADDRESS",
+   "threshold": 0.7,
+   "tp": 151,
+   "fp": 0,
+   "fn": 7,
+   "f1": 0.9773462783171522
+  },
+  {
+   "presidio_type": "EMAIL_ADDRESS",
+   "threshold": 0.75,
+   "tp": 151,
+   "fp": 0,
+   "fn": 7,
+   "f1": 0.9773462783171522
+  },
+  {
+   "presidio_type": "EMAIL_ADDRESS",
+   "threshold": 0.8,
+   "tp": 151,
+   "fp": 0,
+   "fn": 7,
+   "f1": 0.9773462783171522
+  },
+  {
+   "presidio_type": "EMAIL_ADDRESS",
+   "threshold": 0.85,
+   "tp": 151,
+   "fp": 0,
+   "fn": 7,
+   "f1": 0.9773462783171522
+  },
+  {
+   "presidio_type": "EMAIL_ADDRESS",
+   "threshold": 0.9,
+   "tp": 151,
+   "fp": 0,
+   "fn": 7,
+   "f1": 0.9773462783171522
+  },
+  {
+   "presidio_type": "EMAIL_ADDRESS",
+   "threshold": 0.95,
+   "tp": 151,
+   "fp": 0,
+   "fn": 7,
+   "f1": 0.9773462783171522
+  },
+  {
+   "presidio_type": "CREDIT_CARD",
+   "threshold": 0.0,
+   "tp": 51,
+   "fp": 8,
+   "fn": 0,
+   "f1": 0.9272727272727274
+  },
+  {
+   "presidio_type": "CREDIT_CARD",
+   "threshold": 0.05,
+   "tp": 51,
+   "fp": 8,
+   "fn": 0,
+   "f1": 0.9272727272727274
+  },
+  {
+   "presidio_type": "CREDIT_CARD",
+   "threshold": 0.1,
+   "tp": 51,
+   "fp": 8,
+   "fn": 0,
+   "f1": 0.9272727272727274
+  },
+  {
+   "presidio_type": "CREDIT_CARD",
+   "threshold": 0.15,
+   "tp": 51,
+   "fp": 8,
+   "fn": 0,
+   "f1": 0.9272727272727274
+  },
+  {
+   "presidio_type": "CREDIT_CARD",
+   "threshold": 0.2,
+   "tp": 51,
+   "fp": 8,
+   "fn": 0,
+   "f1": 0.9272727272727274
+  },
+  {
+   "presidio_type": "CREDIT_CARD",
+   "threshold": 0.25,
+   "tp": 51,
+   "fp": 8,
+   "fn": 0,
+   "f1": 0.9272727272727274
+  },
+  {
+   "presidio_type": "CREDIT_CARD",
+   "threshold": 0.3,
+   "tp": 51,
+   "fp": 8,
+   "fn": 0,
+   "f1": 0.9272727272727274
+  },
+  {
+   "presidio_type": "CREDIT_CARD",
+   "threshold": 0.35,
+   "tp": 51,
+   "fp": 8,
+   "fn": 0,
+   "f1": 0.9272727272727274
+  },
+  {
+   "presidio_type": "CREDIT_CARD",
+   "threshold": 0.4,
+   "tp": 51,
+   "fp": 8,
+   "fn": 0,
+   "f1": 0.9272727272727274
+  },
+  {
+   "presidio_type": "CREDIT_CARD",
+   "threshold": 0.45,
+   "tp": 51,
+   "fp": 8,
+   "fn": 0,
+   "f1": 0.9272727272727274
+  },
+  {
+   "presidio_type": "CREDIT_CARD",
+   "threshold": 0.5,
+   "tp": 51,
+   "fp": 8,
+   "fn": 0,
+   "f1": 0.9272727272727274
+  },
+  {
+   "presidio_type": "CREDIT_CARD",
+   "threshold": 0.55,
+   "tp": 51,
+   "fp": 8,
+   "fn": 0,
+   "f1": 0.9272727272727274
+  },
+  {
+   "presidio_type": "CREDIT_CARD",
+   "threshold": 0.6,
+   "tp": 51,
+   "fp": 8,
+   "fn": 0,
+   "f1": 0.9272727272727274
+  },
+  {
+   "presidio_type": "CREDIT_CARD",
+   "threshold": 0.65,
+   "tp": 51,
+   "fp": 8,
+   "fn": 0,
+   "f1": 0.9272727272727274
+  },
+  {
+   "presidio_type": "CREDIT_CARD",
+   "threshold": 0.7,
+   "tp": 51,
+   "fp": 8,
+   "fn": 0,
+   "f1": 0.9272727272727274
+  },
+  {
+   "presidio_type": "CREDIT_CARD",
+   "threshold": 0.75,
+   "tp": 51,
+   "fp": 8,
+   "fn": 0,
+   "f1": 0.9272727272727274
+  },
+  {
+   "presidio_type": "CREDIT_CARD",
+   "threshold": 0.8,
+   "tp": 51,
+   "fp": 8,
+   "fn": 0,
+   "f1": 0.9272727272727274
+  },
+  {
+   "presidio_type": "CREDIT_CARD",
+   "threshold": 0.85,
+   "tp": 51,
+   "fp": 8,
+   "fn": 0,
+   "f1": 0.9272727272727274
+  },
+  {
+   "presidio_type": "CREDIT_CARD",
+   "threshold": 0.9,
+   "tp": 51,
+   "fp": 8,
+   "fn": 0,
+   "f1": 0.9272727272727274
+  },
+  {
+   "presidio_type": "CREDIT_CARD",
+   "threshold": 0.95,
+   "tp": 51,
+   "fp": 8,
+   "fn": 0,
+   "f1": 0.9272727272727274
+  },
+  {
+   "presidio_type": "PERSON",
+   "threshold": 0.0,
+   "tp": 310,
+   "fp": 550,
+   "fn": 47,
+   "f1": 0.5094494658997535
+  },
+  {
+   "presidio_type": "PERSON",
+   "threshold": 0.05,
+   "tp": 310,
+   "fp": 550,
+   "fn": 47,
+   "f1": 0.5094494658997535
+  },
+  {
+   "presidio_type": "PERSON",
+   "threshold": 0.1,
+   "tp": 310,
+   "fp": 550,
+   "fn": 47,
+   "f1": 0.5094494658997535
+  },
+  {
+   "presidio_type": "PERSON",
+   "threshold": 0.15,
+   "tp": 310,
+   "fp": 550,
+   "fn": 47,
+   "f1": 0.5094494658997535
+  },
+  {
+   "presidio_type": "PERSON",
+   "threshold": 0.2,
+   "tp": 310,
+   "fp": 550,
+   "fn": 47,
+   "f1": 0.5094494658997535
+  },
+  {
+   "presidio_type": "PERSON",
+   "threshold": 0.25,
+   "tp": 310,
+   "fp": 550,
+   "fn": 47,
+   "f1": 0.5094494658997535
+  },
+  {
+   "presidio_type": "PERSON",
+   "threshold": 0.3,
+   "tp": 310,
+   "fp": 550,
+   "fn": 47,
+   "f1": 0.5094494658997535
+  },
+  {
+   "presidio_type": "PERSON",
+   "threshold": 0.35,
+   "tp": 310,
+   "fp": 550,
+   "fn": 47,
+   "f1": 0.5094494658997535
+  },
+  {
+   "presidio_type": "PERSON",
+   "threshold": 0.4,
+   "tp": 310,
+   "fp": 550,
+   "fn": 47,
+   "f1": 0.5094494658997535
+  },
+  {
+   "presidio_type": "PERSON",
+   "threshold": 0.45,
+   "tp": 310,
+   "fp": 550,
+   "fn": 47,
+   "f1": 0.5094494658997535
+  },
+  {
+   "presidio_type": "PERSON",
+   "threshold": 0.5,
+   "tp": 310,
+   "fp": 550,
+   "fn": 47,
+   "f1": 0.5094494658997535
+  },
+  {
+   "presidio_type": "PERSON",
+   "threshold": 0.55,
+   "tp": 310,
+   "fp": 550,
+   "fn": 47,
+   "f1": 0.5094494658997535
+  },
+  {
+   "presidio_type": "PERSON",
+   "threshold": 0.6,
+   "tp": 310,
+   "fp": 550,
+   "fn": 47,
+   "f1": 0.5094494658997535
+  },
+  {
+   "presidio_type": "PERSON",
+   "threshold": 0.65,
+   "tp": 310,
+   "fp": 550,
+   "fn": 47,
+   "f1": 0.5094494658997535
+  },
+  {
+   "presidio_type": "PERSON",
+   "threshold": 0.7,
+   "tp": 310,
+   "fp": 550,
+   "fn": 47,
+   "f1": 0.5094494658997535
+  },
+  {
+   "presidio_type": "PERSON",
+   "threshold": 0.75,
+   "tp": 310,
+   "fp": 550,
+   "fn": 47,
+   "f1": 0.5094494658997535
+  },
+  {
+   "presidio_type": "PERSON",
+   "threshold": 0.8,
+   "tp": 310,
+   "fp": 550,
+   "fn": 47,
+   "f1": 0.5094494658997535
+  },
+  {
+   "presidio_type": "PERSON",
+   "threshold": 0.85,
+   "tp": 310,
+   "fp": 550,
+   "fn": 47,
+   "f1": 0.5094494658997535
+  },
+  {
+   "presidio_type": "PERSON",
+   "threshold": 0.9,
+   "tp": 0,
+   "fp": 0,
+   "fn": 357,
+   "f1": 0.0
+  },
+  {
+   "presidio_type": "PERSON",
+   "threshold": 0.95,
+   "tp": 0,
+   "fp": 0,
+   "fn": 357,
+   "f1": 0.0
+  },
+  {
+   "presidio_type": "LOCATION",
+   "threshold": 0.0,
+   "tp": 198,
+   "fp": 225,
+   "fn": 138,
+   "f1": 0.5217391304347825
+  },
+  {
+   "presidio_type": "LOCATION",
+   "threshold": 0.05,
+   "tp": 198,
+   "fp": 225,
+   "fn": 138,
+   "f1": 0.5217391304347825
+  },
+  {
+   "presidio_type": "LOCATION",
+   "threshold": 0.1,
+   "tp": 198,
+   "fp": 225,
+   "fn": 138,
+   "f1": 0.5217391304347825
+  },
+  {
+   "presidio_type": "LOCATION",
+   "threshold": 0.15,
+   "tp": 198,
+   "fp": 225,
+   "fn": 138,
+   "f1": 0.5217391304347825
+  },
+  {
+   "presidio_type": "LOCATION",
+   "threshold": 0.2,
+   "tp": 198,
+   "fp": 225,
+   "fn": 138,
+   "f1": 0.5217391304347825
+  },
+  {
+   "presidio_type": "LOCATION",
+   "threshold": 0.25,
+   "tp": 198,
+   "fp": 225,
+   "fn": 138,
+   "f1": 0.5217391304347825
+  },
+  {
+   "presidio_type": "LOCATION",
+   "threshold": 0.3,
+   "tp": 198,
+   "fp": 225,
+   "fn": 138,
+   "f1": 0.5217391304347825
+  },
+  {
+   "presidio_type": "LOCATION",
+   "threshold": 0.35,
+   "tp": 198,
+   "fp": 225,
+   "fn": 138,
+   "f1": 0.5217391304347825
+  },
+  {
+   "presidio_type": "LOCATION",
+   "threshold": 0.4,
+   "tp": 198,
+   "fp": 225,
+   "fn": 138,
+   "f1": 0.5217391304347825
+  },
+  {
+   "presidio_type": "LOCATION",
+   "threshold": 0.45,
+   "tp": 198,
+   "fp": 225,
+   "fn": 138,
+   "f1": 0.5217391304347825
+  },
+  {
+   "presidio_type": "LOCATION",
+   "threshold": 0.5,
+   "tp": 198,
+   "fp": 225,
+   "fn": 138,
+   "f1": 0.5217391304347825
+  },
+  {
+   "presidio_type": "LOCATION",
+   "threshold": 0.55,
+   "tp": 198,
+   "fp": 225,
+   "fn": 138,
+   "f1": 0.5217391304347825
+  },
+  {
+   "presidio_type": "LOCATION",
+   "threshold": 0.6,
+   "tp": 198,
+   "fp": 225,
+   "fn": 138,
+   "f1": 0.5217391304347825
+  },
+  {
+   "presidio_type": "LOCATION",
+   "threshold": 0.65,
+   "tp": 198,
+   "fp": 225,
+   "fn": 138,
+   "f1": 0.5217391304347825
+  },
+  {
+   "presidio_type": "LOCATION",
+   "threshold": 0.7,
+   "tp": 198,
+   "fp": 225,
+   "fn": 138,
+   "f1": 0.5217391304347825
+  },
+  {
+   "presidio_type": "LOCATION",
+   "threshold": 0.75,
+   "tp": 198,
+   "fp": 225,
+   "fn": 138,
+   "f1": 0.5217391304347825
+  },
+  {
+   "presidio_type": "LOCATION",
+   "threshold": 0.8,
+   "tp": 198,
+   "fp": 225,
+   "fn": 138,
+   "f1": 0.5217391304347825
+  },
+  {
+   "presidio_type": "LOCATION",
+   "threshold": 0.85,
+   "tp": 198,
+   "fp": 225,
+   "fn": 138,
+   "f1": 0.5217391304347825
+  },
+  {
+   "presidio_type": "LOCATION",
+   "threshold": 0.9,
+   "tp": 0,
+   "fp": 0,
+   "fn": 336,
+   "f1": 0.0
+  },
+  {
+   "presidio_type": "LOCATION",
+   "threshold": 0.95,
+   "tp": 0,
+   "fp": 0,
+   "fn": 336,
+   "f1": 0.0
+  }
+ ]
+}

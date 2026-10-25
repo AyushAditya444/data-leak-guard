@@ -1,0 +1,25 @@
+# Performance measurement only (python -m leakguard.evaluation perf-run). Not for normal use.
+# No ports are published: the load client reaches the guard over this project's own Docker
+# network, so it never clashes with a guard already running on localhost:8080.
+name: leakguard-perf
+
+services:
+  mock:
+    image: leakguard-perf:latest
+    command: ["uvicorn", "--factory", "leakguard.mock_llm:create_mock_app",
+              "--host", "0.0.0.0", "--port", "9000"]
+    depends_on:
+      - guard  # only so the image below is built before this service starts
+
+  guard:
+    build: .
+    image: leakguard-perf:latest
+    environment:
+      LEAKGUARD_UPSTREAM_BASE_URL: http://mock:9000/v1
+    # The cap that makes "fits a 1 vCPU machine" a measurement, not a guess.
+    cpus: ${PERF_CPUS:-1}
+
+  client:
+    image: leakguard-perf:latest
+    profiles: ["client"]  # only started by `docker compose run client ...`
+    entrypoint: ["python", "-m", "leakguard.evaluation.perf"]

@@ -6,12 +6,14 @@ overlaps are paired first). Unmatched predictions are false positives, unmatched
 spans are false negatives.
 
 Coverage answers the question that matters for leaks — "was the value hidden?" — as the
-share of gold characters covered by ANY prediction, whatever its type or boundaries.
+share of gold characters covered by ANY prediction, whatever its type or boundaries. An
+optional `cover` adds ranges that count for coverage only: e.g. a baseline's results of a
+type we don't score, which its anonymiser would still hide.
 """
 
 from collections import defaultdict
 from collections.abc import Callable, Iterable
-from dataclasses import dataclass, field
+from dataclasses import asdict, dataclass, field
 
 from leakguard.detect.spans import Span
 from leakguard.entities import EntityType
@@ -72,6 +74,9 @@ class Evaluation:
     by_category_type: dict[tuple[str, EntityType], TypeScores] = field(default_factory=dict)
     negatives_total: int = 0
     negatives_with_fp: int = 0
+    # per negative message with a false alarm: the types it was flagged as (no text), so a
+    # report can count false alarms within any set of types
+    negative_fp_types: list[tuple[str, ...]] = field(default_factory=list)
     errors: list[ErrorCase] = field(default_factory=list)
 
 
@@ -95,12 +100,14 @@ def _match(gold: list[Span], preds: list[Span]) -> dict[int, int]:
     return matched
 
 
-def _covered(gold: Span, preds: list[Span]) -> int:
+def _covered(gold: Span, ranges: list[tuple[int, int]]) -> int:
+    """Gold characters inside at least one range; each character counted once."""
     return sum(1 for i in range(gold.start, gold.end)
-               if any(p.start <= i < p.end for p in preds))
+               if any(start <= i < end for start, end in ranges))
 
 
-def score(samples: Iterable[Sample], detect: Callable[[str], list[Span]]) -> Evaluation:
+def score(samples: Iterable[Sample], detect: Callable[[str], list[Span]],
+          cover: Callable[[str], Iterable[tuple[int, int]]] | None = None) -> Evaluation:
     by_type: dict[EntityType, TypeScores] = defaultdict(TypeScores)
     by_category: dict[str, TypeScores] = defaultdict(TypeScores)
     by_category_type: dict[tuple[str, EntityType], TypeScores] = defaultdict(TypeScores)
@@ -110,12 +117,13 @@ def score(samples: Iterable[Sample], detect: Callable[[str], list[Span]]) -> Eva
         preds = list(detect(sample.text))  # detector errors propagate on purpose
         gold = list(sample.spans)
         matched = _match(gold, preds)
+        hidden = [(p.start, p.end) for p in preds] + list(cover(sample.text) if cover else [])
 
         for gi, g in enumerate(gold):
             # the same counts go into three views: per type, per category, per both
             views = (by_type[g.type], by_category[sample.category],
                      by_category_type[(sample.category, g.type)])
-            covered = _covered(g, preds)
+            covered = _covered(g, hidden)
             hit = gi in matched
             for scores in views:
                 scores.gold_chars += g.end - g.start
@@ -140,8 +148,25 @@ def score(samples: Iterable[Sample], detect: Callable[[str], list[Span]]) -> Eva
         if sample.category == NEGATIVE:
             ev.negatives_total += 1
             ev.negatives_with_fp += bool(unmatched)
+            if unmatched:
+                ev.negative_fp_types.append(tuple(sorted({str(p.type) for p in unmatched})))
 
     ev.by_type = dict(by_type)
     ev.by_category = dict(by_category)
     ev.by_category_type = dict(by_category_type)
     return ev
+
+
+def evaluation_to_json(ev: Evaluation) -> dict:
+    """Per-type counts only (no error examples, so no message text): safe to commit."""
+    return {"by_type": {str(entity): asdict(st) for entity, st in ev.by_type.items()},
+            "negatives_total": ev.negatives_total,
+            "negatives_with_fp": ev.negatives_with_fp,
+            "negative_fp_types": [list(types) for types in ev.negative_fp_types]}
+
+
+def evaluation_from_json(data: dict) -> Evaluation:
+    return Evaluation(
+        by_type={EntityType(entity): TypeScores(**st) for entity, st in data["by_type"].items()},
+        negatives_total=data["negatives_total"], negatives_with_fp=data["negatives_with_fp"],
+        negative_fp_types=[tuple(t) for t in data.get("negative_fp_types", [])])

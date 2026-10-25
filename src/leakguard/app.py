@@ -18,11 +18,13 @@ from fastapi import FastAPI, Request, Response
 from fastapi.responses import StreamingResponse
 from starlette.concurrency import run_in_threadpool
 
+from leakguard.auth import GUARD_KEY_HEADER, guard_key_ok
 from leakguard.config import Settings
 from leakguard.detect.engine import Detector, EntityModel, build_detector
 from leakguard.detect.gazetteer import load_gazetteer
 from leakguard.errors import openai_error
 from leakguard.logs import (
+    log_auth_failed,
     log_detection_failed,
     log_ner_disabled,
     log_request,
@@ -81,9 +83,16 @@ async def _read_chat_request(request: Request, settings: Settings) -> dict | Res
     declared = request.headers.get("content-length")
     if declared and declared.isdigit() and int(declared) > settings.max_request_bytes:
         return _too_large(settings)
-    raw = await request.body()
-    if len(raw) > settings.max_request_bytes:  # size check happens before parsing
-        return _too_large(settings)
+    # Count while reading: a chunked body has no Content-Length, and reading it whole first
+    # would let one request fill the guard's memory before the limit is checked.
+    chunks: list[bytes] = []
+    size = 0
+    async for chunk in request.stream():
+        size += len(chunk)
+        if size > settings.max_request_bytes:
+            return _too_large(settings)
+        chunks.append(chunk)
+    raw = b"".join(chunks)
     try:
         body = json.loads(raw)
     except (ValueError, UnicodeDecodeError):
@@ -352,6 +361,27 @@ def create_app(
         await app.state.upstream.aclose()
 
     app = FastAPI(title="Data Leak Guard", lifespan=lifespan)
+
+    if settings.api_key:
+        expected = settings.api_key
+
+        # A middleware, not a check inside the route: it runs before routing and before the
+        # body is read, for every /v1/ path, including ones added later.
+        @app.middleware("http")
+        async def require_guard_key(request: Request, call_next):
+            # Behind a reverse proxy (uvicorn --root-path /guard) the path arrives as
+            # /guard/v1/...; routing strips the prefix, so the check must too, or a prefix
+            # would switch the key off.
+            path = request.url.path
+            root = request.scope.get("root_path", "")
+            if root and path.startswith(root):
+                path = path[len(root):]
+            if path.startswith("/v1/") and not guard_key_ok(
+                    request.headers.get(GUARD_KEY_HEADER), expected):
+                log_auth_failed(request_id=uuid.uuid4().hex, path=path)
+                return openai_error(401, "Missing or wrong X-Leakguard-Key header.",
+                                    "invalid_request_error", "invalid_guard_key")
+            return await call_next(request)
 
     @app.get("/healthz")
     async def healthz() -> dict:

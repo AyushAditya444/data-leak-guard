@@ -1,0 +1,1438 @@
+{
+ "meta": {
+  "date": "2026-10-25",
+  "guard_commit": "b4cda99",
+  "versions": {
+   "presidio-analyzer": "2.2.364",
+   "spacy": "3.8.16",
+   "en_core_web_lg": "3.8.0"
+  },
+  "indian_defaults": {
+   "IN_AADHAAR": false,
+   "IN_PAN": false,
+   "IN_PASSPORT": false,
+   "IN_VEHICLE_REGISTRATION": false,
+   "IN_VOTER": false,
+   "IN_GSTIN": false
+  },
+  "threads": {
+   "OMP_NUM_THREADS": "1",
+   "OPENBLAS_NUM_THREADS": "1",
+   "MKL_NUM_THREADS": "1"
+  },
+  "sizes": {
+   "test": 1600,
+   "handwritten": 93
+  }
+ },
+ "thresholds": {
+  "IN_AADHAAR": 0.95,
+  "IN_PAN": 0.85,
+  "PHONE_NUMBER": 0.4,
+  "EMAIL_ADDRESS": 0.95,
+  "CREDIT_CARD": 0.95,
+  "PERSON": 0.85,
+  "LOCATION": 0.85
+ },
+ "engines": {
+  "ours": {
+   "test": {
+    "by_type": {
+     "PHONE": {
+      "tp": 372,
+      "fp": 12,
+      "fn": 25,
+      "exact": 372,
+      "gold_chars": 4732,
+      "covered_chars": 4457
+     },
+     "NAME": {
+      "tp": 318,
+      "fp": 7,
+      "fn": 46,
+      "exact": 305,
+      "gold_chars": 3998,
+      "covered_chars": 3527
+     },
+     "EMAIL": {
+      "tp": 168,
+      "fp": 0,
+      "fn": 0,
+      "exact": 168,
+      "gold_chars": 3897,
+      "covered_chars": 3897
+     },
+     "CARD": {
+      "tp": 72,
+      "fp": 0,
+      "fn": 0,
+      "exact": 72,
+      "gold_chars": 1296,
+      "covered_chars": 1296
+     },
+     "ADDRESS": {
+      "tp": 241,
+      "fp": 1,
+      "fn": 30,
+      "exact": 215,
+      "gold_chars": 12441,
+      "covered_chars": 11656
+     },
+     "BANK_ACCOUNT": {
+      "tp": 92,
+      "fp": 0,
+      "fn": 2,
+      "exact": 92,
+      "gold_chars": 1252,
+      "covered_chars": 1252
+     },
+     "IFSC": {
+      "tp": 72,
+      "fp": 0,
+      "fn": 0,
+      "exact": 72,
+      "gold_chars": 792,
+      "covered_chars": 792
+     },
+     "AADHAAR": {
+      "tp": 95,
+      "fp": 2,
+      "fn": 0,
+      "exact": 95,
+      "gold_chars": 1286,
+      "covered_chars": 1286
+     },
+     "PAN": {
+      "tp": 172,
+      "fp": 0,
+      "fn": 25,
+      "exact": 172,
+      "gold_chars": 2020,
+      "covered_chars": 1720
+     },
+     "UPI": {
+      "tp": 44,
+      "fp": 0,
+      "fn": 48,
+      "exact": 44,
+      "gold_chars": 1369,
+      "covered_chars": 775
+     },
+     "SECRET": {
+      "tp": 224,
+      "fp": 0,
+      "fn": 24,
+      "exact": 149,
+      "gold_chars": 8607,
+      "covered_chars": 8323
+     }
+    },
+    "negatives_total": 350,
+    "negatives_with_fp": 5,
+    "negative_fp_types": [
+     [
+      "NAME"
+     ],
+     [
+      "ADDRESS"
+     ],
+     [
+      "NAME"
+     ],
+     [
+      "NAME"
+     ],
+     [
+      "NAME"
+     ]
+    ]
+   },
+   "handwritten": {
+    "by_type": {
+     "AADHAAR": {
+      "tp": 5,
+      "fp": 0,
+      "fn": 0,
+      "exact": 5,
+      "gold_chars": 68,
+      "covered_chars": 68
+     },
+     "NAME": {
+      "tp": 19,
+      "fp": 1,
+      "fn": 3,
+      "exact": 17,
+      "gold_chars": 210,
+      "covered_chars": 190
+     },
+     "PHONE": {
+      "tp": 12,
+      "fp": 0,
+      "fn": 1,
+      "exact": 12,
+      "gold_chars": 176,
+      "covered_chars": 127
+     },
+     "UPI": {
+      "tp": 4,
+      "fp": 0,
+      "fn": 1,
+      "exact": 4,
+      "gold_chars": 70,
+      "covered_chars": 55
+     },
+     "PAN": {
+      "tp": 4,
+      "fp": 0,
+      "fn": 0,
+      "exact": 4,
+      "gold_chars": 40,
+      "covered_chars": 40
+     },
+     "CARD": {
+      "tp": 4,
+      "fp": 0,
+      "fn": 0,
+      "exact": 4,
+      "gold_chars": 72,
+      "covered_chars": 72
+     },
+     "BANK_ACCOUNT": {
+      "tp": 4,
+      "fp": 0,
+      "fn": 1,
+      "exact": 4,
+      "gold_chars": 66,
+      "covered_chars": 51
+     },
+     "IFSC": {
+      "tp": 4,
+      "fp": 0,
+      "fn": 0,
+      "exact": 4,
+      "gold_chars": 44,
+      "covered_chars": 44
+     },
+     "EMAIL": {
+      "tp": 3,
+      "fp": 0,
+      "fn": 0,
+      "exact": 3,
+      "gold_chars": 64,
+      "covered_chars": 64
+     },
+     "ADDRESS": {
+      "tp": 26,
+      "fp": 0,
+      "fn": 2,
+      "exact": 23,
+      "gold_chars": 1185,
+      "covered_chars": 1123
+     },
+     "SECRET": {
+      "tp": 7,
+      "fp": 0,
+      "fn": 0,
+      "exact": 6,
+      "gold_chars": 189,
+      "covered_chars": 189
+     }
+    },
+    "negatives_total": 23,
+    "negatives_with_fp": 0,
+    "negative_fp_types": []
+   },
+   "latency": {
+    "n": 1600,
+    "p50_ms": 16.977099992800504,
+    "p95_ms": 40.20899999886751,
+    "max_ms": 69.86410001991317
+   }
+  },
+  "presidio_out_of_box": {
+   "test": {
+    "by_type": {
+     "PHONE": {
+      "tp": 299,
+      "fp": 73,
+      "fn": 98,
+      "exact": 299,
+      "gold_chars": 4732,
+      "covered_chars": 4732
+     },
+     "NAME": {
+      "tp": 302,
+      "fp": 449,
+      "fn": 62,
+      "exact": 219,
+      "gold_chars": 3998,
+      "covered_chars": 3319
+     },
+     "EMAIL": {
+      "tp": 168,
+      "fp": 22,
+      "fn": 0,
+      "exact": 168,
+      "gold_chars": 3897,
+      "covered_chars": 3897
+     },
+     "CARD": {
+      "tp": 71,
+      "fp": 7,
+      "fn": 1,
+      "exact": 71,
+      "gold_chars": 1296,
+      "covered_chars": 1296
+     },
+     "ADDRESS": {
+      "tp": 149,
+      "fp": 194,
+      "fn": 122,
+      "exact": 0,
+      "gold_chars": 12441,
+      "covered_chars": 4963
+     },
+     "BANK_ACCOUNT": {
+      "tp": 0,
+      "fp": 0,
+      "fn": 94,
+      "exact": 0,
+      "gold_chars": 1252,
+      "covered_chars": 1090
+     },
+     "IFSC": {
+      "tp": 0,
+      "fp": 0,
+      "fn": 72,
+      "exact": 0,
+      "gold_chars": 792,
+      "covered_chars": 38
+     },
+     "AADHAAR": {
+      "tp": 0,
+      "fp": 0,
+      "fn": 95,
+      "exact": 0,
+      "gold_chars": 1286,
+      "covered_chars": 398
+     },
+     "PAN": {
+      "tp": 0,
+      "fp": 0,
+      "fn": 197,
+      "exact": 0,
+      "gold_chars": 2020,
+      "covered_chars": 68
+     },
+     "UPI": {
+      "tp": 0,
+      "fp": 0,
+      "fn": 92,
+      "exact": 0,
+      "gold_chars": 1369,
+      "covered_chars": 450
+     },
+     "SECRET": {
+      "tp": 0,
+      "fp": 0,
+      "fn": 248,
+      "exact": 0,
+      "gold_chars": 8607,
+      "covered_chars": 2115
+     }
+    },
+    "negatives_total": 350,
+    "negatives_with_fp": 115,
+    "negative_fp_types": [
+     [
+      "NAME"
+     ],
+     [
+      "PHONE"
+     ],
+     [
+      "NAME"
+     ],
+     [
+      "ADDRESS"
+     ],
+     [
+      "ADDRESS"
+     ],
+     [
+      "ADDRESS"
+     ],
+     [
+      "NAME"
+     ],
+     [
+      "PHONE"
+     ],
+     [
+      "CARD"
+     ],
+     [
+      "ADDRESS"
+     ],
+     [
+      "ADDRESS"
+     ],
+     [
+      "NAME"
+     ],
+     [
+      "PHONE"
+     ],
+     [
+      "ADDRESS"
+     ],
+     [
+      "ADDRESS"
+     ],
+     [
+      "ADDRESS"
+     ],
+     [
+      "ADDRESS"
+     ],
+     [
+      "NAME"
+     ],
+     [
+      "PHONE"
+     ],
+     [
+      "CARD"
+     ],
+     [
+      "NAME"
+     ],
+     [
+      "ADDRESS"
+     ],
+     [
+      "ADDRESS"
+     ],
+     [
+      "ADDRESS"
+     ],
+     [
+      "NAME"
+     ],
+     [
+      "PHONE"
+     ],
+     [
+      "NAME"
+     ],
+     [
+      "NAME"
+     ],
+     [
+      "ADDRESS"
+     ],
+     [
+      "NAME"
+     ],
+     [
+      "PHONE"
+     ],
+     [
+      "NAME"
+     ],
+     [
+      "ADDRESS"
+     ],
+     [
+      "ADDRESS",
+      "NAME"
+     ],
+     [
+      "ADDRESS"
+     ],
+     [
+      "NAME"
+     ],
+     [
+      "PHONE"
+     ],
+     [
+      "NAME"
+     ],
+     [
+      "ADDRESS"
+     ],
+     [
+      "ADDRESS"
+     ],
+     [
+      "ADDRESS"
+     ],
+     [
+      "ADDRESS"
+     ],
+     [
+      "NAME"
+     ],
+     [
+      "PHONE"
+     ],
+     [
+      "ADDRESS",
+      "NAME"
+     ],
+     [
+      "ADDRESS"
+     ],
+     [
+      "ADDRESS",
+      "NAME"
+     ],
+     [
+      "ADDRESS"
+     ],
+     [
+      "ADDRESS"
+     ],
+     [
+      "NAME"
+     ],
+     [
+      "PHONE"
+     ],
+     [
+      "NAME"
+     ],
+     [
+      "ADDRESS",
+      "NAME"
+     ],
+     [
+      "ADDRESS",
+      "NAME"
+     ],
+     [
+      "NAME"
+     ],
+     [
+      "ADDRESS"
+     ],
+     [
+      "ADDRESS"
+     ],
+     [
+      "NAME"
+     ],
+     [
+      "PHONE"
+     ],
+     [
+      "NAME"
+     ],
+     [
+      "NAME"
+     ],
+     [
+      "NAME"
+     ],
+     [
+      "ADDRESS"
+     ],
+     [
+      "ADDRESS"
+     ],
+     [
+      "ADDRESS"
+     ],
+     [
+      "NAME"
+     ],
+     [
+      "PHONE"
+     ],
+     [
+      "NAME"
+     ],
+     [
+      "NAME"
+     ],
+     [
+      "ADDRESS"
+     ],
+     [
+      "ADDRESS"
+     ],
+     [
+      "NAME"
+     ],
+     [
+      "PHONE"
+     ],
+     [
+      "NAME"
+     ],
+     [
+      "ADDRESS",
+      "NAME"
+     ],
+     [
+      "ADDRESS"
+     ],
+     [
+      "ADDRESS"
+     ],
+     [
+      "NAME"
+     ],
+     [
+      "PHONE"
+     ],
+     [
+      "NAME"
+     ],
+     [
+      "ADDRESS"
+     ],
+     [
+      "ADDRESS"
+     ],
+     [
+      "ADDRESS"
+     ],
+     [
+      "ADDRESS"
+     ],
+     [
+      "NAME"
+     ],
+     [
+      "PHONE"
+     ],
+     [
+      "ADDRESS"
+     ],
+     [
+      "ADDRESS",
+      "NAME"
+     ],
+     [
+      "ADDRESS",
+      "NAME"
+     ],
+     [
+      "ADDRESS"
+     ],
+     [
+      "ADDRESS"
+     ],
+     [
+      "NAME"
+     ],
+     [
+      "PHONE"
+     ],
+     [
+      "CARD"
+     ],
+     [
+      "ADDRESS",
+      "NAME"
+     ],
+     [
+      "ADDRESS"
+     ],
+     [
+      "ADDRESS"
+     ],
+     [
+      "ADDRESS"
+     ],
+     [
+      "ADDRESS"
+     ],
+     [
+      "NAME"
+     ],
+     [
+      "PHONE"
+     ],
+     [
+      "NAME"
+     ],
+     [
+      "NAME"
+     ],
+     [
+      "ADDRESS"
+     ],
+     [
+      "ADDRESS"
+     ],
+     [
+      "NAME"
+     ],
+     [
+      "PHONE"
+     ],
+     [
+      "NAME"
+     ],
+     [
+      "ADDRESS"
+     ],
+     [
+      "ADDRESS"
+     ],
+     [
+      "ADDRESS",
+      "NAME"
+     ],
+     [
+      "ADDRESS"
+     ],
+     [
+      "ADDRESS"
+     ],
+     [
+      "NAME"
+     ],
+     [
+      "PHONE"
+     ]
+    ]
+   },
+   "unmapped": {
+    "DATE_TIME": 423,
+    "US_DRIVER_LICENSE": 146,
+    "US_BANK_NUMBER": 201,
+    "UK_NHS": 11,
+    "URL": 58,
+    "NRP": 15,
+    "MEDICAL_LICENSE": 4,
+    "US_SSN": 2,
+    "IP_ADDRESS": 25
+   },
+   "conflicts": 1588,
+   "handwritten": {
+    "by_type": {
+     "AADHAAR": {
+      "tp": 0,
+      "fp": 0,
+      "fn": 5,
+      "exact": 0,
+      "gold_chars": 68,
+      "covered_chars": 26
+     },
+     "NAME": {
+      "tp": 16,
+      "fp": 21,
+      "fn": 6,
+      "exact": 10,
+      "gold_chars": 210,
+      "covered_chars": 142
+     },
+     "PHONE": {
+      "tp": 10,
+      "fp": 2,
+      "fn": 3,
+      "exact": 10,
+      "gold_chars": 176,
+      "covered_chars": 151
+     },
+     "UPI": {
+      "tp": 0,
+      "fp": 0,
+      "fn": 5,
+      "exact": 0,
+      "gold_chars": 70,
+      "covered_chars": 18
+     },
+     "PAN": {
+      "tp": 0,
+      "fp": 0,
+      "fn": 4,
+      "exact": 0,
+      "gold_chars": 40,
+      "covered_chars": 0
+     },
+     "CARD": {
+      "tp": 4,
+      "fp": 0,
+      "fn": 0,
+      "exact": 4,
+      "gold_chars": 72,
+      "covered_chars": 72
+     },
+     "BANK_ACCOUNT": {
+      "tp": 0,
+      "fp": 0,
+      "fn": 5,
+      "exact": 0,
+      "gold_chars": 66,
+      "covered_chars": 66
+     },
+     "IFSC": {
+      "tp": 0,
+      "fp": 0,
+      "fn": 4,
+      "exact": 0,
+      "gold_chars": 44,
+      "covered_chars": 11
+     },
+     "EMAIL": {
+      "tp": 3,
+      "fp": 1,
+      "fn": 0,
+      "exact": 3,
+      "gold_chars": 64,
+      "covered_chars": 64
+     },
+     "ADDRESS": {
+      "tp": 18,
+      "fp": 20,
+      "fn": 10,
+      "exact": 0,
+      "gold_chars": 1185,
+      "covered_chars": 487
+     },
+     "SECRET": {
+      "tp": 0,
+      "fp": 0,
+      "fn": 7,
+      "exact": 0,
+      "gold_chars": 189,
+      "covered_chars": 40
+     }
+    },
+    "negatives_total": 23,
+    "negatives_with_fp": 8,
+    "negative_fp_types": [
+     [
+      "NAME"
+     ],
+     [
+      "PHONE"
+     ],
+     [
+      "NAME"
+     ],
+     [
+      "ADDRESS"
+     ],
+     [
+      "ADDRESS"
+     ],
+     [
+      "NAME"
+     ],
+     [
+      "ADDRESS"
+     ],
+     [
+      "ADDRESS"
+     ]
+    ]
+   },
+   "latency": {
+    "n": 1600,
+    "p50_ms": 6.470399996032938,
+    "p95_ms": 10.018000000854954,
+    "max_ms": 16.169400012586266
+   }
+  },
+  "presidio_best_shot": {
+   "test": {
+    "by_type": {
+     "PHONE": {
+      "tp": 299,
+      "fp": 72,
+      "fn": 98,
+      "exact": 299,
+      "gold_chars": 4732,
+      "covered_chars": 4732
+     },
+     "NAME": {
+      "tp": 302,
+      "fp": 448,
+      "fn": 62,
+      "exact": 219,
+      "gold_chars": 3998,
+      "covered_chars": 3319
+     },
+     "EMAIL": {
+      "tp": 168,
+      "fp": 22,
+      "fn": 0,
+      "exact": 168,
+      "gold_chars": 3897,
+      "covered_chars": 3897
+     },
+     "CARD": {
+      "tp": 71,
+      "fp": 7,
+      "fn": 1,
+      "exact": 71,
+      "gold_chars": 1296,
+      "covered_chars": 1296
+     },
+     "ADDRESS": {
+      "tp": 149,
+      "fp": 194,
+      "fn": 122,
+      "exact": 0,
+      "gold_chars": 12441,
+      "covered_chars": 4963
+     },
+     "BANK_ACCOUNT": {
+      "tp": 0,
+      "fp": 0,
+      "fn": 94,
+      "exact": 0,
+      "gold_chars": 1252,
+      "covered_chars": 1090
+     },
+     "IFSC": {
+      "tp": 0,
+      "fp": 0,
+      "fn": 72,
+      "exact": 0,
+      "gold_chars": 792,
+      "covered_chars": 38
+     },
+     "AADHAAR": {
+      "tp": 94,
+      "fp": 14,
+      "fn": 1,
+      "exact": 94,
+      "gold_chars": 1286,
+      "covered_chars": 1286
+     },
+     "PAN": {
+      "tp": 167,
+      "fp": 0,
+      "fn": 30,
+      "exact": 167,
+      "gold_chars": 2020,
+      "covered_chars": 1720
+     },
+     "UPI": {
+      "tp": 0,
+      "fp": 0,
+      "fn": 92,
+      "exact": 0,
+      "gold_chars": 1369,
+      "covered_chars": 450
+     },
+     "SECRET": {
+      "tp": 0,
+      "fp": 0,
+      "fn": 248,
+      "exact": 0,
+      "gold_chars": 8607,
+      "covered_chars": 2115
+     }
+    },
+    "negatives_total": 350,
+    "negatives_with_fp": 116,
+    "negative_fp_types": [
+     [
+      "NAME"
+     ],
+     [
+      "PHONE"
+     ],
+     [
+      "NAME"
+     ],
+     [
+      "ADDRESS"
+     ],
+     [
+      "ADDRESS"
+     ],
+     [
+      "ADDRESS"
+     ],
+     [
+      "NAME"
+     ],
+     [
+      "PHONE"
+     ],
+     [
+      "CARD"
+     ],
+     [
+      "ADDRESS"
+     ],
+     [
+      "ADDRESS"
+     ],
+     [
+      "NAME"
+     ],
+     [
+      "PHONE"
+     ],
+     [
+      "ADDRESS"
+     ],
+     [
+      "ADDRESS"
+     ],
+     [
+      "ADDRESS"
+     ],
+     [
+      "ADDRESS"
+     ],
+     [
+      "NAME"
+     ],
+     [
+      "PHONE"
+     ],
+     [
+      "CARD"
+     ],
+     [
+      "NAME"
+     ],
+     [
+      "ADDRESS"
+     ],
+     [
+      "ADDRESS"
+     ],
+     [
+      "ADDRESS"
+     ],
+     [
+      "NAME"
+     ],
+     [
+      "PHONE"
+     ],
+     [
+      "NAME"
+     ],
+     [
+      "NAME"
+     ],
+     [
+      "ADDRESS"
+     ],
+     [
+      "NAME"
+     ],
+     [
+      "PHONE"
+     ],
+     [
+      "NAME"
+     ],
+     [
+      "ADDRESS"
+     ],
+     [
+      "ADDRESS",
+      "NAME"
+     ],
+     [
+      "ADDRESS"
+     ],
+     [
+      "NAME"
+     ],
+     [
+      "PHONE"
+     ],
+     [
+      "NAME"
+     ],
+     [
+      "ADDRESS"
+     ],
+     [
+      "ADDRESS"
+     ],
+     [
+      "ADDRESS"
+     ],
+     [
+      "ADDRESS"
+     ],
+     [
+      "NAME"
+     ],
+     [
+      "PHONE"
+     ],
+     [
+      "ADDRESS",
+      "NAME"
+     ],
+     [
+      "ADDRESS"
+     ],
+     [
+      "ADDRESS",
+      "NAME"
+     ],
+     [
+      "ADDRESS"
+     ],
+     [
+      "ADDRESS"
+     ],
+     [
+      "NAME"
+     ],
+     [
+      "PHONE"
+     ],
+     [
+      "NAME"
+     ],
+     [
+      "ADDRESS",
+      "NAME"
+     ],
+     [
+      "ADDRESS",
+      "NAME"
+     ],
+     [
+      "NAME"
+     ],
+     [
+      "ADDRESS"
+     ],
+     [
+      "ADDRESS"
+     ],
+     [
+      "NAME"
+     ],
+     [
+      "PHONE"
+     ],
+     [
+      "NAME"
+     ],
+     [
+      "NAME"
+     ],
+     [
+      "NAME"
+     ],
+     [
+      "ADDRESS"
+     ],
+     [
+      "ADDRESS"
+     ],
+     [
+      "ADDRESS"
+     ],
+     [
+      "NAME"
+     ],
+     [
+      "PHONE"
+     ],
+     [
+      "NAME"
+     ],
+     [
+      "NAME"
+     ],
+     [
+      "ADDRESS"
+     ],
+     [
+      "ADDRESS"
+     ],
+     [
+      "NAME"
+     ],
+     [
+      "PHONE"
+     ],
+     [
+      "NAME"
+     ],
+     [
+      "ADDRESS",
+      "NAME"
+     ],
+     [
+      "ADDRESS"
+     ],
+     [
+      "ADDRESS"
+     ],
+     [
+      "NAME"
+     ],
+     [
+      "PHONE"
+     ],
+     [
+      "NAME"
+     ],
+     [
+      "ADDRESS"
+     ],
+     [
+      "ADDRESS"
+     ],
+     [
+      "ADDRESS"
+     ],
+     [
+      "ADDRESS"
+     ],
+     [
+      "NAME"
+     ],
+     [
+      "PHONE"
+     ],
+     [
+      "ADDRESS"
+     ],
+     [
+      "ADDRESS",
+      "NAME"
+     ],
+     [
+      "ADDRESS",
+      "NAME"
+     ],
+     [
+      "ADDRESS"
+     ],
+     [
+      "ADDRESS"
+     ],
+     [
+      "NAME"
+     ],
+     [
+      "PHONE"
+     ],
+     [
+      "AADHAAR"
+     ],
+     [
+      "CARD"
+     ],
+     [
+      "ADDRESS",
+      "NAME"
+     ],
+     [
+      "ADDRESS"
+     ],
+     [
+      "ADDRESS"
+     ],
+     [
+      "ADDRESS"
+     ],
+     [
+      "ADDRESS"
+     ],
+     [
+      "NAME"
+     ],
+     [
+      "PHONE"
+     ],
+     [
+      "NAME"
+     ],
+     [
+      "NAME"
+     ],
+     [
+      "ADDRESS"
+     ],
+     [
+      "ADDRESS"
+     ],
+     [
+      "NAME"
+     ],
+     [
+      "PHONE"
+     ],
+     [
+      "NAME"
+     ],
+     [
+      "ADDRESS"
+     ],
+     [
+      "ADDRESS"
+     ],
+     [
+      "ADDRESS",
+      "NAME"
+     ],
+     [
+      "ADDRESS"
+     ],
+     [
+      "ADDRESS"
+     ],
+     [
+      "NAME"
+     ],
+     [
+      "PHONE"
+     ]
+    ]
+   },
+   "unmapped": {
+    "DATE_TIME": 404,
+    "US_DRIVER_LICENSE": 146,
+    "US_BANK_NUMBER": 171,
+    "UK_NHS": 11,
+    "URL": 58,
+    "NRP": 15,
+    "MEDICAL_LICENSE": 4,
+    "US_SSN": 2,
+    "IP_ADDRESS": 25
+   },
+   "conflicts": 1645,
+   "handwritten": {
+    "by_type": {
+     "AADHAAR": {
+      "tp": 5,
+      "fp": 0,
+      "fn": 0,
+      "exact": 5,
+      "gold_chars": 68,
+      "covered_chars": 68
+     },
+     "NAME": {
+      "tp": 16,
+      "fp": 21,
+      "fn": 6,
+      "exact": 10,
+      "gold_chars": 210,
+      "covered_chars": 142
+     },
+     "PHONE": {
+      "tp": 10,
+      "fp": 2,
+      "fn": 3,
+      "exact": 10,
+      "gold_chars": 176,
+      "covered_chars": 151
+     },
+     "UPI": {
+      "tp": 0,
+      "fp": 0,
+      "fn": 5,
+      "exact": 0,
+      "gold_chars": 70,
+      "covered_chars": 18
+     },
+     "PAN": {
+      "tp": 4,
+      "fp": 0,
+      "fn": 0,
+      "exact": 4,
+      "gold_chars": 40,
+      "covered_chars": 40
+     },
+     "CARD": {
+      "tp": 4,
+      "fp": 0,
+      "fn": 0,
+      "exact": 4,
+      "gold_chars": 72,
+      "covered_chars": 72
+     },
+     "BANK_ACCOUNT": {
+      "tp": 0,
+      "fp": 0,
+      "fn": 5,
+      "exact": 0,
+      "gold_chars": 66,
+      "covered_chars": 66
+     },
+     "IFSC": {
+      "tp": 0,
+      "fp": 0,
+      "fn": 4,
+      "exact": 0,
+      "gold_chars": 44,
+      "covered_chars": 11
+     },
+     "EMAIL": {
+      "tp": 3,
+      "fp": 1,
+      "fn": 0,
+      "exact": 3,
+      "gold_chars": 64,
+      "covered_chars": 64
+     },
+     "ADDRESS": {
+      "tp": 18,
+      "fp": 20,
+      "fn": 10,
+      "exact": 0,
+      "gold_chars": 1185,
+      "covered_chars": 487
+     },
+     "SECRET": {
+      "tp": 0,
+      "fp": 0,
+      "fn": 7,
+      "exact": 0,
+      "gold_chars": 189,
+      "covered_chars": 40
+     }
+    },
+    "negatives_total": 23,
+    "negatives_with_fp": 8,
+    "negative_fp_types": [
+     [
+      "NAME"
+     ],
+     [
+      "PHONE"
+     ],
+     [
+      "NAME"
+     ],
+     [
+      "ADDRESS"
+     ],
+     [
+      "ADDRESS"
+     ],
+     [
+      "NAME"
+     ],
+     [
+      "ADDRESS"
+     ],
+     [
+      "ADDRESS"
+     ]
+    ]
+   },
+   "latency": {
+    "n": 1600,
+    "p50_ms": 6.624000001465902,
+    "p95_ms": 9.973399981390685,
+    "max_ms": 16.636399988783523
+   }
+  }
+ }
+}

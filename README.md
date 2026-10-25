@@ -2,7 +2,7 @@
 
 A drop-in, OpenAI-compatible proxy that stops Indian personal data and secrets from leaking into LLMs. It sits between your app and the LLM provider, finds sensitive data (Aadhaar, PAN, phone numbers, UPI IDs, bank accounts, IFSC codes, addresses, names, API keys), hides it before the request leaves, and puts the real values back into the reply, so your app works normally. You adopt it by changing **one line**: your SDK's `base_url`.
 
-> **Status: Phase 6 of 7.** Detection (rules, Indian postal addresses, and a person-name model on CPU), masking, blocking and restoring work for both streaming and non-streaming replies. Detection is measured on a held-out evaluation set, and restoring on two real LLMs (below). See the [design](docs/superpowers/specs/2026-10-24-data-leak-guard-design.md).
+> **Status: Phase 7a of 7.** Detection (rules, Indian postal addresses, and a person-name model on CPU), masking, blocking and restoring work for both streaming and non-streaming replies. Detection is measured on a held-out evaluation set and compared with Microsoft Presidio, restoring is measured on two real LLMs, and speed and running cost are measured (below). Phase 7b adds a demo video. See the [design](docs/superpowers/specs/2026-10-24-data-leak-guard-design.md).
 
 ## What it does
 
@@ -75,6 +75,41 @@ Measured on a **held-out test set** of 1,600 synthetic messages (English, Hingli
 - 9 of 1,200 requests failed at the provider (Groq rejecting a malformed tool call, or temporarily unavailable) and are not in the rates. Real models change over time, so a re-run gives similar, not identical, numbers.
 - Reproduce: `python -m leakguard.evaluation restore-run --split test` (needs a free `GROQ_API_KEY`), then `restore-report --split test`, which renders from the committed results without a key.
 
+### Compared with Presidio
+
+Microsoft Presidio is the best-known open-source PII detector. It was run on the same test set with the same scoring, set up two ways: **out of the box**, and its **best shot** (all its Indian recognizers turned on, a minimum score per type tuned on dev). In presidio-analyzer 2.2.364, Presidio's Indian recognizers are **off by default**. Full page: [docs/evaluation/presidio-baseline.md](docs/evaluation/presidio-baseline.md).
+
+| Type | Ours F1 | Presidio out of the box F1 | Presidio best shot F1 | Ours coverage | Presidio best shot coverage |
+|---|---:|---:|---:|---:|---:|
+| AADHAAR | 99.0% | 0.0% | 92.6% | 100.0% | 100.0% |
+| PAN | 93.2% | 0.0% | 91.8% | 85.1% | 85.1% |
+| PHONE | 95.3% | 77.8% | 77.9% | 94.2% | 100.0% |
+| EMAIL | 100.0% | 93.9% | 93.9% | 100.0% | 100.0% |
+| CARD | 100.0% | 94.7% | 94.7% | 100.0% | 100.0% |
+| NAME | 92.3% | 54.2% | 54.2% | 88.2% | 83.0% |
+| ADDRESS † | 94.0% | 48.5% | 48.5% | 93.7% | 39.9% |
+| UPI / IFSC / BANK_ACCOUNT / SECRET | 64.7–100.0% | not supported | not supported | 56.6–100.0% | 4.8–87.1% |
+| **Types both support** (first six rows) | **95.3%** | **62.6%** | **74.5%** | **93.9%** | **94.3%** |
+
+- On the six types both detect, Presidio's best shot hides about as many characters as ours (94.3% against 93.9% coverage), but it gets there by over-masking. 68 of 350 messages with nothing sensitive in them get a false alarm on those six types (ours: 4), or 116 counting its place names (ours: 5), and only 40.3% of what it calls a name is one. Over-masking hides words the LLM needs to answer well.
+- Presidio is faster: 6.6 ms per message at p50 against our 17.0 ms, most of which is our name model.
+- Presidio has no detector for UPI IDs, IFSC codes, Indian bank accounts or secrets. It still hides some of them by accident (87.1% of bank-account characters, through its US bank-number detector), which the coverage column shows.
+- † Presidio's `LOCATION` finds place names, not full addresses, so its ADDRESS F1 isn't like for like; coverage is the fairer measure.
+
+### Speed and cost
+
+Measured on a laptop (Intel Core i7-1165G7, 8 logical cores, Windows 11 build 26200, Docker Desktop), against the mock LLM so only the guard's own cost shows. Full page, with method: [docs/evaluation/performance.md](docs/evaluation/performance.md).
+
+| What | Name model on | Name model off |
+|---|---:|---:|
+| Added to each request, p50 / p95 | 19.2 / 30.4 ms | 1.7 / 3.1 ms |
+| Added before the first streamed token, p50 / p95 | 19.7 / 31.2 ms | 1.5 / 2.2 ms |
+
+- **Throughput** (the real container, CPU-capped, name model on): 42.9 messages/s on 1 CPU with one client at a time, and 56.5 messages/s on 2 CPUs with 8 concurrent clients. With 8 clients on 1 CPU, throughput *drops* to 24.5/s, because the detection threads fight over one CPU. Size CPUs (or guard replicas) to the concurrency you expect.
+- **Memory:** 694 MB idle, 734 MB peak, so it fits a **1 vCPU / 1 GB** machine (with 25% headroom). The image is 1.03 GB on disk (337 MB compressed), 283 MB of it the name model.
+- **LLM tokens:** masking **saves** tokens. Over 1,376 test messages the guard would forward, prompts went from 31,139 to 26,119 tokens (−16.1%, `o200k_base`), mostly because a long address becomes a short `[ADDRESS_1]`.
+- A real LLM takes hundreds of milliseconds to seconds per reply, so the ~20 ms the name model adds is small next to it.
+
 ## Quickstart (free, no API key needed)
 
 Requires Docker.
@@ -130,6 +165,22 @@ LEAKGUARD_UPSTREAM_BASE_URL=http://host.docker.internal:11434/v1 docker compose 
 | `LEAKGUARD_NER` | `on` | person-name detection (an ONNX model on CPU). `off` disables it; while `on`, the guard refuses to start if the model is missing |
 | `LEAKGUARD_NER_MODEL_DIR` | `models/ner` | exported name model (the Docker image includes it) |
 | `LEAKGUARD_NER_THREADS` | `1` | CPU threads per name-model inference |
+| `LEAKGUARD_API_KEY` | off | if set (16+ characters), every `/v1/` request must send it in an `X-Leakguard-Key` header, otherwise 401 |
+
+### Exposing the guard beyond localhost
+
+`docker compose up` publishes the guard on `127.0.0.1:8080` only, so other machines on your network can't use it. To serve other machines on purpose, change the port line in [`docker-compose.yml`](docker-compose.yml) **and** set a guard key, so the guard can't be used as an open relay to your LLM:
+
+```bash
+LEAKGUARD_API_KEY=<a random key, 16+ characters> docker compose up --build
+```
+
+Clients then send it in a header:
+
+```python
+client = OpenAI(base_url="http://guard-host:8080/v1", api_key="<your provider key>",
+                default_headers={"X-Leakguard-Key": "<your guard key>"})
+```
 
 ### Policy
 
@@ -140,6 +191,30 @@ actions:
   NAME: log_only
 failure_mode: closed   # if detection itself fails: closed = reject, open = forward unmasked
 ```
+
+## Security of the guard itself
+
+A guard that leaks is worse than no guard, so the guard is treated as an attack surface too.
+
+| Threat | Who | What the guard does | Proof |
+|---|---|---|---|
+| Stolen placeholder mappings (`[PHONE_1]` → real number) | anyone with access to the guard's storage | Nothing to steal: mappings live in memory for one request and are never written anywhere. The guard has no database and no cache | [`masking.py`](src/leakguard/masking.py), [`app.py`](src/leakguard/app.py) (one `PlaceholderMap` per request) |
+| Sensitive data or keys in the guard's own logs | anyone who can read logs (ops, a log vendor) | The log functions only accept named metadata fields (counts, timings), never text or headers | `test_logs_counts_but_never_values`, `test_logs_contain_no_content_or_auth`, `test_guard_key_never_logged` |
+| Placeholder injection: a user types `[PHONE_1]` hoping the reply gets someone else's value | a malicious user of the app | Every placeholder-like form a user types (`[PHONE_1]`, `phone 1`, `PHONE_1`, …) is reserved and never filled with a value | `test_user_typed_placeholder_is_never_restored`, `test_reserved_never_restored_in_any_form`, `test_near_forms_a_user_types_are_reserved` |
+| ReDoS: a message crafted to make a regex take forever | a malicious user | Patterns avoid catastrophic backtracking; long and adversarial inputs are tested for speed | `test_detect_rules_is_fast_on_adversarial_input`, `test_long_repetitive_messages_stay_fast`, `test_reserving_many_typed_placeholders_is_fast` |
+| Open relay: strangers use the guard to reach the LLM behind it (e.g. a keyless local Ollama) | anyone on the same network | Docker publishes the guard on `127.0.0.1` only. When exposing it on purpose, `LEAKGUARD_API_KEY` requires an `X-Leakguard-Key` header on every `/v1/` request | `test_guard_published_on_localhost_only`, `test_guard_key_reaches_the_container`, `test_guard_key_missing_or_wrong_is_401`, `test_guard_key_enforced_under_a_root_path` |
+| Detection crashes on some input, and the message goes out unchecked | a bug, or input that triggers one | Fail-closed by default: the request is rejected (500), not forwarded. `failure_mode: open` exists and is documented as unsafe | `test_detection_failure_fails_closed` |
+| Huge requests to exhaust memory or CPU | a malicious user | Bodies over `LEAKGUARD_MAX_REQUEST_BYTES` (1 MiB) are rejected with 413 before parsing; a body without `Content-Length` (chunked) is counted while it is read, and reading stops at the limit | `test_request_too_large_returns_413`, `test_chunked_body_over_the_limit_is_413_without_reading_it_all` |
+| Attacks on the guard key itself | anyone who can reach the guard | Compared in constant time (no timing leak), checked before the body is read, never forwarded upstream, never logged; a key under 16 characters stops the guard at startup | `test_guard_key_checked_before_body`, `test_guard_key_not_forwarded`, `test_short_key_refuses_start` |
+
+### What it does not protect against
+
+- **Data inside images or attached files.** Only text fields (messages, tool calls) are inspected.
+- **Scripts it was not measured on.** Names and addresses in Devanagari or other non-Latin scripts were not in the evaluation, so there is no number for them.
+- **Who someone is, worked out from context.** "The CFO of a Pune fintech who joined in March" contains nothing the guard masks.
+- **The known-hard formats**, such as spaced PANs, numbers written as words and unknown UPI handles. UPI recall is 47.8% and PAN recall 87.3% on the test set, mostly for these reasons ([report](docs/evaluation/report.md#known-hard-formats-test-split)).
+- **Traffic that doesn't go through the guard.** It protects what your app sends through `base_url`, nothing else.
+- **What the LLM provider sees around the placeholders.** The provider still gets the rest of the message, and it can see that a phone number was there.
 
 ## Development
 
@@ -179,7 +254,9 @@ bundled PIN directory is rebuilt from India Post's CSV with
 - [Phase 3 walkthrough](docs/walkthrough/phase-3-evaluation.md): evaluation
 - [Phase 4 walkthrough](docs/walkthrough/phase-4-names.md): person names (NER)
 - [Phase 5 walkthrough](docs/walkthrough/phase-5-addresses.md): Indian postal addresses
-- [Evaluation report](docs/evaluation/report.md)
+- [Phase 6 walkthrough](docs/walkthrough/phase-6-streaming-restore.md): restoring streamed replies
+- [Phase 7a walkthrough](docs/walkthrough/phase-7a-measure-and-harden.md): Presidio comparison, speed and cost, hardening
+- [Evaluation report](docs/evaluation/report.md), [Presidio baseline](docs/evaluation/presidio-baseline.md), [performance and cost](docs/evaluation/performance.md), [restore report](docs/evaluation/restore-report.md)
 
 ## License
 
