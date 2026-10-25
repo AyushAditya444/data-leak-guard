@@ -76,3 +76,9 @@ def test_overhead_keys():
 def test_tuning_page_lists_notes():
     md = render_restore_tuning(_results(_outcome(mentions={"exact": 1})), ["the decision"])
     assert "## Notes" in md and "- the decision" in md
+
+
+def test_forms_table_marks_bracketless_as_restored_when_accepted():
+    md = render_restore_tuning(_results(_outcome(mentions={"bracketless": 1})))
+    row = next(line for line in md.splitlines() if line.startswith("| bracketless |"))
+    assert "| yes (strict `PHONE_1` only) |" in row

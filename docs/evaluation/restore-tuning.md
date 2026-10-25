@@ -21,8 +21,8 @@ Run: 2026-10-25, split `dev`, 100 conversations, models `openai/gpt-oss-120b`, `
 | case | `[Phone_1]` | yes | 0 (0.0%) | 0 (0.0%) |
 | separator | `[PHONE 1]` | yes | 0 (0.0%) | 0 (0.0%) |
 | brackets | `{PHONE_1}` | yes | 1 (0.2%) | 1 (0.3%) |
-| bracketless | `PHONE_1` | no | 25 (6.2%) | 3 (0.9%) |
-| unclosed | `[PHONE_1` | no | 0 (0.0%) | 1 (0.3%) |
+| bracketless | `PHONE_1` | yes (strict `PHONE_1` only) | 25 (6.2%) | 3 (0.9%) |
+| unclosed | `[PHONE_1` | its bare part, if strict | 0 (0.0%) | 1 (0.3%) |
 
 ## Bracketless placeholders
 

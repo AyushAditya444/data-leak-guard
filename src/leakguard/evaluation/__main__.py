@@ -181,8 +181,12 @@ RESTORE_NOTES = [
     ("A strict bare `PHONE_1` is restored even inside an unclosed `[PHONE_1`, which shows the "
      "value with a stray bracket; such mentions are still listed as `unclosed` in the forms "
      "table, which is read from the raw replies."),
-    ("Errors are HTTP 400 `tool_use_failed` from Groq: the provider rejected a malformed tool "
-     "call from the model. The guard blocked nothing (checked by re-sending one on dev)."),
+    ("Errors were returned by Groq, not the guard (the guard's own errors are 400 for a "
+     "blocked request or bad input, 413, 500, 502 and 504; no request here was blocked). "
+     "HTTP 400 errors all came from gpt-oss-120b on forced tool calls, the same pattern as on "
+     "dev, where a re-sent one was `tool_use_failed`: the provider rejected the model's "
+     "malformed tool call. HTTP 503 errors are Groq being temporarily unavailable. Failed "
+     "requests were not retried beyond 429s and are excluded from the rates."),
 ]
 
 DEV_NOTES = [

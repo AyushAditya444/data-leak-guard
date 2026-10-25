@@ -2,7 +2,7 @@
 
 A drop-in, OpenAI-compatible proxy that stops Indian personal data and secrets from leaking into LLMs. It sits between your app and the LLM provider, finds sensitive data (Aadhaar, PAN, phone numbers, UPI IDs, bank accounts, IFSC codes, addresses, names, API keys), hides it before the request leaves, and puts the real values back into the reply, so your app works normally. You adopt it by changing **one line**: your SDK's `base_url`.
 
-> **Status: Phase 5 of 7.** Detection (rules, Indian postal addresses, and a person-name model on CPU), masking, blocking and restoring work for non-streaming replies, and are measured on a held-out evaluation set (below). Streamed replies are masked (nothing leaks) but still show placeholders until Phase 6. See the [design](docs/superpowers/specs/2026-10-24-data-leak-guard-design.md).
+> **Status: Phase 6 of 7.** Detection (rules, Indian postal addresses, and a person-name model on CPU), masking, blocking and restoring work for both streaming and non-streaming replies. Detection is measured on a held-out evaluation set, and restoring on two real LLMs (below). See the [design](docs/superpowers/specs/2026-10-24-data-leak-guard-design.md).
 
 ## What it does
 
@@ -29,7 +29,9 @@ Your app gets:    "Refund to rahul.s@okicici is on its way."
 
 **What counts as an address:** at least one specific detail (flat or house number, building, street, landmark like "near Hanuman Mandir", PIN code) **and** at least one place (locality, city, PIN), close together. So `Flat 302, Sai Krupa Apts, Kothrud, Pune 411038` and `near Hanuman Mandir, Kothrud` are masked as one `[ADDRESS_1]` each, while `I live in Pune`, `I live in Kothrud, Pune`, `stuck near Kothrud`, `near the metro station` and `OTP 411038` are not. A 6-digit number counts as a PIN only if it is a real PIN code and is not after words like "OTP" or "order".
 
-Logs record **counts only** (`"PHONE:mask": 2`), never values. Placeholder mappings live in memory for one request and are never stored.
+**Restoring** works in streamed replies too, even when a placeholder arrives split across chunks (`[PHO` + `NE_1]`): the guard holds back only a tail that could still become a placeholder (at most ~20 characters) and sends everything else at once. It also accepts the small ways LLMs rewrite placeholders (`[Phone_1]`, `[PHONE 1]`, `{PHONE_1}`, a bare `PHONE_1`), in reply text, "reasoning" text and tool-call arguments. It never guesses: anything else is left as written. Placeholders a *user* types, in any of those forms, are never filled with a value.
+
+Logs record **counts only** (`"PHONE:mask": 2`, `"restored": 3, "unrestored": 0`), never values. Placeholder mappings live in memory for one request and are never stored.
 
 ## Results
 
@@ -56,6 +58,22 @@ Measured on a **held-out test set** of 1,600 synthetic messages (English, Hingli
 - Hand-written set (93 messy real-style messages): **98.9%** precision, **92.0%** recall over built types.
 - *Matching rule:* same type and overlapping. *Coverage* = share of the sensitive characters actually hidden from the LLM.
 - Reproduce: `python -m leakguard.evaluation report`.
+
+### Restoring replies on real LLMs
+
+300 held-out test conversations sent through the guard to two models on Groq's free tier, each once non-streaming and once streaming, with an instruction to repeat the customer's details back (about a fifth force a tool call). **Fully restored** = the reply mentions at least one of our placeholders and none of ours is left in it. Full report: [docs/evaluation/restore-report.md](docs/evaluation/restore-report.md).
+
+| Model | Mode | Replies mentioning a placeholder | Fully restored | Mentions the model rewrote | Left unrestored |
+|---|---|---:|---:|---:|---:|
+| openai/gpt-oss-120b | non-streaming | 280 | 100.0% | 12.9% | 0 |
+| openai/gpt-oss-120b | streaming | 273 | 100.0% | 11.8% | 0 |
+| qwen/qwen3.8-27b | non-streaming | 258 | 99.6% | 6.8% | 1 |
+| qwen/qwen3.8-27b | streaming | 259 | 99.6% | 3.5% | 1 |
+
+- The most common rewrite was dropping the brackets (`PHONE_1`): 10% of gpt-oss mentions. Accepting that form was decided on a separate dev run before this test ([restore-tuning.md](docs/evaluation/restore-tuning.md)).
+- Restoring costs the guard about 3.5 ms per streamed reply (~700 characters in 3-character chunks), against 0.2 ms for plain pass-through.
+- 9 of 1,200 requests failed at the provider (Groq rejecting a malformed tool call, or temporarily unavailable) and are not in the rates. Real models change over time, so a re-run gives similar, not identical, numbers.
+- Reproduce: `python -m leakguard.evaluation restore-run --split test` (needs a free `GROQ_API_KEY`), then `restore-report --split test`, which renders from the committed results without a key.
 
 ## Quickstart (free, no API key needed)
 

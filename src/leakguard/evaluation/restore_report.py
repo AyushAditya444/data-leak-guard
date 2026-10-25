@@ -16,11 +16,15 @@ from leakguard.app import relay_stream
 from leakguard.entities import EntityType
 from leakguard.evaluation.report import _pct, _percentile
 from leakguard.masking import PlaceholderMap
+from leakguard.placeholders import ACCEPT_BRACKETLESS
 from leakguard.restore import Restorer
 
 BRACKETLESS_RULE = 0.02  # design §3: accept bare NAME_1 only if >= 2% of mentions on dev
 FORMS = ("exact", "case", "separator", "brackets", "bracketless", "unclosed")
-ACCEPTED_FORMS = {"exact", "case", "separator", "brackets"}
+# Is each form restored? "bracketless" counts any bare form; only the strict one is restored.
+RESTORED = {"exact": "yes", "case": "yes", "separator": "yes", "brackets": "yes",
+            "bracketless": "yes (strict `PHONE_1` only)" if ACCEPT_BRACKETLESS else "no",
+            "unclosed": "its bare part, if strict" if ACCEPT_BRACKETLESS else "no"}
 
 
 @dataclass
@@ -99,8 +103,8 @@ def _forms_table(results: dict) -> list[str]:
         for model in sorted(by_model):
             total = sum(by_model[model].values())
             cells.append(f"{by_model[model][form]} ({_rate(by_model[model][form], total)})")
-        accepted = "yes" if form in ACCEPTED_FORMS else "no"
-        lines.append(f"| {form} | {examples[form]} | {accepted} | " + " | ".join(cells) + " |")
+        lines.append(f"| {form} | {examples[form]} | {RESTORED[form]} | "
+                     + " | ".join(cells) + " |")
     return lines
 
 
