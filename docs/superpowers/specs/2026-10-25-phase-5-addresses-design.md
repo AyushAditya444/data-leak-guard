@@ -145,7 +145,7 @@ or the scores measure the generator.
    or locality outside an address, "near X" small talk, ratios and dates like "12/3",
    building-like words in non-address text ("the society meeting").
 5. **Hand-written addresses**, written **before the detector rules are finalised**, so they
-   are a blind check on the generator and the rules. Who writes them is open (§8).
+   are a blind check on the generator and the rules. The builder writes them (§8).
 6. **Gold boundaries** follow §2: first piece to last piece, PIN included, surrounding words
    excluded.
 
@@ -168,8 +168,8 @@ or the scores measure the generator.
 
 ## 8. Open / left to the builder
 
-- **Open (user):** whether the user writes some of the hand-written addresses themselves —
-  the strongest independent check, since the builder also writes the rules.
+- **Decided (user):** the builder writes the hand-written addresses, before finalising the
+  rules. The report states that the same author wrote both, as a known limitation.
 - Builder's call: exact keyword lists, regexes, gazetteer data structure, NER LOC API shape,
   stop-list contents, generator style weights, split method for places, file layout of the
   compact data file — all to be stated in the plan and the walkthrough.
