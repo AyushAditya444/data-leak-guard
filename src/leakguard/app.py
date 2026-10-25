@@ -20,6 +20,7 @@ from starlette.concurrency import run_in_threadpool
 
 from leakguard.config import Settings
 from leakguard.detect.engine import Detector, EntityModel, build_detector
+from leakguard.detect.gazetteer import load_gazetteer
 from leakguard.errors import openai_error
 from leakguard.logs import log_detection_failed, log_ner_disabled, log_request
 from leakguard.masking import PlaceholderMap, mask_messages, restore_response
@@ -254,6 +255,7 @@ def create_app(
     NER model. The policy and the model are loaded here, so an invalid policy file or a
     missing model stops the guard at startup."""
     policy = policy or load_policy(settings.policy_path)
+    load_gazetteer()  # the PIN directory (~1 MB): load now, not on the first request
     if name_model is not None:
         detect = build_detector(name_model)
     else:

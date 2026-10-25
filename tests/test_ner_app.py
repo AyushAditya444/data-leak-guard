@@ -103,3 +103,11 @@ def test_app_uses_ner_locations(make_guard):
     guard = make_guard(transport=httpx.MockTransport(_echo(seen)), ner=fake_ner)
     guard.post(CHAT, json=_req("ship to Flat 2, Hiranandani Meadows"))
     assert seen["sent"] == "ship to [ADDRESS_1]"
+
+
+def test_pin_directory_is_loaded_at_startup(make_guard):
+    # Loading it lazily made the first request after a restart take ~0.8 s.
+    from leakguard.detect.gazetteer import load_gazetteer
+    load_gazetteer.cache_clear()
+    make_guard()
+    assert load_gazetteer.cache_info().currsize == 1
