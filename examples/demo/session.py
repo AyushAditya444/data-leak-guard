@@ -43,7 +43,16 @@ def _check_masked(scene: dict) -> list[str]:
     problems = []
     if not scene["wire"]:
         problems.append("nothing reached the LLM")
-    problems += [f"{v!r} left the machine" for v in values if v in sent]
+    for value in values:
+        if value in sent:
+            problems.append(f"{value!r} left the machine")
+            continue
+        # Half a value is a leak too ("Priya [NAME_1]"): no word of it may be on the wire.
+        parts = [w for w in re.findall(r"\w{3,}", value)
+                 if re.search(rf"(?<!\w){re.escape(w)}(?!\w)", sent)]
+        if parts:
+            problems.append(f"part of {value!r} left the machine: "
+                            + ", ".join(repr(w) for w in parts))
     if not any(v in reply for v in values):
         problems.append("no real value was restored in the reply")
     if PLACEHOLDER.search(reply):
@@ -51,7 +60,7 @@ def _check_masked(scene: dict) -> list[str]:
     if not scene["log"] or not scene["log"].get("findings"):
         problems.append("the log line has no findings")
     problems += [f"the log line contains {v!r}" for v in values if v in log]
-    if scene["stream"] and not _split_placeholder(scene["wire"][-1]["chunks"]):
+    if scene["stream"] and scene["wire"] and not _split_placeholder(scene["wire"][-1]["chunks"]):
         problems.append("no placeholder was split across streamed chunks")
     return problems
 
@@ -87,9 +96,14 @@ def _check_results(results: dict) -> list[str]:
 CHECKS = {"masked": _check_masked, "blocked": _check_blocked, "unchanged": _check_unchanged}
 
 
-def verify_session(session: dict) -> list[str]:
-    """Every narrated claim that does not hold, as "<scene>: <what is wrong>"."""
+def verify_session(session: dict, require_live: bool = False) -> list[str]:
+    """Every narrated claim that does not hold, as "<scene>: <what is wrong>".
+    `require_live`: the session the video ships with, where the narration also says it was
+    recorded live against a real model on Groq."""
     problems = []
+    if require_live and session["meta"]["upstream"] != "groq":
+        problems.append(f"meta: the narration says this was recorded live on Groq, but its "
+                        f"upstream is {session['meta']['upstream']!r}")
     for scene_id, scene in session["scenes"].items():
         check = CHECKS.get(scene["show"]["expect"])
         problems += [f"{scene_id}: {p}" for p in (check(scene) if check else [])]

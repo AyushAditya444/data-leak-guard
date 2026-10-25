@@ -7,6 +7,7 @@ import pytest
 
 from examples.demo.scenes import SCENES
 from examples.demo.timeline import (
+    HIDDEN_START_S,
     LEAD_IN_S,
     SCENE_PAD_S,
     min_durations_from_session,
@@ -106,10 +107,18 @@ def test_one_tape_per_scene():
         assert "Set Width 1280" in text and "Set Height 600" in text
         assert "Set FontSize 18" in text
         assert f"Output build/demo/scenes/{scene['id']}.mp4" in text
-        assert re.findall(r"^Sleep ([\d.]+)s$", text, re.MULTILINE) == [
-            str(round(scene["duration"], 2))]
+        # Out of shot: start the player, give it time to clear the screen, then film.
+        # Otherwise the typed command shows for the first frames (and in the GIF).
+        steps = [line for line in text.splitlines() if line.split(" ")[0] in
+                 ("Hide", "Type", "Enter", "Show", "Sleep")]
+        assert [s.split(" ")[0] for s in steps] == ["Hide", "Type", "Enter", "Sleep", "Show",
+                                                    "Sleep"]
+        assert steps[3] == f"Sleep {HIDDEN_START_S}s"
+        assert steps[5] == f"Sleep {round(scene['duration'], 2)}s"
+    # Beats after the first, and the hold, are shifted by the time spent out of shot.
     assert ("player.py a --session examples/demo/session.json --at 0.0,"
-            f"{round(LEAD_IN_S + 2.35, 3)} --hold {round(plan[0]['duration'], 2)}") in tapes["a"]
+            f"{round(LEAD_IN_S + 2.35 + HIDDEN_START_S, 3)} "
+            f"--hold {round(plan[0]['duration'] + HIDDEN_START_S, 2)}") in tapes["a"]
 
 
 def test_min_duration_covers_stream_replay():

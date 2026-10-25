@@ -8,7 +8,8 @@ Set Theme "Catppuccin Mocha"
 Set TypingSpeed 0
 
 Hide
-Type "python3 examples/demo/player.py outro --session examples/demo/session.json --at 0.0 --hold 15.04"
+Type "python3 examples/demo/player.py outro --session examples/demo/session.json --at 0.0 --hold 16.04"
 Enter
+Sleep 1.0s
 Show
 Sleep 15.04s

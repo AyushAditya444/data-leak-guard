@@ -12,12 +12,13 @@ generated examples/demo/demo.srt and tapes/. Needs Docker; nothing to install.
 
 import argparse
 import json
+import shutil
 import subprocess
 import sys
 from pathlib import Path
 
 from examples.demo.scenes import FONT_SIZE
-from examples.demo.session import load_session
+from examples.demo.session import load_session, verify_session
 from examples.demo.timeline import (
     LEAD_IN_S,
     min_durations_from_session,
@@ -61,22 +62,35 @@ def narrate() -> dict:
     return json.loads((voice / "timings.json").read_text(encoding="utf-8"))
 
 
-def own_voice_durations(voice_dir: Path) -> dict[str, float]:
-    durations = {}
+def collect_own_voice(voice_dir: Path, scene_ids: list[str],
+                      dest: Path) -> tuple[dict[str, Path], list[str]]:
+    """Copy the author's `<scene_id>.wav` files into `dest` (inside the repo, so the
+    ffmpeg container can see them wherever they were recorded). Returns the copies by scene
+    and the names of WAV files that match no scene."""
+    found, ignored = {}, []
     for wav in sorted(voice_dir.glob("*.wav")):
-        out = _in_vhs_image("ffprobe", "-v", "error", "-show_entries", "format=duration",
-                            "-of", "csv=p=0", wav.resolve().relative_to(REPO).as_posix())
-        durations[wav.stem] = float(out.strip())
-    return durations
+        if wav.stem not in scene_ids:
+            ignored.append(wav.name)
+            continue
+        dest.mkdir(parents=True, exist_ok=True)
+        found[wav.stem] = Path(shutil.copyfile(wav, dest / wav.name))
+    if not found:
+        expected = ", ".join(f"{sid}.wav" for sid in scene_ids)
+        raise ValueError(f"no recordings in {voice_dir}: expected files named {expected}")
+    return found, ignored
 
 
-def mix_voice(plan: list[dict], voice_dir: Path | None) -> Path:
-    """One audio track: each scene's narration placed at its scene's start."""
+def own_voice_durations(own: dict[str, Path]) -> dict[str, float]:
+    return {scene_id: _duration(wav) for scene_id, wav in own.items()}
+
+
+def mix_voice(plan: list[dict], own: dict[str, Path]) -> Path:
+    """One audio track: each scene's narration (the author's own where given) placed at
+    its scene's start."""
     inputs, filters = [], []
     for i, scene in enumerate(plan):
-        own = voice_dir / f"{scene['id']}.wav" if voice_dir else None
-        wav = own if own and own.is_file() else OUT / "voice" / f"{scene['id']}.wav"
-        inputs += ["-i", wav.resolve().relative_to(REPO).as_posix()]
+        wav = own.get(scene["id"], OUT / "voice" / f"{scene['id']}.wav")
+        inputs += ["-i", wav.as_posix()]
         delay = round((scene["start"] + LEAD_IN_S) * 1000)
         filters.append(f"[{i}:a]aresample=48000,adelay={delay}:all=1[a{i}]")
     mix = "".join(f"[a{i}]" for i in range(len(plan)))
@@ -137,17 +151,35 @@ def main(argv: list[str] | None = None) -> int:
     generated = DEMO if committed else OUT  # a dry run never overwrites committed files
     gif = Path("docs/demo/demo.gif") if committed else OUT / "demo.gif"
 
+    # Checked before any Docker step. The committed video's narration says it was recorded
+    # live on Groq, so only such a session may become it.
+    session = load_session(args.session)
+    problems = verify_session(session, require_live=committed)
+    if problems:
+        print("this session does not support the narration:\n" + "\n".join(problems),
+              file=sys.stderr)
+        return 1
+    own: dict[str, Path] = {}
+    if args.voice_dir:
+        try:
+            own, ignored = collect_own_voice(args.voice_dir, list(session["scenes"]),
+                                             OUT / "own-voice")
+        except ValueError as error:
+            print(error, file=sys.stderr)
+            return 1
+        if ignored:
+            print("ignored (no scene with that name): " + ", ".join(ignored), file=sys.stderr)
+
     timings_file = OUT / "voice" / "timings.json"
     if args.skip_voice and timings_file.is_file():
         timings = json.loads(timings_file.read_text(encoding="utf-8"))
     else:
         timings = narrate()
 
-    session = load_session(args.session)
     beats = {sid: scene["show"]["beats"] for sid, scene in session["scenes"].items()}
     plan = scene_plan(timings, min_durations_from_session(session), beats)
-    if args.voice_dir:
-        problems = voice_overrun(own_voice_durations(args.voice_dir), plan)
+    if own:
+        problems = voice_overrun(own_voice_durations(own), plan)
         if problems:
             print("\n".join(problems), file=sys.stderr)
             return 1
@@ -161,7 +193,7 @@ def main(argv: list[str] | None = None) -> int:
     (OUT / "plan.json").write_text(json.dumps(plan, indent=1), encoding="utf-8")
 
     clips = film(plan, tapes)
-    track = mix_voice(plan, args.voice_dir)
+    track = mix_voice(plan, own)
     video = OUT / "demo.mp4"
     join(plan, clips, track, subtitles, video)
 

@@ -101,4 +101,25 @@ def test_verify_missing_request_scene(session):
 
 def test_committed_session_passes_verification():
     # The session the video replays (recorded against a real model) must keep every claim.
-    assert verify_session(load_session(Path("examples/demo/session.json"))) == []
+    session = load_session(Path("examples/demo/session.json"))
+    assert verify_session(session, require_live=True) == []
+
+
+def test_verify_stream_that_never_reached_the_llm(session):
+    # Must name the claim, not crash on the missing reply.
+    session["scenes"]["stream"]["wire"] = []
+    assert "nothing reached the LLM" in _problem(session, "stream")
+
+
+def test_verify_part_of_a_value_on_the_wire(session):
+    # "Every one of them is now a placeholder": half a name on the wire is a leak too.
+    session["scenes"]["core"]["wire"][0]["messages"][1]["content"] = (
+        "I'm Priya [NAME_1], phone [PHONE_1], Aadhaar [AADHAAR_1].")
+    assert "'Priya'" in _problem(session, "core")
+
+
+def test_verify_require_live_rejects_a_mock_session(session):
+    # The narration says the run was recorded live against a real model on Groq.
+    assert verify_session(session) == []
+    [problem] = verify_session(session, require_live=True)
+    assert problem.startswith("meta:") and "Groq" in problem

@@ -8,7 +8,8 @@ Set Theme "Catppuccin Mocha"
 Set TypingSpeed 0
 
 Hide
-Type "python3 examples/demo/player.py secret --session examples/demo/session.json --at 0.0,5.173 --hold 10.22"
+Type "python3 examples/demo/player.py secret --session examples/demo/session.json --at 0.0,6.173 --hold 11.22"
 Enter
+Sleep 1.0s
 Show
 Sleep 10.22s
