@@ -40,7 +40,7 @@ export = [
 where = ["src"]
 
 [tool.setuptools.package-data]
-leakguard = ["data/*.txt"]
+leakguard = ["data/*.txt", "data/*.gz", "data/*.md"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

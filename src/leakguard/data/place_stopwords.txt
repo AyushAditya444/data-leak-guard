@@ -1,0 +1,24 @@
+# Post office names that are also everyday words. They are not used as place signals,
+# because "near the station" or "the market" in small talk is not an address.
+# One name per line, any case. Extended on the dev split (see docs/evaluation/address-tuning.md).
+station
+market
+camp
+bazar
+bazaar
+fort
+colony
+college
+university
+hospital
+court
+mandi
+chowk
+road
+nagar
+gate
+bridge
+mill
+factory
+airport
+cantonment

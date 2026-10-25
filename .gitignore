@@ -13,3 +13,7 @@ data/eval/test.jsonl
 
 # Exported NER models: rebuilt from pinned revisions by `python -m leakguard.ner.export`.
 models/
+
+# Raw India Post PIN directory CSV: input to `python -m leakguard.detect.gazetteer build`.
+# Not committed; only the compact derived file in src/leakguard/data/ is.
+data/raw/
