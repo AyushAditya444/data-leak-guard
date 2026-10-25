@@ -57,3 +57,37 @@
 {"id": "hw-057", "category": "negative", "template": "handwritten", "text": "Paid via PhonePe, but Amazon shows payment pending", "spans": []}
 {"id": "hw-058", "category": "negative", "template": "handwritten", "text": "Is Mumbai Indians merchandise available in the Pune store?", "spans": []}
 {"id": "hw-059", "category": "negative", "template": "handwritten", "text": "Will the Lakme kit come by Monday?", "spans": []}
+{"id": "hw-060", "category": "support", "template": "handwritten", "text": "Pls deliver at Flat 1102, Sea Breeze Apts, Sector 19, Kharghar, Navi Mumbai 410210 by evening", "spans": [{"start": 15, "end": 82, "type": "ADDRESS"}]}
+{"id": "hw-061", "category": "support", "template": "handwritten", "text": "new address: D-45, Lajpat Nagar 2, New Delhi - 110024", "spans": [{"start": 13, "end": 53, "type": "ADDRESS"}]}
+{"id": "hw-062", "category": "hinglish", "template": "handwritten", "text": "bhaiya Shiv Mandir ke saamne, Indira Nagar, Lucknow aana hai, call karna 9415012345", "spans": [{"start": 7, "end": 51, "type": "ADDRESS"}, {"start": 73, "end": 83, "type": "PHONE"}]}
+{"id": "hw-063", "category": "support", "template": "handwritten", "text": "Address is No. 14, 3rd Cross, 6th Main, Malleshwaram, Bangalore 560003. Leave with security", "spans": [{"start": 11, "end": 70, "type": "ADDRESS"}]}
+{"id": "hw-064", "category": "agent_record", "template": "handwritten", "text": "Cust: Anjali Deshmukh\nAddr: A/7, Shubham CHS,\nNear Rly Station,\nDombivli East,\nThane 421201\nMob: 9821456730", "spans": [{"start": 6, "end": 21, "type": "NAME"}, {"start": 28, "end": 91, "type": "ADDRESS"}, {"start": 97, "end": 107, "type": "PHONE"}]}
+{"id": "hw-065", "category": "support", "template": "handwritten", "text": "deliver to house no 221, sector 7, gurgaon after 7pm", "spans": [{"start": 11, "end": 42, "type": "ADDRESS"}]}
+{"id": "hw-066", "category": "hinglish", "template": "handwritten", "text": "mera address gali no 5, Bhajanpura, Delhi 110053 hai", "spans": [{"start": 13, "end": 48, "type": "ADDRESS"}]}
+{"id": "hw-067", "category": "support", "template": "handwritten", "text": "I am at opp. Ganesh Talkies, Lalbaug, Mumbai, the rider is not picking up", "spans": [{"start": 8, "end": 44, "type": "ADDRESS"}]}
+{"id": "hw-068", "category": "support", "template": "handwritten", "text": "Ship to Plot 32, Phase 2, Hinjewadi, Pune 411057 - it's an office, ask for reception", "spans": [{"start": 8, "end": 48, "type": "ADDRESS"}]}
+{"id": "hw-069", "category": "agent_record", "template": "handwritten", "text": "Return pickup | Flat 3B, Tower 4, Prestige Shantiniketan, Whitefield, Bengaluru 560048 | slot 10-12", "spans": [{"start": 16, "end": 86, "type": "ADDRESS"}]}
+{"id": "hw-070", "category": "support", "template": "handwritten", "text": "Change address to 12/4 Ballygunge Place, Kolkata - 700019 pls", "spans": [{"start": 18, "end": 57, "type": "ADDRESS"}]}
+{"id": "hw-071", "category": "hinglish", "template": "handwritten", "text": "parcel Sai Baba Mandir ke paas, Ram Nagar, Nagpur dena", "spans": [{"start": 7, "end": 49, "type": "ADDRESS"}]}
+{"id": "hw-072", "category": "support", "template": "handwritten", "text": "c/o Ramesh, H.No 3-4-56, Barkatpura, Hyderabad 500027", "spans": [{"start": 4, "end": 10, "type": "NAME"}, {"start": 12, "end": 53, "type": "ADDRESS"}]}
+{"id": "hw-073", "category": "support", "template": "handwritten", "text": "my pincode is 682030, is delivery possible?", "spans": [{"start": 14, "end": 20, "type": "ADDRESS"}]}
+{"id": "hw-074", "category": "agent_record", "template": "handwritten", "text": "Two addresses on file: billing B-12, Sector 62, Noida 201309 and shipping Flat 9, Rose Apartments, Civil Lines, Jaipur 302006", "spans": [{"start": 31, "end": 60, "type": "ADDRESS"}, {"start": 74, "end": 125, "type": "ADDRESS"}]}
+{"id": "hw-075", "category": "support", "template": "handwritten", "text": "Deliver it to 2nd floor, 45 Anna Salai, Teynampet, Chennai 600018 and call 9840012345", "spans": [{"start": 14, "end": 65, "type": "ADDRESS"}, {"start": 75, "end": 85, "type": "PHONE"}]}
+{"id": "hw-076", "category": "hinglish", "template": "handwritten", "text": "flat 504 krishna heights baner pune 411045 pe bhejna bhai", "spans": [{"start": 0, "end": 42, "type": "ADDRESS"}]}
+{"id": "hw-077", "category": "support", "template": "handwritten", "text": "Hi, the address is Door No 7-12, Gandhi Street, Vijayawada", "spans": [{"start": 19, "end": 58, "type": "ADDRESS"}]}
+{"id": "hw-078", "category": "support", "template": "handwritten", "text": "Landmark: behind Big Bazaar, Ranchi Road, Ramgarh", "spans": [{"start": 10, "end": 49, "type": "ADDRESS"}]}
+{"id": "hw-079", "category": "agent_record", "template": "handwritten", "text": "ADDRESS: QTR NO 45, SECTOR 4, BHILAI 490006\nPH: 9406123456", "spans": [{"start": 9, "end": 43, "type": "ADDRESS"}, {"start": 48, "end": 58, "type": "PHONE"}]}
+{"id": "hw-080", "category": "support", "template": "handwritten", "text": "send to Room 12, Boys Hostel 3, IIT Campus, Powai, Mumbai 400076", "spans": [{"start": 8, "end": 64, "type": "ADDRESS"}]}
+{"id": "hw-081", "category": "hard", "template": "handwritten", "text": "address: flat 12, Green Park, pincode-411 038", "spans": [{"start": 9, "end": 45, "type": "ADDRESS"}]}
+{"id": "hw-082", "category": "hard", "template": "handwritten", "text": "i live near the big water tank only, come there", "spans": [{"start": 7, "end": 30, "type": "ADDRESS"}]}
+{"id": "hw-083", "category": "hinglish", "template": "handwritten", "text": "Ward no 12, Station Para, Raipur mein delivery hoti hai?", "spans": [{"start": 0, "end": 32, "type": "ADDRESS"}]}
+{"id": "hw-084", "category": "support", "template": "handwritten", "text": "Please update: 7, Lake View Road, Kakkanad, Kochi - 682030", "spans": [{"start": 15, "end": 58, "type": "ADDRESS"}]}
+{"id": "hw-085", "category": "support", "template": "handwritten", "text": "Office address Unit 401, Cyber Towers, HITEC City, Hyderabad 500081", "spans": [{"start": 15, "end": 67, "type": "ADDRESS"}]}
+{"id": "hw-086", "category": "negative", "template": "handwritten", "text": "I'm from Pune but currently in Bangalore, does that matter for KYC?", "spans": []}
+{"id": "hw-087", "category": "negative", "template": "handwritten", "text": "OTP 411038 not received yet", "spans": []}
+{"id": "hw-088", "category": "negative", "template": "handwritten", "text": "order no 560034 delivered to the wrong person", "spans": []}
+{"id": "hw-089", "category": "negative", "template": "handwritten", "text": "near the station there is a lot of traffic today", "spans": []}
+{"id": "hw-090", "category": "negative", "template": "handwritten", "text": "our society has 12/3 wings lol, anyway refund kab aayega", "spans": []}
+{"id": "hw-091", "category": "negative", "template": "handwritten", "text": "Is Koramangala in your delivery area?", "spans": []}
+{"id": "hw-092", "category": "negative", "template": "handwritten", "text": "PIN 4321 for my card is not working", "spans": []}
+{"id": "hw-093", "category": "negative", "template": "handwritten", "text": "Andheri West or Andheri East, which branch is closer?", "spans": []}

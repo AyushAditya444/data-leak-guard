@@ -10,12 +10,16 @@ Every maker takes a random.Random, so a fixed seed gives the same dataset every 
 """
 
 import random
+import re
 import string
 import uuid
+import zlib
 from collections.abc import Callable
+from functools import cache
 
 from leakguard.detect.checksums import luhn_valid
 from leakguard.detect.contact import UPI_HANDLES
+from leakguard.detect.gazetteer import CITY_ALIASES, PostOffice, load_gazetteer
 
 Maker = Callable[[random.Random], str]
 
@@ -53,18 +57,6 @@ FIRST_NAMES = ("Rahul", "Priya", "Amit", "Sneha", "Arjun", "Kavya", "Rohan", "An
 LAST_NAMES = ("Sharma", "Verma", "Patel", "Reddy", "Iyer", "Nair", "Singh", "Khan", "Gupta",
               "Mehta", "Das", "Banerjee", "Joshi", "Kulkarni", "Pillai", "Menon", "Rao",
               "Shaikh", "Fernandes", "Mishra", "Yadav", "Choudhary", "Agarwal", "Bose")
-# (locality, city, first four digits of the PIN code)
-PLACES = (("Andheri West", "Mumbai", "4000"), ("Koramangala", "Bengaluru", "5600"),
-          ("Laxmi Nagar", "Delhi", "1100"), ("Salt Lake", "Kolkata", "7000"),
-          ("Anna Nagar", "Chennai", "6000"), ("Banjara Hills", "Hyderabad", "5000"),
-          ("Kothrud", "Pune", "4110"), ("Vastrapur", "Ahmedabad", "3800"),
-          ("Gomti Nagar", "Lucknow", "2260"), ("Sector 15", "Noida", "2013"),
-          ("Malviya Nagar", "Jaipur", "3020"), ("Kakkanad", "Kochi", "6820"))
-BUILDINGS = ("Sai Krupa Apartments", "Green Valley Society", "Shanti Niwas", "Lakeview Towers",
-             "Sunrise Residency", "Royal Enclave", "Krishna Kunj", "Silver Oak Heights")
-LANDMARKS = ("Hanuman Mandir", "SBI ATM", "City Mall", "the Gurudwara", "the metro station",
-             "Govt School", "Big Bazaar", "the post office")
-ROADS = ("MG Road", "Station Road", "Nehru Marg", "2nd Cross Road", "Link Road")
 EMAIL_DOMAINS = ("gmail.com", "yahoo.co.in", "outlook.com", "rediffmail.com", "hotmail.com")
 IFSC_BANKS = ("HDFC", "SBIN", "ICIC", "UTIB", "KKBK", "PUNB", "BARB", "CNRB", "IDIB", "YESB",
               "UBIN", "IOBA")
@@ -246,21 +238,191 @@ def name_makers(split: str) -> dict[str, Maker]:
         "NAME.wordlike": wordlike,
     }
 
-def address(rng: random.Random) -> str:
-    locality, city, pin_prefix = rng.choice(PLACES)
-    pin = pin_prefix + _digits(rng, 2)
-    with_pin = rng.random() < 0.6
-    style = rng.choice(("formal", "landmark", "hinglish", "house"))
-    if style == "formal":
-        value = f"Flat {rng.randint(1, 12)}0{rng.randint(1, 9)}, {rng.choice(BUILDINGS)}, " \
-                f"{locality}, {city}"
-    elif style == "landmark":
-        value = f"near {rng.choice(LANDMARKS)}, {locality}, {city}"
-    elif style == "hinglish":
-        value = f"H.No. {rng.randint(1, 300)}, gali no {rng.randint(1, 20)}, {locality}, {city}"
-    else:
-        value = f"{rng.randint(1, 99)}/{rng.randint(1, 9)}, {rng.choice(ROADS)}, {locality}, {city}"
-    return f"{value} {pin}" if with_pin else value
+# --- addresses -------------------------------------------------------------------------
+#
+# Places come from the real India Post directory, split by district so the test split
+# only has places the dev split (used for tuning) never showed. The other vocabularies
+# are split too, and were written for variety, not copied from the detector's keyword
+# lists: test uses spellings dev never shows ("Apts" vs "Apartments", "nr." vs "near").
+
+# Real-sounding localities that are NOT post office names (new layouts and societies),
+# so finding places can't be 100% just because the generator and detector share a list.
+INVENTED_LOCALITIES: dict[str, tuple[str, ...]] = {
+    "dev": ("Hiranandani Meadows", "Palm Grove Layout", "Green Glen Layout",
+            "Sunshine Enclave", "Lakeshore Gardens", "Silver Springs Colony",
+            "Royal Palms Estate", "Orchid Valley", "Maple Heights Layout", "Rose Garden Extn",
+            "Emerald Isle Township", "Prestige Shantiniketan", "Sobha Dream Acres",
+            "Brigade Meadows", "Lodha Palava", "DLF Phase 3", "Amrapali Zodiac",
+            "Mahagun Moderne", "Jaypee Greens", "Godrej Garden City", "Kumar Pebble Park",
+            "Nyati Elysia"),
+    "test": ("Whispering Woods Layout", "Coconut Grove Colony", "Golden Meadows Township",
+             "Blue Ridge Estate", "Cedar Park Layout", "Ivory Towers Enclave",
+             "Pearl Residency Layout", "Bluebell Gardens", "Willow Creek Colony",
+             "Tulip Valley Extn", "Rohan Abhilasha", "Purva Riviera", "Mantri Espana",
+             "Supertech Capetown", "Gaur City 2", "ATS Pristine", "Kolte Patil Life Republic",
+             "Paranjape Blue Ridge", "Raheja Vistas", "Hiranandani Estate Thane West",
+             "Salarpuria Greenage", "Tata Primanti"),
+}
+
+_BUILDING_NAMES = {
+    "dev": ("Sai Krupa", "Green Valley", "Shanti", "Lakeview", "Sunrise", "Royal", "Ganesh",
+            "Laxmi", "Sagar", "Kailash", "Panchsheel", "Ashirwad"),
+    "test": ("Om Sai", "Silver Oak", "Gokul", "Mayur", "Vrindavan", "Shivam", "Navkar",
+             "Saraswati", "Parijat", "Devashree", "Swapnapurti", "Mangalmurti"),
+}
+_BUILDING_SUFFIXES = {
+    "dev": ("Apartments", "Society", "Residency", "Towers", "Niwas", "Enclave", "Bhavan"),
+    "test": ("Apts", "CHS", "Heights", "Sadan", "Complex", "Kunj", "Villas"),
+}
+_STREETS = {
+    "dev": ("MG Road", "Station Road", "Nehru Marg", "2nd Cross Road", "Link Road",
+            "Tilak Road", "gali no {n}", "Sector {n}", "Block {L}"),
+    "test": ("FC Road", "Gandhi Path", "Ring Rd", "5th Main", "Church Street",
+             "Netaji Subhash Marg", "lane no {n}", "Phase {n}", "{n}th Cross"),
+}
+_LANDMARK_CUES = {"dev": ("near", "opp.", "behind"),
+                  "test": ("nr.", "opposite", "next to", "beside")}
+_LANDMARK_THINGS = {
+    "dev": ("Hanuman Mandir", "SBI ATM", "City Mall", "the Gurudwara", "Govt School",
+            "Axis Bank", "Shivaji Park"),
+    "test": ("Shiv Temple", "HDFC Bank", "Big Bazaar", "Jama Masjid", "the petrol pump",
+             "the bus stand", "St. Mary's Church"),
+}
+_POSTPOSITIONS = ("ke paas", "ke saamne", "ke peeche")
+_UNITS = ("Flat {n}", "Flat No. {n}", "H.No. {n}", "House No {n}", "Plot {n}", "{a}/{b}",
+          "{L}-{n}", "#{n}", "Door No {a}-{b}", "Room {n}", "Shop No. {a}")
+_ABBREV_UNITS = ("Flat No. {n}", "H.No. {n}", "Plot No. {a}")
+
+# Every style the generator can produce. "landmark_only" (no place) is not an address by
+# the detector's definition: it appears only in the "hard" category, as a known miss.
+ADDRESS_STYLES = ("formal_pin", "formal", "landmark", "hinglish", "multiline", "partial",
+                  "nocomma", "abbrev", "landmark_only")
+
+_CITY_SUFFIX = re.compile(r"\s+(?:Urban|Rural|Suburban|City)$")
+
+
+def city_name(district: str) -> str:
+    """How people write a district as their city: "Bengaluru Urban" -> "Bengaluru".
+    A trailing dot ("Y.S.R.") is dropped: gold spans never end in punctuation."""
+    return _CITY_SUFFIX.sub("", district).rstrip(".")
+
+
+@cache
+def place_pools(split: str) -> list[PostOffice]:
+    """Post offices whose district belongs to `split` (districts never shared)."""
+    want = 0 if split == "dev" else 1
+    return [o for o in load_gazetteer().offices
+            if o.district and zlib.crc32(o.district.lower().encode()) % 2 == want]
+
+
+def address_makers(split: str) -> dict[str, Maker]:
+    """ADDRESS makers (one per style) and the address look-alike fillers, for one split."""
+    pool = place_pools(split)
+    # 85% of post offices are rural branch offices, but support chats come mostly from
+    # cities, so half the addresses are drawn from big-city districts.
+    cities = {c.lower() for c in CITY_ALIASES}
+    urban = [o for o in pool if city_name(o.district).lower() in cities]
+    invented = INVENTED_LOCALITIES[split]
+
+    def fill(rng: random.Random, pattern: str) -> str:
+        return pattern.format(n=rng.randint(1, 120), a=rng.randint(1, 60), b=rng.randint(1, 9),
+                              L=rng.choice("ABCDEFGH"))
+
+    def place(rng: random.Random) -> tuple[str, str, str]:
+        """(locality, city, PIN): a real office, or now and then an invented locality."""
+        office = rng.choice(urban if urban and rng.random() < 0.5 else pool)
+        locality = rng.choice(invented) if rng.random() < 0.25 else office.office.rstrip(".")
+        return locality, city_name(office.district), office.pin
+
+    def unit(rng):
+        return fill(rng, rng.choice(_UNITS))
+
+    def building(rng):
+        return f"{rng.choice(_BUILDING_NAMES[split])} {rng.choice(_BUILDING_SUFFIXES[split])}"
+
+    def street(rng):
+        return fill(rng, rng.choice(_STREETS[split]))
+
+    def landmark(rng):
+        return f"{rng.choice(_LANDMARK_CUES[split])} {rng.choice(_LANDMARK_THINGS[split])}"
+
+    def pin_text(rng, pin: str) -> str:
+        return rng.choice((f" {pin}", f" - {pin}", f", {pin}", f", Pin {pin}", f" PIN: {pin}"))
+
+    def case(rng, value: str) -> str:  # people often type in lowercase
+        return value.lower() if rng.random() < 0.2 else value
+
+    def formal_parts(rng) -> tuple[list[str], str]:
+        locality, city, pin = place(rng)
+        middle = rng.choice(([building(rng)], [street(rng)], [building(rng), street(rng)]))
+        return [unit(rng), *middle, locality, city], pin
+
+    def formal_pin(rng):
+        parts, pin = formal_parts(rng)
+        return case(rng, ", ".join(parts) + pin_text(rng, pin))
+
+    def formal(rng):
+        return case(rng, ", ".join(formal_parts(rng)[0]))
+
+    def landmark_style(rng):
+        locality, city, _ = place(rng)
+        lead = [landmark(rng)] if rng.random() < 0.6 else [unit(rng), landmark(rng)]
+        return case(rng, ", ".join([*lead, locality, city]))
+
+    def hinglish(rng):
+        locality, city, _ = place(rng)
+        thing = rng.choice(_LANDMARK_THINGS[split])
+        return rng.choice((
+            f"H.No. {rng.randint(1, 300)}, gali no {rng.randint(1, 20)}, {locality}",
+            f"{thing} {rng.choice(_POSTPOSITIONS)}, {locality}, {city}",
+            f"sector {rng.randint(1, 120)}, {city}",
+            f"makaan no {rng.randint(1, 300)}, {locality}, {city}",
+        )).lower()
+
+    def multiline(rng):
+        parts, pin = formal_parts(rng)
+        newline = rng.choice(("\n", "\r\n"))
+        comma = rng.choice((",", ""))
+        return (comma + newline).join(parts) + pin_text(rng, pin).replace(", ", newline)
+
+    def partial(rng):
+        locality, _, _ = place(rng)
+        return case(rng, f"{unit(rng)}, {locality}")
+
+    def nocomma(rng):
+        parts, pin = formal_parts(rng)
+        return f"{' '.join(parts)} {pin}".lower()
+
+    def abbrev(rng):
+        locality, city, pin = place(rng)
+        name = rng.choice(_BUILDING_NAMES[split])
+        return (f"{fill(rng, rng.choice(_ABBREV_UNITS))}, {name} Apts, nr. "
+                f"{rng.choice(_LANDMARK_THINGS[split])}, {locality}, {city}, Pin-{pin}")
+
+    def landmark_only(rng):
+        thing = rng.choice(("metro station", "water tank", "big banyan tree", "old post office"))
+        return f"{rng.choice(_LANDMARK_CUES[split])} the {thing}"
+
+    styles: dict[str, Maker] = {
+        "formal_pin": formal_pin, "formal": formal, "landmark": landmark_style,
+        "hinglish": hinglish, "multiline": multiline, "partial": partial,
+        "nocomma": nocomma, "abbrev": abbrev, "landmark_only": landmark_only,
+    }
+    mixed_styles = ("formal_pin", "formal", "landmark", "hinglish", "partial")
+
+    def mixed(rng):  # plain {ADDRESS}: any common style
+        return styles[rng.choice(mixed_styles)](rng)
+
+    def place_filler(rng):  # a place outside any address: "I live in Pune"
+        locality, city, _ = place(rng)
+        return rng.choice((locality, city))
+
+    return {
+        "ADDRESS": mixed,
+        **{f"ADDRESS.{style}": maker for style, maker in styles.items()},
+        "PLACE": place_filler,
+        "PIN_LIKE": lambda rng: rng.choice(pool).pin,  # a real PIN used as OTP / order no
+    }
 
 
 def _random_word_case(rng: random.Random, word: str) -> str:
@@ -334,7 +496,7 @@ VALUE_MAKERS: dict[str, Maker] = {
     "BANK_ACCOUNT": bank_account,
     # Default for ad-hoc rendering; build_split always uses the split's own pool.
     **name_makers("dev"),
-    "ADDRESS": address,
+    **address_makers("dev"),
     **{f"SECRET.{kind}": maker for kind, maker in SECRET_MAKERS.items()},
     **FILLER_MAKERS,
 }
