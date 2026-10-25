@@ -29,3 +29,30 @@ def test_rules_include_name_cues():
     text = "mera naam rahul hai, number 9876543210"
     assert [(s.type, s.text(text)) for s in detect_rules(text)] == [
         (T.NAME, "rahul"), (T.PHONE, "9876543210")]
+
+
+def _kinds(text, spans):
+    return [(s.type, s.text(text)) for s in spans]
+
+
+def test_address_stops_at_phone():
+    text = "Flat 9, Kothrud, Pune 411038 9876543210"
+    assert _kinds(text, detect_rules(text)) == [
+        (T.ADDRESS, "Flat 9, Kothrud, Pune 411038"), (T.PHONE, "9876543210")]
+    text = "B-204, Baner,Pune-411045,ph:9820031476"
+    assert _kinds(text, detect_rules(text)) == [
+        (T.ADDRESS, "B-204, Baner,Pune-411045"), (T.PHONE, "9820031476")]
+
+
+def test_name_inside_address_absorbed():
+    def fake_ner(text):
+        start = text.find("Sai Krupa")
+        return [Span(start, start + 9, T.NAME, 0.9, "ner")] if start >= 0 else []
+    text = "Flat 302, Sai Krupa Apts, Kothrud, Pune"
+    assert _kinds(text, build_detector(fake_ner)(text)) == [(T.ADDRESS, text)]
+
+
+def test_address_next_to_email_kept_separate():
+    text = "B-204, Baner, Pune, email a@b.com"
+    assert _kinds(text, detect_rules(text)) == [
+        (T.ADDRESS, "B-204, Baner, Pune"), (T.EMAIL, "a@b.com")]

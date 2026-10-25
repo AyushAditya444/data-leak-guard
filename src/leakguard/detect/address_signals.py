@@ -56,8 +56,8 @@ LANDMARK_NOUNS = frozenset({
     "cinema", "theatre", "theater", "office", "tank", "ground", "circle", "garden", "hotel",
     "dharamshala", "dairy", "bridge", "flyover", "showroom", "petrol", "depot", "tower",
 })
-PIN_CUES = re.compile(r"(?:pin\s*code|pincode|pin|postal\s*code|zip(?:\s*code)?)\W{0,3}$",
-                      re.IGNORECASE)
+PIN_CUES = re.compile(r"(?:pin\s*code|pincode|pin|postal\s*code|zip(?:\s*code)?)"
+                      r"(?:\s+(?:is|hai|no\.?|number))?\W{0,3}$", re.IGNORECASE)
 PIN_BLOCKERS = frozenset({"otp", "code", "order", "ticket", "invoice", "ref", "txn", "id",
                           "rs", "₹", "inr", "amount", "pnr", "awb", "tracking", "booking"})
 
@@ -83,10 +83,14 @@ _FLOOR = re.compile(r"\b(?:\d+(?:st|nd|rd|th)|ground|first|second|third|top)\s+f
 _BARE_UNIT = re.compile(
     r"(?<![\w/#.-])(?:\d{1,4}\s?/\s?\d{1,4}[A-Za-z]?|[A-Za-z]{1,2}\s?[-/]\s?\d{1,4}[A-Za-z]?"
     r"|#\s?\d{1,5}[A-Za-z]?)(?![\w/.-]|-\w)")
-_BUILDING = re.compile(rf"(?:{_NAME_WORD} ){{0,3}}(?:{'|'.join(BUILDING_WORDS)})\b(?: \d+)?",
-                       re.IGNORECASE)
+# Both start with a "not inside a word" lookbehind: otherwise a failed match is retried
+# from every letter of a long word, which is quadratic (100,000 letters took a minute).
+_BUILDING = re.compile(
+    rf"(?<![\w.'&])(?:{_NAME_WORD} ){{0,3}}(?:{'|'.join(BUILDING_WORDS)})\b(?: \d+)?",
+    re.IGNORECASE)
 _NAMED_STREET = re.compile(
-    rf"(?:\d{{1,4}} )?(?:{_NAME_WORD} ){{0,3}}(?:{'|'.join(STREET_WORDS)})\b\.?", re.IGNORECASE)
+    rf"(?<![\w.'&])(?:\d{{1,4}} )?(?:{_NAME_WORD} ){{0,3}}(?:{'|'.join(STREET_WORDS)})\b\.?",
+    re.IGNORECASE)
 _ORDINAL_STREET = re.compile(r"\b\d{1,2}(?:st|nd|rd|th)\s+(?:cross|main)(?:\s+(?:road|rd))?\b",
                              re.IGNORECASE)
 _NUMBERED_STREET = re.compile(

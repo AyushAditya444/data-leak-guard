@@ -61,7 +61,9 @@ def test_errors_cli_works_on_a_legacy_windows_console():
 
 
 def test_render_errors_lists_misses():
-    ev = score(_samples(), detect_rules)
+    # a landmark with no place is a known miss of the address detector
+    text, spans = parse_marked("i stay [[ADDRESS:near the water tank]] only")
+    ev = score([*_samples(), Sample("m", "hard", "t", text, spans)], detect_rules)
     assert "FN ADDRESS" in render_errors(ev)
 
 
