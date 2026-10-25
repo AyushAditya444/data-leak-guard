@@ -1,8 +1,10 @@
+import json
+
 import pytest
 
 from leakguard.detect.spans import Span
 from leakguard.entities import EntityType as T
-from leakguard.evaluation.metrics import score
+from leakguard.evaluation.metrics import evaluation_from_json, evaluation_to_json, score
 from leakguard.evaluation.samples import Sample, parse_marked, read_jsonl, write_jsonl
 
 
@@ -64,3 +66,31 @@ def test_score_propagates_detector_errors():
 
     with pytest.raises(RuntimeError):
         score([_sample("hi")], broken)
+
+
+def test_cover_extends_coverage_not_typed_scores():
+    s = _sample("mail [[EMAIL:a@b.in]] now")
+    g = s.spans[0]
+    ev = score([s], lambda text: [], cover=lambda text: [(g.start, g.end)])
+    st = ev.by_type[T.EMAIL]
+    assert st.coverage == 1.0 and st.recall == 0.0 and st.fp == 0
+
+
+def test_cover_ranges_count_each_char_once():
+    s = _sample("mail [[EMAIL:a@b.in]] now")
+    g = s.spans[0]
+    pred = Span(g.start, g.end, T.EMAIL)
+    ev = score([s], lambda text: [pred],
+               cover=lambda text: [(g.start, g.end), (g.start - 2, g.end + 1)])
+    st = ev.by_type[T.EMAIL]
+    assert st.covered_chars == st.gold_chars == g.end - g.start
+
+
+def test_evaluation_json_round_trip():
+    s = _sample("call [[PHONE:98765 43210]] or [[EMAIL:a@b.in]]")
+    ev = score([s, _sample("order 12345", "negative", "n1")],
+               lambda text: [Span(5, 16, T.PHONE)] if "call" in text else [])
+    data = json.loads(json.dumps(evaluation_to_json(ev)))
+    back = evaluation_from_json(data)
+    assert back.by_type == ev.by_type
+    assert (back.negatives_total, back.negatives_with_fp) == (1, 0)
